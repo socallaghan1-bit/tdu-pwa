@@ -11,12 +11,12 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.7">
-    <!-- TODO: Replace G-XXXXXXXXXX with your real GA4 Measurement ID before launch. -->
+    <link rel="stylesheet" href="style.css?v=1.8">
+    <!-- Manual SPA pageviews are sent from app.js. If GA4 Enhanced Measurement browser-history pageviews are enabled, disable them to avoid duplicates. -->
     <script>
-        window.TDU_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+        window.TDU_GA_MEASUREMENT_ID = 'G-95K2T8ZYW4';
 
-        if (window.TDU_GA_MEASUREMENT_ID && window.TDU_GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+        if (window.TDU_GA_MEASUREMENT_ID) {
             const gaScript = document.createElement('script');
             gaScript.async = true;
             gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${window.TDU_GA_MEASUREMENT_ID}`;
@@ -25,7 +25,9 @@
             window.dataLayer = window.dataLayer || [];
             window.gtag = function gtag(){ window.dataLayer.push(arguments); };
             window.gtag('js', new Date());
-            window.gtag('config', window.TDU_GA_MEASUREMENT_ID);
+            window.gtag('config', window.TDU_GA_MEASUREMENT_ID, {
+                send_page_view: false
+            });
         }
     </script>
 </head>
@@ -187,20 +189,20 @@
                 <h3 id="feedback-title">Send feedback</h3>
                 <button class="close-btn" onclick="closeFeedbackModal()" aria-label="Close feedback form">&times;</button>
             </div>
-            <p id="feedback-description" class="modal-sub">Share a quick idea, bug, or request without leaving the app.</p>
-            <!-- TODO: Replace the placeholder Google Form embed URL below with the real Google Form embed URL. -->
+            <p id="feedback-description" class="modal-sub">Share a quick idea, bug, or request. The embedded Google Form will load here once the canonical embed URL is available.</p>
             <iframe
                 id="feedback-form-frame"
                 class="feedback-frame"
                 title="TDU feedback form"
                 loading="lazy"
                 src="about:blank"
-                data-form-src="https://docs.google.com/forms/d/e/REPLACE_WITH_REAL_FORM_ID/viewform?embedded=true"
-                srcdoc="<!DOCTYPE html><html lang='en'><body style='margin:0;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;color:#555;background:#fafafa;'><main><p>Feedback form placeholder. Add the real Google Form embed URL in index.html to load it here.</p></main></body></html>"
+                data-form-src=""
+                data-form-share-url="https://forms.gle/2UWyokw2GM65tKsW9"
+                srcdoc="<!DOCTYPE html><html lang='en'><body style='margin:0;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;color:#555;background:#fafafa;'><main><p>Feedback form embed pending.</p><p style='font-size:14px;line-height:1.5;'>TODO for the owner: replace the Google Forms short link with its canonical docs.google.com/forms/.../viewform?embedded=true URL to render the form inside this modal without a broken iframe.</p></main></body></html>"
             ></iframe>
-            <p class="feedback-note">The live Google Form URL is still a placeholder for now.</p>
+            <p class="feedback-note">The owner-provided short link is configured for fallback access, but Google Forms still needs its canonical embed URL here for in-app submission.</p>
             <div class="modal-actions">
-                <button class="btn btn-primary" type="button" onclick="confirmFeedbackSubmitted()">I submitted feedback</button>
+                <button class="btn btn-primary" type="button" onclick="openFeedbackForm()">Open Google Form</button>
                 <button class="btn modal-secondary-btn" type="button" onclick="closeFeedbackModal()">Done</button>
             </div>
         </div>
@@ -223,6 +225,6 @@
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=1.7"></script>
+    <script src="app.js?v=1.8"></script>
 </body>
 </html>
