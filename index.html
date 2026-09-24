@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.5">
+    <link rel="stylesheet" href="style.css?v=1.6">
 </head>
 <body>
     <header>
@@ -39,6 +39,11 @@
 
             <div class="section-title">Explore Schedule</div>
 
+            <section id="featured-events-section" class="featured-section" aria-labelledby="featured-events-title" hidden>
+                <div class="section-title featured-title" id="featured-events-title">Featured Events</div>
+                <div id="featured-events-container" class="featured-events-list"></div>
+            </section>
+
             <div class="home-grid">
                 <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
                     <i class="fas fa-calendar-day" aria-hidden="true"></i>
@@ -65,7 +70,21 @@
 
     <section id="view-schedule" class="view" aria-label="Event schedule">
         <div class="filter-wrapper">
-            <div class="filter-label" id="filter-label-text">Filter by Date</div>
+            <div class="search-wrapper">
+                <label class="search-label" for="schedule-search">Search the schedule</label>
+                <div class="search-input-wrap">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input
+                        id="schedule-search"
+                        class="search-input"
+                        type="search"
+                        placeholder="Search stages, locations, tags..."
+                        oninput="applySearch(this.value)"
+                    >
+                </div>
+            </div>
+
+            <div class="filter-label">Filter by Day</div>
 
             <div class="filters" id="day-filters">
                 <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
@@ -77,11 +96,8 @@
                 <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
             </div>
 
-            <div class="filters" id="category-filters" style="display:none;">
-                <button class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Men's Stage&quot;, this)">Men's Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Women's Stage&quot;, this)">Women's Stages</button>
-            </div>
+            <div class="filter-label">Filter by Category</div>
+            <div class="filters" id="category-filters"></div>
         </div>
 
         <div id="events-container">
@@ -118,6 +134,6 @@
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=1.5"></script>
+    <script src="app.js?v=1.6"></script>
 </body>
 </html>
