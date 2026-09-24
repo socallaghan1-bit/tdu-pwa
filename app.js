@@ -1,5 +1,5 @@
 let allEvents = [];
-let weatherData = {}; // Live weather keyed by 'YYYY-MM-DD'
+let weatherData = {};
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let activeFilterMode = 'day';
@@ -8,7 +8,6 @@ let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
-// Convert degrees (0-360) to compass direction
 function getCompassDirection(degrees) {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     return directions[Math.round(degrees / 45) % 8];
@@ -29,7 +28,6 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
-// Fetch Daily Weather strictly from live Open-Meteo API
 async function fetchDailyWeather() {
     const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&daily=temperature_2m_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Australia%2FAdelaide';
 
@@ -50,10 +48,8 @@ async function fetchDailyWeather() {
             }
         }
     } catch (e) {
-        console.warn("Live weather fetch unnavailable:", e);
+        console.warn("Live weather fetch unavailable:", e);
     }
-    
-    // Refresh schedule display with live weather data
     renderSchedule();
 }
 
@@ -101,8 +97,11 @@ function renderSchedule() {
 
 function renderSaved() {
     const container = document.getElementById('saved-events-container');
+    const exportBtnContainer = document.getElementById('export-btn-container');
     if (!container) return;
+    
     container.innerHTML = '';
+    if (exportBtnContainer) exportBtnContainer.innerHTML = '';
 
     const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
     const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
@@ -116,6 +115,15 @@ function renderSaved() {
             </div>
         `;
         return;
+    }
+
+    // Add Export Button
+    if (exportBtnContainer) {
+        exportBtnContainer.innerHTML = `
+            <button class="btn-export" onclick="exportSavedToICS()">
+                <i class="far fa-calendar-plus"></i> Export Itinerary to Phone Calendar (.ics)
+            </button>
+        `;
     }
 
     displayEvents.forEach((event, index) => {
@@ -142,7 +150,6 @@ function createEventCardHTML(event, eventId, isSaved) {
         timeRange += ' - ' + endTime;
     }
 
-    // Lookup strictly live weather for event date
     const dayWeather = weatherData[event.date];
 
     return `
@@ -177,6 +184,67 @@ function createEventCardHTML(event, eventId, isSaved) {
         </div>
     `;
 }
+
+// CALENDAR ICS EXPORT GENERATOR
+window.exportSavedToICS = function() {
+    const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
+
+    if (displayEvents.length === 0) {
+        alert("No saved events to export.");
+        return;
+    }
+
+    let icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//TDU 2026 Companion//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH"
+    ];
+
+    displayEvents.forEach(e => {
+        const rawDate = (e.date || '').replace(/-/g, '');
+        if (!rawDate) return;
+
+        let startFormatted = (e.start_time || '09:00').replace(':', '') + '00';
+        if (startFormatted.length === 5) startFormatted = '0' + startFormatted;
+
+        let endFormatted = (e.end_time || '').replace(':', '');
+        if (endFormatted) {
+            endFormatted += '00';
+            if (endFormatted.length === 5) endFormatted = '0' + endFormatted;
+        } else {
+            // Default 2-hour event duration
+            let startHour = parseInt(startFormatted.substring(0, 2), 10);
+            let endHour = startHour + 2;
+            endFormatted = (endHour < 10 ? '0' + endHour : endHour) + startFormatted.substring(2);
+        }
+
+        const dtStart = `${rawDate}T${startFormatted}`;
+        const dtEnd = `${rawDate}T${endFormatted}`;
+
+        icsContent.push(
+            "BEGIN:VEVENT",
+            `SUMMARY:${e.title || 'TDU Event'}`,
+            `DESCRIPTION:${(e.description || '').replace(/\n/g, ' ')}`,
+            `LOCATION:${e.location || 'Adelaide, SA'}`,
+            `DTSTART:${dtStart}`,
+            `DTEND:${dtEnd}`,
+            "END:VEVENT"
+        );
+    });
+
+    icsContent.push("END:VCALENDAR");
+
+    const blob = new Blob([icsContent.join("\r\n")], { type: 'text/calendar;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', 'My_TDU_2026_Schedule.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 
 window.toggleSave = function(id, btnElement) {
     let savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
