@@ -12,7 +12,7 @@
 
     <!-- Icons & Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.3">
+    <link rel="stylesheet" href="style.css?v=1.4">
 </head>
 <body>
 
@@ -37,14 +37,11 @@
         </div>
 
         <div class="home-container">
-            <div class="home-container">
-            
             <!-- LIVE ADELAIDE WEATHER WIDGET -->
             <div id="weather-widget" class="weather-card">
                 <i class="fas fa-spinner fa-spin"></i> Loading Adelaide Weather...
             </div>
 
-            <div class="section-title">Explore Schedule</div>
             <div class="section-title">Explore Schedule</div>
             
             <div class="home-grid">
@@ -108,8 +105,11 @@
     <!-- 3. MY TDU ITINERARY VIEW -->
     <div id="view-saved" class="view">
         <div style="padding: 15px 15px 0 15px; max-width: 600px; margin: 0 auto;">
-            <h2 style="margin: 5px 0 5px 0; font-size: 1.3rem;">My TDU</h2>
-            <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-light);">Your saved personal Tour Down Under schedule.</p>
+            <h2 style="margin: 5px 0 2px 0; font-size: 1.3rem;">My TDU</h2>
+            <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: var(--text-light);">Your saved personal Tour Down Under schedule.</p>
+            
+            <!-- EXPORT CALENDAR BUTTON CONTAINER -->
+            <div id="export-btn-container" style="margin-bottom: 15px;"></div>
         </div>
         
         <div id="saved-events-container" style="padding: 0 15px 15px 15px; max-width: 600px; margin: 0 auto;"></div>
@@ -155,6 +155,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.3"></script>
+    <script src="app.js?v=1.4"></script>
 </body>
 </html>
