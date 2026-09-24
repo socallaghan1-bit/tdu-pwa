@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TDU 2026 Companion</title>
-    <!-- Icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PapaParse: Industry standard CSV Parser -->
+    <!-- PapaParse CSV Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <style>
@@ -241,26 +241,26 @@
         let currentFilter = 'All';
         let currentTab = 'all';
 
-        async function fetchEvents() {
-            try {
-                const response = await fetch(SHEET_URL);
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                const csvText = await response.text();
-                
-                // Parse CSV reliably with PapaParse
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    transformHeader: h => h.trim().toLowerCase().replace(/\s+/g, '_'),
-                    complete: function(results) {
+        function fetchEvents() {
+            // Use PapaParse download mode to bypass browser CORS fetch restrictions
+            Papa.parse(SHEET_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: h => h.trim().toLowerCase().replace(/\s+/g, '_'),
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
                         allEvents = results.data;
                         renderEvents();
+                    } else {
+                        document.getElementById('events-container').innerHTML = "<p style='text-align:center; padding:20px;'>Spreadsheet loaded, but no event rows were found.</p>";
                     }
-                });
-            } catch (error) {
-                console.error("Fetch error:", error);
-                document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error loading events: ${error.message}</p>`;
-            }
+                },
+                error: function(err) {
+                    console.error("PapaParse Download Error:", err);
+                    document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error loading sheet. Verify the Google Sheet 'Publish to Web' status.</p>`;
+                }
+            });
         }
 
         function renderEvents() {
@@ -268,20 +268,19 @@
             container.innerHTML = '';
             
             const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
-
             let displayEvents = allEvents;
             
-            if(currentTab === 'saved') {
+            if (currentTab === 'saved') {
                 displayEvents = displayEvents.filter(e => savedEvents.includes(String(e.id)));
                 document.getElementById('filter-container').style.display = 'none';
             } else {
                 document.getElementById('filter-container').style.display = 'flex';
-                if(currentFilter !== 'All') {
+                if (currentFilter !== 'All') {
                     displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentFilter.toLowerCase()));
                 }
             }
 
-            if(displayEvents.length === 0) {
+            if (displayEvents.length === 0) {
                 container.innerHTML = "<p style='text-align:center; padding:20px; color:#666;'>No events found.</p>";
                 return;
             }
@@ -294,7 +293,7 @@
                 let dateDisplay = event.date || '';
                 try {
                     const d = new Date(event.date);
-                    if(!isNaN(d)) {
+                    if (!isNaN(d)) {
                         dateDisplay = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
                     }
                 } catch(e) {}
@@ -331,7 +330,7 @@
             let savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
             const strId = String(id);
             
-            if(savedEvents.includes(strId)) {
+            if (savedEvents.includes(strId)) {
                 savedEvents = savedEvents.filter(eventId => eventId !== strId);
                 btnElement.classList.remove('saved');
                 btnElement.innerHTML = '<i class="far fa-heart"></i>';
@@ -343,7 +342,7 @@
             
             localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
             
-            if(currentTab === 'saved') {
+            if (currentTab === 'saved') {
                 renderEvents();
             }
         };
@@ -352,7 +351,7 @@
             currentFilter = category;
             const buttons = document.querySelectorAll('.filter-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
-            if(event && event.target) {
+            if (event && event.target) {
                 event.target.classList.add('active');
             }
             renderEvents();
