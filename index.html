@@ -12,25 +12,13 @@
 
     <!-- Icons & Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.2">
-    <!-- STICKY HEADER WITH SMART INSTALL PILL -->
-    <header>
-        <div class="header-brand" onclick="showView('home')">
-            <h1>TDU 2026</h1>
-            <div class="header-subtitle">Adelaide Companion</div>
-        </div>
-        
-        <!-- Header Install Button (Managed by app.js) -->
-        <button id="header-install-btn" class="header-install-btn" onclick="triggerInstall()" style="display: none;">
-            <i class="fas fa-mobile-alt"></i> Get App
-        </button>
-    </header>
+    <link rel="stylesheet" href="style.css?v=1.3">
 </head>
 <body>
 
-    <!-- STICKY HEADER WITH SMART INSTALL PILL -->
+    <!-- STICKY HEADER -->
     <header>
-        <div>
+        <div class="header-brand" onclick="showView('home')">
             <h1>TDU 2026</h1>
             <div class="header-subtitle">Adelaide Companion</div>
         </div>
@@ -119,7 +107,7 @@
         <div id="saved-events-container" style="padding: 0 15px 15px 15px; max-width: 600px; margin: 0 auto;"></div>
     </div>
 
-    <!-- SAFARI / IOS INSTRUCTIONS MODAL (Strictly hidden by default) -->
+    <!-- SAFARI / IOS INSTRUCTIONS MODAL -->
     <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
         <div class="modal-card">
             <div class="modal-header">
@@ -159,6 +147,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.2"></script>
+    <script src="app.js?v=1.3"></script>
 </body>
 </html>
