@@ -13,6 +13,18 @@
     <!-- Icons & Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=1.2">
+    <!-- STICKY HEADER WITH SMART INSTALL PILL -->
+    <header>
+        <div class="header-brand" onclick="showView('home')">
+            <h1>TDU 2026</h1>
+            <div class="header-subtitle">Adelaide Companion</div>
+        </div>
+        
+        <!-- Header Install Button (Managed by app.js) -->
+        <button id="header-install-btn" class="header-install-btn" onclick="triggerInstall()" style="display: none;">
+            <i class="fas fa-mobile-alt"></i> Get App
+        </button>
+    </header>
 </head>
 <body>
 
