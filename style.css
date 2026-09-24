@@ -563,3 +563,26 @@ header {
     color: #cbd5e1;
     font-weight: bold;
 }
+/* CALENDAR EXPORT BUTTON */
+.btn-export {
+    background: #27ae60;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25);
+    transition: transform 0.15s, background-color 0.15s;
+}
+
+.btn-export:active {
+    transform: scale(0.98);
+    background: #219653;
+}
