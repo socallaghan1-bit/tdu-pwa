@@ -5,6 +5,36 @@ let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const ADL_WEATHER_PLACEHOLDER = 'Today in Adelaide: 24°C • Partly cloudy';
+const recommendationState = {
+    isOpen: false,
+    intent: '',
+    option: ''
+};
+const RECOMMENDATION_OPTIONS = {
+    ride: [
+        { id: 'hills', label: 'Hills' },
+        { id: 'gravel', label: 'Gravel' },
+        { id: 'easy-social', label: 'Easy & social' },
+        { id: 'fast-flat', label: 'Fast/flat' }
+    ],
+    watch: [
+        { id: 'climbing', label: 'Climbing' },
+        { id: 'coastal', label: 'Coastal' },
+        { id: 'city', label: 'City' },
+        { id: 'any-stage', label: 'Any stage' }
+    ],
+    social: [
+        { id: 'coffee', label: 'Coffee' },
+        { id: 'beer-atmosphere', label: 'Beer/atmosphere' },
+        { id: 'family-friendly', label: 'Family-friendly' },
+        { id: 'featured', label: 'Featured' }
+    ]
+};
+const INTENT_BUTTONS = [
+    { id: 'ride', label: 'I want to ride' },
+    { id: 'watch', label: 'I want to watch racing' },
+    { id: 'social', label: 'I want something social' }
+];
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -19,6 +49,91 @@ function formatDate(dateStr) {
         }
     }
     return dateStr;
+}
+
+function escapeHTML(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getEventType(event) {
+    if (event.type) return String(event.type);
+    if (String(event.category || '').toLowerCase().includes('stage')) return 'Race Stage';
+    return '';
+}
+
+function getEventRatingLabel(event) {
+    const rating = event.tdu_rating;
+    if (!rating) return '';
+    if (typeof rating === 'string') return rating;
+    if (typeof rating === 'object' && rating.label) return rating.label;
+    return '';
+}
+
+function getEventStatus(event) {
+    return String(event.status || 'scheduled').toLowerCase();
+}
+
+function getEventArea(location) {
+    if (!location) return '';
+    const parts = String(location).split(',').map((part) => part.trim()).filter(Boolean);
+    return parts[parts.length - 1] || String(location).trim();
+}
+
+function formatOptionLabel(optionId) {
+    return String(optionId || '').replace(/-/g, ' ');
+}
+
+function getEventTags(event) {
+    const tags = new Set(
+        Array.isArray(event.tags)
+            ? event.tags.map((tag) => String(tag).toLowerCase().trim()).filter(Boolean)
+            : []
+    );
+    const text = `${event.category || ''} ${getEventType(event)} ${event.title || ''} ${event.description || ''} ${event.location || ''}`.toLowerCase();
+
+    if (text.includes('stage')) tags.add('race');
+    if (text.includes('hill') || text.includes('mount lofty') || text.includes('corkscrew') || text.includes('climb')) {
+        tags.add('hills');
+        tags.add('climbing');
+    }
+    if (text.includes('gravel')) tags.add('gravel');
+    if (text.includes('coffee') || text.includes('cafe')) tags.add('coffee');
+    if (text.includes('beer') || text.includes('bar') || text.includes('atmosphere')) tags.add('beer');
+    if (text.includes('family')) tags.add('family');
+    if (text.includes('social')) tags.add('social');
+    if (text.includes('victor harbor') || text.includes('glenelg') || text.includes('henley beach') || text.includes('beach') || text.includes('coast')) {
+        tags.add('coastal');
+    }
+    if (text.includes('norwood') || text.includes('campbelltown') || text.includes('city')) {
+        tags.add('city');
+    }
+    if (event.featured) tags.add('featured');
+    return Array.from(tags);
+}
+
+function isRideEvent(event) {
+    const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
+    const tags = getEventTags(event);
+    return type.includes('ride') || tags.some((tag) => ['ride', 'group ride', 'gravel', 'participatory'].includes(tag));
+}
+
+function isWatchEvent(event) {
+    const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
+    return type.includes('stage') || getEventTags(event).includes('race');
+}
+
+function isSocialEvent(event) {
+    const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
+    const tags = getEventTags(event);
+    return type.includes('social')
+        || type.includes('pop-up')
+        || type.includes('family')
+        || tags.some((tag) => ['social', 'coffee', 'beer', 'family', 'food', 'drink'].includes(tag));
 }
 
 function getSavedEvents() {
@@ -139,6 +254,8 @@ async function fetchEvents() {
         if (!response.ok) throw new Error('Could not load events.json');
         allEvents = await response.json();
         updateSavedBadge();
+        renderFeaturedEvents();
+        renderRecommendationFlow();
         renderSchedule();
     } catch (error) {
         console.error('Fetch Error:', error);
@@ -146,7 +263,25 @@ async function fetchEvents() {
         if (container) {
             container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
         }
+        const featuredContainer = document.getElementById('featured-events');
+        if (featuredContainer) {
+            featuredContainer.innerHTML = "<div class='placeholder-card'>Featured events will appear here as more TDU events are announced.</div>";
+        }
     }
+}
+
+function getFilteredScheduleEvents() {
+    let displayEvents = allEvents.slice();
+
+    if (currentDayFilter !== 'All') {
+        displayEvents = displayEvents.filter((event) => event.date === currentDayFilter);
+    }
+
+    if (currentCatFilter !== 'All') {
+        displayEvents = displayEvents.filter((event) => event.category && event.category.toLowerCase().includes(currentCatFilter.toLowerCase()));
+    }
+
+    return displayEvents;
 }
 
 function renderSchedule() {
@@ -154,15 +289,7 @@ function renderSchedule() {
     if (!container) return;
     container.innerHTML = '';
 
-    let displayEvents = allEvents;
-
-    if (currentDayFilter !== 'All') {
-        displayEvents = displayEvents.filter(e => e.date === currentDayFilter);
-    }
-
-    if (currentCatFilter !== 'All') {
-        displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentCatFilter.toLowerCase()));
-    }
+    const displayEvents = getFilteredScheduleEvents();
 
     if (displayEvents.length === 0) {
         container.innerHTML = "<p style='text-align:center; padding:30px; color:#666;'>No events found for this selection.</p>";
@@ -176,6 +303,37 @@ function renderSchedule() {
         const isSaved = savedEvents.includes(eventId);
         container.innerHTML += createEventCardHTML(event, eventId, isSaved);
     });
+}
+
+function renderFeaturedEvents() {
+    const container = document.getElementById('featured-events');
+    if (!container) return;
+
+    const featuredEvents = allEvents.filter((event) => event.featured === true);
+
+    if (!featuredEvents.length) {
+        container.innerHTML = "<div class='placeholder-card'>Featured events will appear here as more TDU events are announced.</div>";
+        return;
+    }
+
+    container.innerHTML = featuredEvents.map((event, index) => {
+        const eventId = String(event.id || index + 1);
+        const type = getEventType(event);
+        const rating = getEventRatingLabel(event);
+        const metaParts = [
+            formatDate(event.date),
+            event.category || type,
+            rating ? `TDU rating: ${rating}` : ''
+        ].filter(Boolean);
+
+        return `
+            <article class="featured-card">
+                <div class="featured-meta">${metaParts.map((part) => `<span>${escapeHTML(part)}</span>`).join('')}</div>
+                <h3>${escapeHTML(event.title || 'Featured event')}</h3>
+                <button class="btn btn-primary featured-action" onclick="openEventInSchedule('${escapeHTML(eventId)}')">View in schedule</button>
+            </article>
+        `;
+    }).join('');
 }
 
 function renderSaved() {
@@ -203,6 +361,216 @@ function renderSaved() {
     });
 }
 
+function createChoiceButtons(buttons, selectedValue, onClickName) {
+    return buttons.map((button) => `
+        <button
+            type="button"
+            class="choice-btn ${selectedValue === button.id ? 'active' : ''}"
+            aria-pressed="${selectedValue === button.id ? 'true' : 'false'}"
+            onclick="${onClickName}('${button.id}')"
+        >
+            ${escapeHTML(button.label)}
+        </button>
+    `).join('');
+}
+
+function renderRecommendationFlow() {
+    const launchBtn = document.getElementById('recommendation-launch-btn');
+    const flow = document.getElementById('recommendation-flow');
+    const intentButtons = document.getElementById('recommendation-intent-buttons');
+    const stepTwo = document.getElementById('recommendation-step-two');
+    const optionButtons = document.getElementById('recommendation-option-buttons');
+    const backBtn = document.getElementById('recommendation-back-btn');
+    const results = document.getElementById('recommendation-results');
+
+    if (!launchBtn || !flow || !intentButtons || !stepTwo || !optionButtons || !backBtn || !results) return;
+
+    launchBtn.setAttribute('aria-expanded', recommendationState.isOpen ? 'true' : 'false');
+    flow.hidden = !recommendationState.isOpen;
+    intentButtons.innerHTML = createChoiceButtons(INTENT_BUTTONS, recommendationState.intent, 'selectRecommendationIntent');
+
+    const options = RECOMMENDATION_OPTIONS[recommendationState.intent] || [];
+    stepTwo.hidden = !recommendationState.intent;
+    optionButtons.innerHTML = recommendationState.intent
+        ? createChoiceButtons(options, recommendationState.option, 'selectRecommendationOption')
+        : '';
+
+    backBtn.hidden = !recommendationState.intent;
+
+    if (!recommendationState.isOpen) {
+        results.innerHTML = '';
+        return;
+    }
+
+    if (!recommendationState.intent) {
+        results.innerHTML = "<p class='helper-copy'>Start with one of the three intent buttons above.</p>";
+        return;
+    }
+
+    if (!recommendationState.option) {
+        const intentCopy = recommendationState.intent === 'ride'
+            ? 'We will only suggest participatory ride events here.'
+            : recommendationState.intent === 'watch'
+                ? 'We will only suggest race stages here.'
+                : 'We will only suggest social, family, food, or featured community events here.';
+        results.innerHTML = `<p class='helper-copy'>${intentCopy}</p>`;
+        return;
+    }
+
+    const result = getRecommendationResult(recommendationState.intent, recommendationState.option);
+
+    if (!result.matches.length) {
+        results.innerHTML = `<div class="placeholder-card">${escapeHTML(result.emptyMessage)}</div>`;
+        return;
+    }
+
+    results.innerHTML = `
+        <div class="helper-copy">${escapeHTML(result.summary)}</div>
+        <div class="recommendation-list">
+            ${result.matches.map(({ event, reason }, index) => {
+                const rating = getEventRatingLabel(event);
+                const meta = [event.category || getEventType(event), formatDate(event.date), rating ? `TDU rating: ${rating}` : ''].filter(Boolean).join(' • ');
+                const eventId = String(event.id || index + 1);
+                return `
+                    <article class="recommendation-card">
+                        <div class="recommendation-meta">${escapeHTML(meta)}</div>
+                        <h3>${escapeHTML(event.title || 'Recommended event')}</h3>
+                        <p>${escapeHTML(reason)}</p>
+                        <button class="btn btn-primary recommendation-action" onclick="openEventInSchedule('${escapeHTML(eventId)}')">View in schedule</button>
+                    </article>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function matchRecommendationOption(event, intent, optionId) {
+    const tags = getEventTags(event);
+
+    if (intent === 'ride') {
+        if (!isRideEvent(event)) return false;
+        if (optionId === 'hills') return tags.includes('hills') || tags.includes('climbing');
+        if (optionId === 'gravel') return tags.includes('gravel');
+        if (optionId === 'easy-social') return tags.includes('social') || tags.includes('coffee') || tags.includes('family');
+        if (optionId === 'fast-flat') return tags.includes('fast') || tags.includes('flat') || tags.includes('road');
+        return false;
+    }
+
+    if (intent === 'watch') {
+        if (!isWatchEvent(event)) return false;
+        if (optionId === 'climbing') return tags.includes('climbing') || tags.includes('hills');
+        if (optionId === 'coastal') return tags.includes('coastal');
+        if (optionId === 'city') return tags.includes('city');
+        if (optionId === 'any-stage') return true;
+        return false;
+    }
+
+    if (!isSocialEvent(event)) return false;
+    if (optionId === 'coffee') return tags.includes('coffee');
+    if (optionId === 'beer-atmosphere') return tags.includes('beer') || tags.includes('food') || tags.includes('drink');
+    if (optionId === 'family-friendly') return tags.includes('family');
+    if (optionId === 'featured') return tags.includes('featured');
+    return false;
+}
+
+function getRecommendationSummary(intent, optionId, count) {
+    if (intent === 'ride') {
+        return `${count} ride option${count > 1 ? 's' : ''} matched for ${formatOptionLabel(optionId)}.`;
+    }
+    if (intent === 'watch') {
+        return `${count} race stage${count > 1 ? 's' : ''} matched for ${formatOptionLabel(optionId)}.`;
+    }
+    return `${count} social option${count > 1 ? 's' : ''} matched for ${formatOptionLabel(optionId)}.`;
+}
+
+function getRecommendationEmptyMessage(intent) {
+    if (intent === 'ride') {
+        return 'No ride matches yet. This guide only recommends participatory rides for ride picks, and the current dataset is race-stage-only. Group rides, gravel options, and social spins will appear here as they are added.';
+    }
+    if (intent === 'social') {
+        return 'No social matches yet. We are not forcing race stages into social picks — coffee rides, pop-ups, family events, and featured community events will appear here as they are added.';
+    }
+    return 'No matching race stages were found for that choice just now.';
+}
+
+function buildRecommendationReason(event, intent, optionId) {
+    const rating = getEventRatingLabel(event);
+    const area = getEventArea(event.location);
+
+    if (intent === 'watch') {
+        if (optionId === 'climbing') {
+            return `Watch the race in ${area || 'the Adelaide Hills'} for a climbing-heavy stage${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+        }
+        if (optionId === 'coastal') {
+            return `Watch the race in ${area || 'a coastal setting'} for a seaside stage day${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+        }
+        if (optionId === 'city') {
+            return `Watch the race in ${area || 'a city setting'} for an accessible city-based stage option${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+        }
+        return `Watch the race in ${area || 'South Australia'} on ${formatDate(event.date)}${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+    }
+
+    if (intent === 'ride') {
+        return `This ${String(getEventType(event) || event.category || 'ride event').toLowerCase()} matched your ${formatOptionLabel(optionId)} ride preference${rating ? ` and carries a ${rating} TDU rating.` : '.'}`;
+    }
+
+    return `This ${String(getEventType(event) || event.category || 'social event').toLowerCase()} matched your ${formatOptionLabel(optionId)} social pick${rating ? ` and carries a ${rating} TDU rating.` : '.'}`;
+}
+
+function getRecommendationResult(intent, optionId) {
+    const eligibleEvents = allEvents
+        .filter((event) => getEventStatus(event) !== 'cancelled')
+        .filter((event) => {
+            if (intent === 'ride') return isRideEvent(event);
+            if (intent === 'watch') return isWatchEvent(event);
+            return isSocialEvent(event);
+        });
+
+    const matches = eligibleEvents
+        .filter((event) => matchRecommendationOption(event, intent, optionId))
+        .sort((a, b) => {
+            if (a.featured !== b.featured) return a.featured ? -1 : 1;
+            return String(a.date || '').localeCompare(String(b.date || ''));
+        })
+        .slice(0, 3)
+        .map((event) => ({
+            event,
+            reason: buildRecommendationReason(event, intent, optionId)
+        }));
+
+    return {
+        summary: getRecommendationSummary(intent, optionId, matches.length),
+        matches,
+        emptyMessage: getRecommendationEmptyMessage(intent)
+    };
+}
+
+function resetScheduleFilters() {
+    currentDayFilter = 'All';
+    currentCatFilter = 'All';
+
+    document.querySelectorAll('#day-filters .filter-btn').forEach((button) => {
+        button.classList.toggle('active', button.textContent.trim() === 'All Days');
+    });
+    document.querySelectorAll('#category-filters .filter-btn').forEach((button) => {
+        button.classList.toggle('active', button.textContent.trim() === 'All Stages');
+    });
+}
+
+window.openEventInSchedule = function(eventId) {
+    resetScheduleFilters();
+    showView('schedule');
+    setFilterType('day');
+    renderSchedule();
+
+    window.requestAnimationFrame(() => {
+        const target = document.getElementById(`event-${eventId}`);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+};
+
 function createEventCardHTML(event, eventId, isSaved) {
     const title = event.title || 'Untitled Event';
     const category = event.category || '';
@@ -214,6 +582,7 @@ function createEventCardHTML(event, eventId, isSaved) {
     const routeUrl = event.route_url || '';
     const heartClass = isSaved ? 'fas saved' : 'far';
     const weatherText = event.weather || 'TBC';
+    const rating = getEventRatingLabel(event);
 
     const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
 
@@ -223,12 +592,15 @@ function createEventCardHTML(event, eventId, isSaved) {
     }
 
     return `
-        <div class="event-card">
+        <div class="event-card" id="event-${eventId}">
             <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)" aria-label="Save event">
                 <i class="${heartClass} fa-heart" aria-hidden="true"></i>
             </button>
 
-            ${category ? `<span class="tag">${category}</span>` : ''}
+            <div class="event-badges">
+                ${category ? `<span class="tag">${category}</span>` : ''}
+                ${rating ? `<span class="tag secondary-tag">${rating}</span>` : ''}
+            </div>
             <h3>${title}</h3>
 
             <div class="event-meta">
@@ -272,6 +644,36 @@ window.toggleSave = function(id, btnElement) {
     if (activeView && activeView.id === 'view-saved') {
         renderSaved();
     }
+};
+
+window.openRecommendationFlow = function() {
+    recommendationState.isOpen = true;
+    renderRecommendationFlow();
+};
+
+window.selectRecommendationIntent = function(intent) {
+    recommendationState.isOpen = true;
+    recommendationState.intent = intent;
+    recommendationState.option = '';
+    renderRecommendationFlow();
+};
+
+window.selectRecommendationOption = function(optionId) {
+    recommendationState.option = optionId;
+    renderRecommendationFlow();
+};
+
+window.goBackRecommendation = function() {
+    recommendationState.option = '';
+    recommendationState.intent = '';
+    renderRecommendationFlow();
+};
+
+window.resetRecommendationFlow = function() {
+    recommendationState.isOpen = false;
+    recommendationState.intent = '';
+    recommendationState.option = '';
+    renderRecommendationFlow();
 };
 
 function updateSavedBadge() {
@@ -391,4 +793,5 @@ if ('serviceWorker' in navigator) {
 
 checkPWAStatus();
 updateWeatherWidget();
+renderRecommendationFlow();
 fetchEvents();
