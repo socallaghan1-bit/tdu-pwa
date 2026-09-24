@@ -155,13 +155,17 @@ function trackAnalyticsEvent(eventName, params = {}) {
     }
 }
 
-function getVirtualPageLocation(pagePath) {
+function getVirtualPagePath(pagePath) {
     const url = new URL(window.location.href);
     const basePath = url.pathname.endsWith('/index.html')
         ? url.pathname.slice(0, -'index.html'.length)
         : (url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
-    const virtualPath = pagePath ? `${basePath}${pagePath}` : basePath;
-    return `${url.origin}${virtualPath}`;
+    return pagePath ? `${basePath}${pagePath}` : basePath;
+}
+
+function getVirtualPageLocation(pagePath) {
+    const url = new URL(window.location.href);
+    return `${url.origin}${getVirtualPagePath(pagePath)}`;
 }
 
 function trackVirtualPageView(viewName) {
@@ -170,6 +174,7 @@ function trackVirtualPageView(viewName) {
 
     return trackAnalyticsEvent('page_view', {
         page_title: viewConfig.page_title,
+        page_path: getVirtualPagePath(viewConfig.page_path),
         page_location: getVirtualPageLocation(viewConfig.page_path)
     });
 }
