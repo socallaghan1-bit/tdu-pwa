@@ -1045,11 +1045,17 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-window.addEventListener('load', () => {
+function trackStandaloneLaunchIfNeeded() {
     if (isStandaloneMode()) {
         trackAnalyticsEvent('standalone_launch');
     }
-});
+}
+
+if (document.readyState === 'complete') {
+    trackStandaloneLaunchIfNeeded();
+} else {
+    window.addEventListener('load', trackStandaloneLaunchIfNeeded, { once: true });
+}
 
 checkPWAStatus();
 updateWeatherWidget();
