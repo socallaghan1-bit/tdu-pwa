@@ -151,6 +151,154 @@ header {
     letter-spacing: 0.5px;
 }
 
+.home-section {
+    margin-bottom: 20px;
+}
+
+.guide-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.guide-intro,
+.helper-copy {
+    margin: 0 0 14px 0;
+    font-size: 0.88rem;
+    color: var(--text-light);
+    line-height: 1.45;
+}
+
+.guide-launch-btn,
+.text-btn {
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.guide-launch-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    font-size: 0.95rem;
+}
+
+.recommendation-flow {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.recommendation-step + .recommendation-step {
+    margin-top: 14px;
+}
+
+.recommendation-label {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 800;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.choice-btn {
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.choice-btn.active {
+    border-color: var(--primary);
+    background: #fff4ed;
+    color: var(--primary);
+}
+
+.recommendation-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.text-btn {
+    background: transparent;
+    color: var(--primary);
+    padding: 0;
+    font-size: 0.85rem;
+}
+
+.recommendation-list,
+.featured-events {
+    display: grid;
+    gap: 10px;
+}
+
+.recommendation-card,
+.featured-card,
+.placeholder-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.recommendation-card h3,
+.featured-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.recommendation-card p,
+.placeholder-card {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #444;
+    line-height: 1.45;
+}
+
+.recommendation-meta,
+.featured-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 0.76rem;
+    color: var(--text-light);
+    font-weight: 700;
+}
+
+.recommendation-meta {
+    margin-bottom: 6px;
+}
+
+.recommendation-action,
+.featured-action {
+    margin-top: 12px;
+    width: 100%;
+}
+
 .home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -330,6 +478,18 @@ header {
     margin-bottom: 8px;
     font-weight: 700;
     text-transform: uppercase;
+}
+
+.event-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.secondary-tag {
+    background: #eef5ff;
+    color: #1f5ea8;
 }
 
 .card-actions {
@@ -565,5 +725,9 @@ header {
     .saved-heading {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .choice-grid {
+        grid-template-columns: 1fr;
     }
 }
