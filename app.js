@@ -59,6 +59,7 @@ const recommendationState = {
 };
 const activeViewEl = document.querySelector('.view.active');
 let currentViewName = activeViewEl && activeViewEl.id ? activeViewEl.id.replace('view-', '') : 'home';
+let hasTrackedInitialView = false;
 const RECOMMENDATION_OPTIONS = {
     ride: [
         { id: 'hills', label: 'Hills' },
@@ -940,6 +941,7 @@ window.showView = function(viewName) {
     if (!viewEl || !navEl) return;
 
     const isSameView = currentViewName === viewName && viewEl.classList.contains('active') && navEl.classList.contains('active');
+    const shouldTrackView = !isSameView || !hasTrackedInitialView;
 
     if (!isSameView) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -955,8 +957,9 @@ window.showView = function(viewName) {
         renderSaved();
     }
 
-    if (!isSameView) {
+    if (shouldTrackView) {
         trackVirtualPageView(viewName);
+        hasTrackedInitialView = true;
     }
 
     window.scrollTo(0, 0);
@@ -1121,5 +1124,6 @@ if (document.readyState === 'complete') {
 checkPWAStatus();
 updateWeatherWidget();
 renderRecommendationFlow();
-trackVirtualPageView(currentViewName);
-fetchEvents();
+fetchEvents().finally(() => {
+    showView(currentViewName);
+});
