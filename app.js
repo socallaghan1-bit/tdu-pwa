@@ -8,6 +8,20 @@ const WEATHER_CACHE_KEY = 'tduWeatherSummary';
 const STANDALONE_LAUNCH_SESSION_KEY = 'tduStandaloneLaunchTracked';
 const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
 const WEATHER_UNAVAILABLE = 'Weather unavailable';
+const VIEW_ANALYTICS_CONFIG = {
+    home: {
+        page_title: 'TDU 2027 - Home',
+        page_path: ''
+    },
+    schedule: {
+        page_title: 'TDU 2027 - Schedule',
+        page_path: 'schedule'
+    },
+    saved: {
+        page_title: 'TDU 2027 - My TDU',
+        page_path: 'my-tdu'
+    }
+};
 const WEATHER_CODES = {
     0: 'Clear sky',
     1: 'Mostly clear',
@@ -43,6 +57,10 @@ const recommendationState = {
     intent: '',
     option: ''
 };
+const activeViewEl = document.querySelector('.view.active');
+let currentViewName = activeViewEl && activeViewEl.id ? activeViewEl.id.replace('view-', '') : 'home';
+let hasTrackedInitialView = false;
+let lastTrackedPageLocation = '';
 const RECOMMENDATION_OPTIONS = {
     ride: [
         { id: 'hills', label: 'Hills' },
@@ -134,6 +152,51 @@ function trackAnalyticsEvent(eventName, params = {}) {
             ...params
         });
         return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+function getVirtualPagePath(pagePath) {
+    const url = new URL(window.location.href);
+    const basePath = url.pathname.endsWith('/index.html')
+        ? url.pathname.slice(0, -'index.html'.length)
+        : (url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
+    return pagePath ? `${basePath}${pagePath}` : basePath;
+}
+
+function getVirtualPageLocation(pagePath) {
+    const url = new URL(window.location.href);
+    return `${url.origin}${getVirtualPagePath(pagePath)}`;
+}
+
+function trackVirtualPageView(viewName) {
+    const viewConfig = VIEW_ANALYTICS_CONFIG[viewName];
+    if (!viewConfig) return false;
+
+    const pageLocation = getVirtualPageLocation(viewConfig.page_path);
+    const payload = {
+        page_title: viewConfig.page_title,
+        page_path: getVirtualPagePath(viewConfig.page_path),
+        page_location: pageLocation
+    };
+
+    if (lastTrackedPageLocation && lastTrackedPageLocation !== pageLocation) {
+        payload.page_referrer = lastTrackedPageLocation;
+    }
+
+    const tracked = trackAnalyticsEvent('page_view', payload);
+    if (tracked) {
+        lastTrackedPageLocation = pageLocation;
+    }
+
+    return tracked;
+}
+
+function isAllowedFeedbackUrl(urlValue) {
+    try {
+        const url = new URL(urlValue, window.location.href);
+        return url.protocol === 'https:' && ['forms.gle', 'docs.google.com'].includes(url.hostname);
     } catch (error) {
         return false;
     }
@@ -895,19 +958,32 @@ function updateSavedBadge() {
 }
 
 window.showView = function(viewName) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
     const viewEl = document.getElementById('view-' + viewName);
     const navEl = document.getElementById('nav-' + viewName);
-    if (viewEl) viewEl.classList.add('active');
-    if (navEl) navEl.classList.add('active');
+    if (!viewEl || !navEl) return;
+
+    const isSameView = currentViewName === viewName && viewEl.classList.contains('active') && navEl.classList.contains('active');
+    const shouldTrackView = !isSameView || !hasTrackedInitialView;
+
+    if (!isSameView) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        viewEl.classList.add('active');
+        navEl.classList.add('active');
+        currentViewName = viewName;
+    }
 
     if (viewName === 'schedule') {
         renderSchedule();
     } else if (viewName === 'saved') {
         renderSaved();
     }
+
+    if (shouldTrackView) {
+        trackVirtualPageView(viewName);
+        hasTrackedInitialView = true;
+    }
+
     window.scrollTo(0, 0);
 };
 
@@ -981,6 +1057,7 @@ window.openFeedbackModal = function() {
     }
 
     if (modal) {
+        trackAnalyticsEvent('open_feedback_modal');
         modal.classList.add('active');
         const closeButton = modal.querySelector('.close-btn');
         if (closeButton) closeButton.focus();
@@ -994,9 +1071,15 @@ window.closeFeedbackModal = function(e) {
     }
 };
 
-window.confirmFeedbackSubmitted = function() {
-    trackAnalyticsEvent('submit_feedback');
-    closeFeedbackModal();
+window.openFeedbackForm = function() {
+    const frame = document.getElementById('feedback-form-frame');
+    const shareUrl = String(frame && frame.dataset ? frame.dataset.formShareUrl || '' : '').trim();
+
+    if (!shareUrl || !isAllowedFeedbackUrl(shareUrl)) return false;
+
+    trackAnalyticsEvent('click_feedback_form_link');
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    return false;
 };
 
 window.openSupportModal = function() {
@@ -1063,4 +1146,5 @@ if (document.readyState === 'complete') {
 checkPWAStatus();
 updateWeatherWidget();
 renderRecommendationFlow();
+showView(currentViewName);
 fetchEvents();
