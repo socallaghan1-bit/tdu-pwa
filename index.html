@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TDU 2026 Companion</title>
-    <!-- Bring in an icon font (FontAwesome) for hearts and maps -->
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PapaParse: Industry standard CSV Parser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <style>
         :root {
@@ -23,10 +25,9 @@
             margin: 0;
             padding: 0;
             color: var(--text-dark);
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 80px;
         }
 
-        /* HEADER */
         header {
             background-color: var(--primary);
             color: white;
@@ -50,7 +51,6 @@
             opacity: 0.9;
         }
 
-        /* CATEGORY FILTERS */
         .filters {
             display: flex;
             overflow-x: auto;
@@ -58,10 +58,10 @@
             gap: 10px;
             background: white;
             border-bottom: 1px solid var(--border);
-            scrollbar-width: none; /* Hide scrollbar Firefox */
+            scrollbar-width: none;
         }
         .filters::-webkit-scrollbar {
-            display: none; /* Hide scrollbar Chrome/Safari */
+            display: none;
         }
         .filter-btn {
             background: var(--bg-color);
@@ -79,14 +79,12 @@
             border-color: var(--primary);
         }
 
-        /* MAIN CONTAINER */
         #events-container {
             padding: 15px;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        /* EVENT CARDS */
         .event-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -100,7 +98,7 @@
         .event-card h3 {
             margin: 0 0 5px 0;
             font-size: 1.2rem;
-            padding-right: 30px; /* space for heart */
+            padding-right: 30px;
         }
 
         .event-meta {
@@ -135,7 +133,6 @@
             color: #555;
         }
 
-        /* BUTTONS */
         .card-actions {
             display: flex;
             gap: 10px;
@@ -156,7 +153,6 @@
             background: #e8e8e8;
         }
 
-        /* FAVORITE HEART */
         .fav-btn {
             position: absolute;
             top: 15px;
@@ -172,7 +168,6 @@
             color: #ff3b30;
         }
 
-        /* BOTTOM NAVIGATION */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -181,7 +176,7 @@
             background: white;
             display: flex;
             justify-content: space-around;
-            padding: 12px 0 20px 0; /* extra padding for iPhone safe area */
+            padding: 12px 0 20px 0;
             border-top: 1px solid var(--border);
             z-index: 100;
         }
@@ -202,7 +197,6 @@
             color: var(--primary);
         }
         
-        /* LOADING SPINNER */
         #loader {
             text-align: center;
             padding: 40px;
@@ -217,21 +211,18 @@
         <p>Interactive Companion</p>
     </header>
 
-    <!-- Filters: These categories match your Google Sheet -->
     <div class="filters" id="filter-container">
         <div class="filter-btn active" onclick="filterEvents('All')">All Events</div>
         <div class="filter-btn" onclick="filterEvents('Group Ride')">Group Rides</div>
         <div class="filter-btn" onclick="filterEvents('Official Event')">Official Events</div>
         <div class="filter-btn" onclick="filterEvents('Social')">Social & Parties</div>
-        <div class="filter-btn" onclick="filterEvents('Women\'s Event')">Women's</div>
+        <div class="filter-btn" onclick="filterEvents('Women')">Women's</div>
     </div>
 
     <div id="events-container">
         <div id="loader"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading Events...</div>
-        <!-- Event Cards will be injected here by JavaScript -->
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('all')" id="nav-all">
             <i class="fas fa-calendar-alt"></i>
@@ -244,66 +235,49 @@
     </div>
 
     <script>
-        // Your Google Sheets CSV Link
         const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_acwLQlGitpXd_GxJvx3GNjq1ZZJ80_2C7A_Xdya6z-Dn_vphi4PBa7emQqAroD1-cmwh8vscbwgA/pub?output=csv";
         
         let allEvents = [];
         let currentFilter = 'All';
-        let currentTab = 'all'; // 'all' or 'saved'
+        let currentTab = 'all';
 
-        // 1. Fetch data when page loads
         async function fetchEvents() {
             try {
                 const response = await fetch(SHEET_URL);
-                const data = await response.text();
-                allEvents = parseCSV(data);
-                renderEvents();
-            } catch (error) {
-                document.getElementById('events-container').innerHTML = "<p style='text-align:center; padding:20px;'>Could not load events. Check your connection.</p>";
-            }
-        }
-
-        // 2. Simple CSV parser
-        function parseCSV(str) {
-            const lines = str.split('\n');
-            const result = [];
-            // Assuming Row 1 is headers: id,title,category,date,start_time,end_time,location,description,route_url
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-            
-            for(let i = 1; i < lines.length; i++) {
-                if(!lines[i].trim()) continue;
-                // Handling basic CSV splitting (Note: complex commas inside quotes aren't handled in this basic version)
-                const obj = {};
-                const currentline = lines[i].split(',');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const csvText = await response.text();
                 
-                headers.forEach((header, index) => {
-                    obj[header] = currentline[index] ? currentline[index].trim() : '';
+                // Parse CSV reliably with PapaParse
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim().toLowerCase().replace(/\s+/g, '_'),
+                    complete: function(results) {
+                        allEvents = results.data;
+                        renderEvents();
+                    }
                 });
-                result.push(obj);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error loading events: ${error.message}</p>`;
             }
-            return result;
         }
 
-        // 3. Render the Event Cards to the screen
         function renderEvents() {
             const container = document.getElementById('events-container');
-            container.innerHTML = ''; // Clear loader
+            container.innerHTML = '';
             
-            // Get saved IDs from local storage
             const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
 
-            // Filter logic
             let displayEvents = allEvents;
             
-            // If viewing "My Itinerary" tab, only show saved
             if(currentTab === 'saved') {
-                displayEvents = displayEvents.filter(e => savedEvents.includes(e.id));
-                document.getElementById('filter-container').style.display = 'none'; // hide top filters
+                displayEvents = displayEvents.filter(e => savedEvents.includes(String(e.id)));
+                document.getElementById('filter-container').style.display = 'none';
             } else {
-                document.getElementById('filter-container').style.display = 'flex'; // show top filters
-                // Apply category filter if not "All"
+                document.getElementById('filter-container').style.display = 'flex';
                 if(currentFilter !== 'All') {
-                    displayEvents = displayEvents.filter(e => e.category && e.category.includes(currentFilter));
+                    displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentFilter.toLowerCase()));
                 }
             }
 
@@ -312,13 +286,12 @@
                 return;
             }
 
-            // Build HTML for each event
             displayEvents.forEach(event => {
-                const isSaved = savedEvents.includes(event.id);
+                const eventId = String(event.id || '');
+                const isSaved = savedEvents.includes(eventId);
                 const heartClass = isSaved ? 'fas saved' : 'far';
                 
-                // Format Date nicely (assuming YYYY-MM-DD input)
-                let dateDisplay = event.date;
+                let dateDisplay = event.date || '';
                 try {
                     const d = new Date(event.date);
                     if(!isNaN(d)) {
@@ -326,21 +299,20 @@
                     }
                 } catch(e) {}
 
-                // Create Map Link
                 const mapLink = event.location ? `https://maps.google.com/?q=${encodeURIComponent(event.location)}` : '#';
 
                 const cardHTML = `
                     <div class="event-card">
-                        <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${event.id}', this)">
+                        <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
                             <i class="${heartClass} fa-heart"></i>
                         </button>
                         
                         ${event.category ? `<span class="tag">${event.category}</span>` : ''}
-                        <h3>${event.title}</h3>
+                        <h3>${event.title || 'Untitled Event'}</h3>
                         
                         <div class="event-meta">
-                            <span><i class="far fa-calendar"></i> ${dateDisplay} | ${event.start_time} ${event.end_time ? '- ' + event.end_time : ''}</span>
-                            <span><i class="fas fa-map-marker-alt"></i> ${event.location || 'TBA'}</span>
+                            <span><i class="far fa-calendar"></i> ${dateDisplay} ${event.start_time ? '| ' + event.start_time : ''} ${event.end_time ? '- ' + event.end_time : ''}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${event.location || 'Location TBA'}</span>
                         </div>
                         
                         ${event.description ? `<div class="event-desc">${event.description}</div>` : ''}
@@ -355,55 +327,45 @@
             });
         }
 
-        // 4. Save/Unsave Events to Local Storage (No Login required!)
         window.toggleSave = function(id, btnElement) {
             let savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+            const strId = String(id);
             
-            if(savedEvents.includes(id)) {
-                // Remove it
-                savedEvents = savedEvents.filter(eventId => eventId !== id);
+            if(savedEvents.includes(strId)) {
+                savedEvents = savedEvents.filter(eventId => eventId !== strId);
                 btnElement.classList.remove('saved');
                 btnElement.innerHTML = '<i class="far fa-heart"></i>';
             } else {
-                // Add it
-                savedEvents.push(id);
+                savedEvents.push(strId);
                 btnElement.classList.add('saved');
                 btnElement.innerHTML = '<i class="fas fa-heart"></i>';
             }
             
             localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
             
-            // If we are currently on the 'saved' tab, re-render immediately to remove the un-hearted card
             if(currentTab === 'saved') {
                 renderEvents();
             }
         };
 
-        // 5. Category Filtering
         window.filterEvents = function(category) {
             currentFilter = category;
-            
-            // Update active button styling
             const buttons = document.querySelectorAll('.filter-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
+            if(event && event.target) {
+                event.target.classList.add('active');
+            }
             renderEvents();
         };
 
-        // 6. Bottom Navigation Tabs
         window.switchTab = function(tabName) {
             currentTab = tabName;
-            
-            // Update active icon styling
             document.getElementById('nav-all').classList.remove('active');
             document.getElementById('nav-saved').classList.remove('active');
             document.getElementById('nav-' + tabName).classList.add('active');
-            
             renderEvents();
         };
 
-        // Initialize App
         fetchEvents();
     </script>
 </body>
