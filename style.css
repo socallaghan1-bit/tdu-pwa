@@ -721,6 +721,22 @@ header {
     padding: 12px;
 }
 
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.modal-actions .btn {
+    flex: 1 1 50%;
+}
+
+.modal-secondary-btn {
+    background: var(--bg-color);
+    border-color: var(--border);
+    color: var(--text-dark);
+}
+
 .feedback-frame {
     width: 100%;
     min-height: 360px;
@@ -774,5 +790,9 @@ header {
 
     .choice-grid {
         grid-template-columns: 1fr;
+    }
+
+    .modal-actions {
+        flex-direction: column;
     }
 }

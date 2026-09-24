@@ -43,7 +43,6 @@ const recommendationState = {
     intent: '',
     option: ''
 };
-let feedbackFrameLoadCount = 0;
 const RECOMMENDATION_OPTIONS = {
     ride: [
         { id: 'hills', label: 'Hills' },
@@ -966,10 +965,15 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.openFeedbackModal = function() {
     const modal = document.getElementById('feedback-modal');
     const frame = document.getElementById('feedback-form-frame');
-    feedbackFrameLoadCount = 0;
+
     if (frame) {
-        frame.src = frame.src;
+        const formSrc = String(frame.dataset.formSrc || '').trim();
+        const hasConfiguredForm = formSrc && !formSrc.includes('REPLACE_WITH_REAL_FORM_ID');
+        if (hasConfiguredForm && frame.src !== formSrc) {
+            frame.src = formSrc;
+        }
     }
+
     if (modal) modal.classList.add('active');
 };
 
@@ -978,6 +982,11 @@ window.closeFeedbackModal = function(e) {
         const modal = document.getElementById('feedback-modal');
         if (modal) modal.classList.remove('active');
     }
+};
+
+window.confirmFeedbackSubmitted = function() {
+    trackAnalyticsEvent('submit_feedback');
+    closeFeedbackModal();
 };
 
 window.openSupportModal = function() {
@@ -1026,16 +1035,6 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('load', () => {
     if (isStandalone) {
         trackAnalyticsEvent('standalone_launch');
-    }
-
-    const feedbackFrame = document.getElementById('feedback-form-frame');
-    if (feedbackFrame) {
-        feedbackFrame.addEventListener('load', () => {
-            feedbackFrameLoadCount += 1;
-            if (feedbackFrameLoadCount > 1) {
-                trackAnalyticsEvent('submit_feedback');
-            }
-        });
     }
 });
 

@@ -13,12 +13,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=1.7">
     <!-- TODO: Replace G-XXXXXXXXXX with your real GA4 Measurement ID before launch. -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
+        window.TDU_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+
+        if (window.TDU_GA_MEASUREMENT_ID && window.TDU_GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX') {
+            const gaScript = document.createElement('script');
+            gaScript.async = true;
+            gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${window.TDU_GA_MEASUREMENT_ID}`;
+            document.head.appendChild(gaScript);
+
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function gtag(){ window.dataLayer.push(arguments); };
+            window.gtag('js', new Date());
+            window.gtag('config', window.TDU_GA_MEASUREMENT_ID);
+        }
     </script>
 </head>
 <body>
@@ -186,10 +194,15 @@
                 class="feedback-frame"
                 title="TDU feedback form"
                 loading="lazy"
-                src="https://docs.google.com/forms/d/e/REPLACE_WITH_REAL_FORM_ID/viewform?embedded=true"
+                src="about:blank"
+                data-form-src="https://docs.google.com/forms/d/e/REPLACE_WITH_REAL_FORM_ID/viewform?embedded=true"
+                srcdoc="<p style='font-family:Arial,sans-serif;padding:24px;text-align:center;color:#555;'>Feedback form placeholder. Add the real Google Form embed URL in index.html to load it here.</p>"
             ></iframe>
             <p class="feedback-note">The live Google Form URL is still a placeholder for now.</p>
-            <button class="btn btn-primary modal-action-btn" type="button" onclick="closeFeedbackModal()">Done</button>
+            <div class="modal-actions">
+                <button class="btn btn-primary" type="button" onclick="confirmFeedbackSubmitted()">I submitted feedback</button>
+                <button class="btn modal-secondary-btn" type="button" onclick="closeFeedbackModal()">Done</button>
+            </div>
         </div>
     </div>
 
