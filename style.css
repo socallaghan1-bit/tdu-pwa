@@ -1,11 +1,12 @@
 :root {
-    --primary: #f26522; /* TDU Orange */
+    --primary: #f26522; /* TDU Ochre */
     --primary-dark: #d44d0e;
     --bg-color: #f4f4f9;
     --card-bg: #ffffff;
     --text-dark: #222;
     --text-light: #666;
     --border: #e0e0e0;
+    /* Hero Image URL - replace with your own image link or local image file */
     --hero-bg: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1000&q=80');
 }
 
@@ -18,10 +19,35 @@ body {
     background-color: var(--bg-color);
     margin: 0;
     padding: 0;
+    color: var(--text-dark);
+    padding-bottom: 85px;
+}
+
+/* TOP HEADER */
+header {
+    background-color: var(--primary) !important;
+    color: white;
+    padding: 12px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .header-brand {
     cursor: pointer;
     user-select: none;
 }
+
+.header-brand h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: white;
 }
 
 .header-subtitle {
@@ -30,6 +56,7 @@ body {
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 1px;
+    color: white;
 }
 
 /* HEADER INSTALL PILL BUTTON */
@@ -386,7 +413,7 @@ body {
 
 /* INSTALL INSTRUCTIONS MODAL (Strict Overlay) */
 .modal-overlay {
-    display: none; /* Default state: hidden */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
