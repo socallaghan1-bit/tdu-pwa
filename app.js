@@ -1,25 +1,18 @@
 let allEvents = [];
-let weatherData = {};
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
-let activeFilterMode = 'day';
-
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-function getCompassDirection(degrees) {
-    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    return directions[Math.round(degrees / 45) % 8];
-}
+const ADL_WEATHER_PLACEHOLDER = 'Today in Adelaide: 24°C • Partly cloudy';
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
     const parts = String(dateStr).trim().split('-');
     if (parts.length === 3) {
-        const year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1;
-        const day = parseInt(parts[2]);
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
         const d = new Date(year, month, day);
         if (!isNaN(d.getTime())) {
             return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -28,41 +21,131 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
-async function fetchDailyWeather() {
-    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&daily=temperature_2m_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Australia%2FAdelaide';
-
+function getSavedEvents() {
     try {
-        const res = await fetch(url);
-        if (res.ok) {
-            const data = await res.json();
-            if (data.daily && data.daily.time) {
-                data.daily.time.forEach((date, i) => {
-                    if (data.daily.temperature_2m_max[i] !== null) {
-                        weatherData[date] = {
-                            temp: Math.round(data.daily.temperature_2m_max[i]),
-                            wind: Math.round(data.daily.wind_speed_10m_max[i]),
-                            dir: getCompassDirection(data.daily.wind_direction_10m_dominant[i])
-                        };
-                    }
-                });
-            }
-        }
-    } catch (e) {
-        console.warn("Live weather fetch unavailable:", e);
+        return JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    } catch (error) {
+        return [];
     }
-    renderSchedule();
+}
+
+function updateWeatherWidget() {
+    const widget = document.getElementById('weather-widget');
+    if (!widget) return;
+
+    widget.innerHTML = `
+        <i class="fas fa-cloud-sun" aria-hidden="true"></i>
+        <span>${ADL_WEATHER_PLACEHOLDER}</span>
+    `;
+}
+
+function escapeIcsText(value) {
+    return String(value || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\n/g, '\\n');
+}
+
+function formatIcsDateTime(dateString, timeString) {
+    if (!dateString) return '';
+    const [year, month, day] = String(dateString).split('-').map(part => parseInt(part, 10));
+    if (!year || !month || !day) return '';
+
+    const dt = new Date(year, month - 1, day);
+    if (!timeString) {
+        return dt.toISOString().replace(/[-:]/g, '').replace('.000Z', 'Z');
+    }
+
+    const [hours, minutes] = String(timeString).split(':').map(part => parseInt(part, 10) || 0);
+    dt.setHours(hours, minutes, 0, 0);
+    return dt.toISOString().replace(/[-:]/g, '').replace('.000Z', 'Z');
+}
+
+function getEventEndDateTime(event) {
+    const dateString = event.date || '';
+    const startTime = event.start_time || '09:00';
+    const endTime = event.end_time || '';
+
+    if (endTime) {
+        return formatIcsDateTime(dateString, endTime);
+    }
+
+    const [year, month, day] = String(dateString).split('-').map(part => parseInt(part, 10));
+    if (!year || !month || !day) {
+        return formatIcsDateTime(dateString, startTime);
+    }
+
+    const startDate = new Date(year, month - 1, day);
+    const [hours, minutes] = String(startTime).split(':').map(part => parseInt(part, 10) || 0);
+    startDate.setHours(hours, minutes, 0, 0);
+    startDate.setHours(startDate.getHours() + 2);
+    return startDate.toISOString().replace(/[-:]/g, '').replace('.000Z', 'Z');
+}
+
+function exportSavedEvents() {
+    const savedEventIds = getSavedEvents();
+    const selectedEvents = allEvents.filter((event) => savedEventIds.includes(String(event.id)));
+
+    if (!selectedEvents.length) {
+        alert('No saved events to export yet.');
+        return;
+    }
+
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//TDU PWA//EN',
+        'CALSCALE:GREGORIAN'
+    ];
+
+    selectedEvents.forEach((event, index) => {
+        const summary = event.title || 'TDU Event';
+        const description = event.description || '';
+        const location = event.location || '';
+        const startDateTime = formatIcsDateTime(event.date, event.start_time || '09:00');
+        const endDateTime = getEventEndDateTime(event);
+
+        lines.push(
+            'BEGIN:VEVENT',
+            `UID:tdu-${event.id || index}-${Date.now()}@tdu-pwa`,
+            `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace('.000Z', 'Z')}`,
+            `SUMMARY:${escapeIcsText(summary)}`,
+            `DESCRIPTION:${escapeIcsText(description)}`,
+            `LOCATION:${escapeIcsText(location)}`,
+            `DTSTART:${startDateTime}`,
+            `DTEND:${endDateTime}`,
+            'END:VEVENT'
+        );
+    });
+
+    lines.push('END:VCALENDAR');
+
+    const icsContent = lines.join('\r\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'my-tdu-itinerary.ics';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 async function fetchEvents() {
     try {
         const response = await fetch('./events.json?t=' + new Date().getTime());
-        if (!response.ok) throw new Error("Could not load events.json");
+        if (!response.ok) throw new Error('Could not load events.json');
         allEvents = await response.json();
         updateSavedBadge();
-        fetchDailyWeather();
+        renderSchedule();
     } catch (error) {
-        console.error("Fetch Error:", error);
-        document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
+        console.error('Fetch Error:', error);
+        const container = document.getElementById('events-container');
+        if (container) {
+            container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
+        }
     }
 }
 
@@ -86,7 +169,7 @@ function renderSchedule() {
         return;
     }
 
-    const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    const savedEvents = getSavedEvents();
 
     displayEvents.forEach((event, index) => {
         const eventId = String(event.id || index + 1);
@@ -97,13 +180,10 @@ function renderSchedule() {
 
 function renderSaved() {
     const container = document.getElementById('saved-events-container');
-    const exportBtnContainer = document.getElementById('export-btn-container');
     if (!container) return;
-    
     container.innerHTML = '';
-    if (exportBtnContainer) exportBtnContainer.innerHTML = '';
 
-    const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    const savedEvents = getSavedEvents();
     const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
 
     if (displayEvents.length === 0) {
@@ -115,15 +195,6 @@ function renderSaved() {
             </div>
         `;
         return;
-    }
-
-    // Add Export Button
-    if (exportBtnContainer) {
-        exportBtnContainer.innerHTML = `
-            <button class="btn-export" onclick="exportSavedToICS()">
-                <i class="far fa-calendar-plus"></i> Export Itinerary to Phone Calendar (.ics)
-            </button>
-        `;
     }
 
     displayEvents.forEach((event, index) => {
@@ -142,6 +213,7 @@ function createEventCardHTML(event, eventId, isSaved) {
     const description = event.description || '';
     const routeUrl = event.route_url || '';
     const heartClass = isSaved ? 'fas saved' : 'far';
+    const weatherText = event.weather || 'TBC';
 
     const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
 
@@ -150,143 +222,72 @@ function createEventCardHTML(event, eventId, isSaved) {
         timeRange += ' - ' + endTime;
     }
 
-    const dayWeather = weatherData[event.date];
-
     return `
         <div class="event-card">
-            <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
-                <i class="${heartClass} fa-heart"></i>
+            <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)" aria-label="Save event">
+                <i class="${heartClass} fa-heart" aria-hidden="true"></i>
             </button>
-            
+
             ${category ? `<span class="tag">${category}</span>` : ''}
             <h3>${title}</h3>
-            
+
             <div class="event-meta">
-                ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
-                ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
-                <span class="card-weather">
-                    ${dayWeather ? `
-                        <i class="fas fa-temperature-high" style="color:#e67e22;"></i> <strong>${dayWeather.temp}°C</strong>
-                        <span class="weather-sep">•</span>
-                        <i class="fas fa-wind" style="color:#27ae60;"></i> ${dayWeather.wind} km/h <strong>${dayWeather.dir}</strong>
-                    ` : `
-                        <i class="fas fa-cloud-sun" style="color:#94a3b8;"></i> Forecast N/A
-                    `}
-                </span>
+                ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
+                ${location ? `<span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${location}</span>` : ''}
+                <span class="event-weather"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Weather: ${weatherText}</span>
             </div>
-            
+
             ${description ? `<div class="event-desc">${description}</div>` : ''}
-            
+
             <div class="card-actions">
-                ${location ? `<a href="${mapLink}" target="_blank" class="btn"><i class="fas fa-directions"></i> Navigate</a>` : ''}
-                ${routeUrl ? `<a href="${routeUrl}" target="_blank" class="btn btn-primary"><i class="fas fa-route"></i> Route</a>` : ''}
+                ${location ? `<a href="${mapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> Navigate</a>` : ''}
+                ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
             </div>
         </div>
     `;
 }
 
-// CALENDAR ICS EXPORT GENERATOR
-window.exportSavedToICS = function() {
-    const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
-    const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
-
-    if (displayEvents.length === 0) {
-        alert("No saved events to export.");
-        return;
-    }
-
-    let icsContent = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//TDU 2026 Companion//EN",
-        "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH"
-    ];
-
-    displayEvents.forEach(e => {
-        const rawDate = (e.date || '').replace(/-/g, '');
-        if (!rawDate) return;
-
-        let startFormatted = (e.start_time || '09:00').replace(':', '') + '00';
-        if (startFormatted.length === 5) startFormatted = '0' + startFormatted;
-
-        let endFormatted = (e.end_time || '').replace(':', '');
-        if (endFormatted) {
-            endFormatted += '00';
-            if (endFormatted.length === 5) endFormatted = '0' + endFormatted;
-        } else {
-            // Default 2-hour event duration
-            let startHour = parseInt(startFormatted.substring(0, 2), 10);
-            let endHour = startHour + 2;
-            endFormatted = (endHour < 10 ? '0' + endHour : endHour) + startFormatted.substring(2);
-        }
-
-        const dtStart = `${rawDate}T${startFormatted}`;
-        const dtEnd = `${rawDate}T${endFormatted}`;
-
-        icsContent.push(
-            "BEGIN:VEVENT",
-            `SUMMARY:${e.title || 'TDU Event'}`,
-            `DESCRIPTION:${(e.description || '').replace(/\n/g, ' ')}`,
-            `LOCATION:${e.location || 'Adelaide, SA'}`,
-            `DTSTART:${dtStart}`,
-            `DTEND:${dtEnd}`,
-            "END:VEVENT"
-        );
-    });
-
-    icsContent.push("END:VCALENDAR");
-
-    const blob = new Blob([icsContent.join("\r\n")], { type: 'text/calendar;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', 'My_TDU_2026_Schedule.ics');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
-
 window.toggleSave = function(id, btnElement) {
-    let savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    let savedEvents = getSavedEvents();
     const strId = String(id);
-    
+
     if (savedEvents.includes(strId)) {
         savedEvents = savedEvents.filter(eventId => eventId !== strId);
         if (btnElement) {
             btnElement.classList.remove('saved');
-            btnElement.innerHTML = '<i class="far fa-heart"></i>';
+            btnElement.innerHTML = '<i class="far fa-heart" aria-hidden="true"></i>';
         }
     } else {
         savedEvents.push(strId);
         if (btnElement) {
             btnElement.classList.add('saved');
-            btnElement.innerHTML = '<i class="fas fa-heart"></i>';
+            btnElement.innerHTML = '<i class="fas fa-heart" aria-hidden="true"></i>';
         }
     }
-    
+
     localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
     updateSavedBadge();
 
-    const activeView = document.querySelector('.view.active').id;
-    if (activeView === 'view-saved') {
+    const activeView = document.querySelector('.view.active');
+    if (activeView && activeView.id === 'view-saved') {
         renderSaved();
     }
 };
 
 function updateSavedBadge() {
-    const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+    const savedEvents = getSavedEvents();
     const badge = document.getElementById('nav-badge');
     const homeCount = document.getElementById('home-saved-count');
-    
+
     if (savedEvents.length > 0) {
         if (badge) {
             badge.innerText = savedEvents.length;
             badge.style.display = 'block';
         }
-        if (homeCount) homeCount.innerText = savedEvents.length + " event" + (savedEvents.length > 1 ? "s" : "") + " saved";
+        if (homeCount) homeCount.innerText = savedEvents.length + ' event' + (savedEvents.length > 1 ? 's' : '') + ' saved';
     } else {
         if (badge) badge.style.display = 'none';
-        if (homeCount) homeCount.innerText = "0 events saved";
+        if (homeCount) homeCount.innerText = '0 events saved';
     }
 }
 
@@ -294,8 +295,10 @@ window.showView = function(viewName) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    document.getElementById('view-' + viewName).classList.add('active');
-    document.getElementById('nav-' + viewName).classList.add('active');
+    const viewEl = document.getElementById('view-' + viewName);
+    const navEl = document.getElementById('nav-' + viewName);
+    if (viewEl) viewEl.classList.add('active');
+    if (navEl) navEl.classList.add('active');
 
     if (viewName === 'schedule') {
         renderSchedule();
@@ -306,19 +309,20 @@ window.showView = function(viewName) {
 };
 
 window.setFilterType = function(type) {
-    activeFilterMode = type;
     const dayFilters = document.getElementById('day-filters');
     const catFilters = document.getElementById('category-filters');
     const label = document.getElementById('filter-label-text');
 
+    if (!dayFilters || !catFilters || !label) return;
+
     if (type === 'day') {
         dayFilters.style.display = 'flex';
         catFilters.style.display = 'none';
-        label.innerText = "Filter by Date";
+        label.innerText = 'Filter by Date';
     } else {
         dayFilters.style.display = 'none';
         catFilters.style.display = 'flex';
-        label.innerText = "Filter by Category";
+        label.innerText = 'Filter by Category';
     }
 };
 
@@ -386,4 +390,5 @@ if ('serviceWorker' in navigator) {
 }
 
 checkPWAStatus();
+updateWeatherWidget();
 fetchEvents();

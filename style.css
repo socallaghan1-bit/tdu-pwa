@@ -1,12 +1,11 @@
 :root {
-    --primary: #f26522; /* TDU Ochre */
+    --primary: #f26522;
     --primary-dark: #d44d0e;
     --bg-color: #f4f4f9;
     --card-bg: #ffffff;
     --text-dark: #222;
     --text-light: #666;
     --border: #e0e0e0;
-    /* Hero Image URL - replace with your own image link or local image file */
     --hero-bg: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1000&q=80');
 }
 
@@ -23,7 +22,6 @@ body {
     padding-bottom: 85px;
 }
 
-/* TOP HEADER */
 header {
     background-color: var(--primary) !important;
     color: white;
@@ -38,6 +36,10 @@ header {
 }
 
 .header-brand {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 0;
     cursor: pointer;
     user-select: none;
 }
@@ -59,7 +61,6 @@ header {
     color: white;
 }
 
-/* HEADER INSTALL PILL BUTTON */
 .header-install-btn {
     background: rgba(255, 255, 255, 0.22);
     color: white;
@@ -81,15 +82,14 @@ header {
     transform: scale(0.95);
 }
 
-/* VIEWS TOGGLING */
 .view {
     display: none;
 }
+
 .view.active {
     display: block;
 }
 
-/* HOME / WELCOME SCREEN */
 .hero {
     position: relative;
     background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%), var(--hero-bg);
@@ -123,6 +123,25 @@ header {
     margin: 0 auto;
 }
 
+.weather-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff7e8 0%, #fff 100%);
+    border: 1px solid #f4d8b6;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin: 0 0 18px 0;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.weather-widget i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
 .section-title {
     font-size: 1.05rem;
     font-weight: 700;
@@ -132,7 +151,6 @@ header {
     letter-spacing: 0.5px;
 }
 
-/* HOME ACTION CARDS */
 .home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -164,7 +182,7 @@ header {
     display: block;
 }
 
-.action-card h4 {
+.action-card h3 {
     margin: 0 0 4px 0;
     font-size: 0.95rem;
     font-weight: 700;
@@ -193,7 +211,7 @@ header {
     margin: 0;
 }
 
-.primary-card h4 {
+.primary-card h3 {
     font-size: 1.1rem;
     margin-bottom: 4px;
 }
@@ -202,7 +220,6 @@ header {
     color: #ccc;
 }
 
-/* FILTERS BAR */
 .filter-wrapper {
     background: white;
     position: sticky;
@@ -251,7 +268,6 @@ header {
     border-color: var(--primary);
 }
 
-/* SCHEDULE & MY TDU CONTAINER */
 #events-container {
     padding: 15px;
     max-width: 600px;
@@ -287,6 +303,14 @@ header {
 .event-meta i {
     width: 16px;
     color: var(--primary);
+}
+
+.event-weather {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-dark);
+    font-weight: 700;
 }
 
 .event-desc {
@@ -357,7 +381,37 @@ header {
     transform: scale(1.2);
 }
 
-/* BOTTOM NAVIGATION BAR */
+.saved-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 15px 15px 0 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.saved-heading h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.saved-sub {
+    margin: 0 0 15px 0;
+    padding: 0 15px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.export-btn {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    border-radius: 999px;
+}
+
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -381,6 +435,8 @@ header {
     cursor: pointer;
     font-weight: 600;
     position: relative;
+    border: none;
+    background: transparent;
 }
 
 .nav-item i {
@@ -411,7 +467,6 @@ header {
     color: var(--text-light);
 }
 
-/* INSTALL INSTRUCTIONS MODAL (Strict Overlay) */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -499,90 +554,16 @@ header {
     font-size: 0.8rem;
     flex-shrink: 0;
 }
-/* LIVE WEATHER WIDGET */
-.weather-card {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    font-size: 0.88rem;
+
+#saved-events-container {
+    padding: 0 15px 15px 15px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.weather-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.weather-icon {
-    font-size: 1.6rem;
-    color: #f39c12;
-}
-
-.weather-temp {
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--text-dark);
-}
-
-.weather-details {
-    display: flex;
-    flex-direction: column;
-    font-size: 0.75rem;
-    color: var(--text-light);
-}
-
-.weather-wind {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 600;
-    color: #27ae60;
-}
-/* PER-EVENT WEATHER BADGE */
-.card-weather {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #f8f9fa;
-    border: 1px solid #e2e8f0;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    color: #334155;
-    margin-top: 4px;
-    width: fit-content;
-}
-
-.weather-sep {
-    color: #cbd5e1;
-    font-weight: bold;
-}
-/* CALENDAR EXPORT BUTTON */
-.btn-export {
-    background: #27ae60;
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25);
-    transition: transform 0.15s, background-color 0.15s;
-}
-
-.btn-export:active {
-    transform: scale(0.98);
-    background: #219653;
+@media (max-width: 420px) {
+    .saved-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }

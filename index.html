@@ -2,22 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Interactive Adelaide guide for Tour Down Under rides, stages, and events.">
     <title>TDU 2026 Companion</title>
 
-    <!-- PWA Manifest & Theme -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f26522">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
-    <!-- Icons & Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=1.4">
 </head>
 <body>
-
-    <!-- STICKY HEADER -->
     <header>
         <button class="header-brand" onclick="showView('home')" aria-label="Go to TDU home">
             <h1>TDU 2026</h1>
@@ -29,20 +25,19 @@
         </button>
     </header>
 
-    <!-- 1. HOME / WELCOME VIEW -->
     <main id="view-home" class="view active">
         <div class="hero">
             <h2>Welcome to Tour Down Under 2026</h2>
             <p>Your interactive Adelaide guide to race stages, pop-up rides, and street parties.</p>
         </div>
 
-        <section class="home-container" aria-labelledby="explore-heading">
+        <div class="home-container">
             <div id="weather-widget" class="weather-widget" aria-live="polite">
-                <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                <span>Loading Adelaide weather...</span>
+                <i class="fas fa-cloud-sun" aria-hidden="true"></i>
+                <span>Today in Adelaide: 24°C • Partly cloudy</span>
             </div>
 
-            <h2 id="explore-heading" class="section-title">Explore Schedule</h2>
+            <div class="section-title">Explore Schedule</div>
 
             <div class="home-grid">
                 <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
@@ -58,17 +53,16 @@
                 </button>
 
                 <button class="action-card primary-card" onclick="showView('saved')">
-                    <span>
+                    <div>
                         <h3>My TDU Itinerary</h3>
                         <p id="home-saved-count">0 events saved</p>
-                    </span>
+                    </div>
                     <i class="fas fa-heart" aria-hidden="true"></i>
                 </button>
             </div>
-        </section>
+        </div>
     </main>
 
-    <!-- 2. EXPLORE / SCHEDULE VIEW -->
     <section id="view-schedule" class="view" aria-label="Event schedule">
         <div class="filter-wrapper">
             <div class="filter-label" id="filter-label-text">Filter by Date</div>
@@ -100,16 +94,15 @@
         </div>
     </section>
 
-    <!-- 3. MY TDU ITINERARY VIEW -->
     <section id="view-saved" class="view" aria-label="Saved TDU events">
         <div class="saved-heading">
             <h2>My TDU</h2>
-            <p>Your saved personal Tour Down Under schedule.</p>
+            <button class="btn btn-primary export-btn" onclick="exportSavedEvents()">Export to Calendar</button>
         </div>
+        <p class="saved-sub">Your saved personal Tour Down Under schedule.</p>
         <div id="saved-events-container"></div>
     </section>
 
-    <!-- SAFARI / IOS INSTRUCTIONS MODAL -->
     <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="install-title">
             <div class="modal-header">
@@ -118,13 +111,20 @@
             </div>
             <p class="modal-sub">Add this app to your phone's home screen for fast offline access:</p>
 
-            <div class="install-step"><div class="step-num">1</div><div>Tap the <strong>Share</strong> button in your browser bar.</div></div>
-            <div class="install-step"><div class="step-num">2</div><div>Select <strong>Add to Home Screen</strong>.</div></div>
+            <div class="install-step">
+                <div class="step-num">1</div>
+                <div>Tap the <strong>Share</strong> button in your browser bar.</div>
+            </div>
+
+            <div class="install-step">
+                <div class="step-num">2</div>
+                <div>Select <strong>Add to Home Screen</strong>.</div>
+            </div>
+
             <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="closeInstallModal()">Got It</button>
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav" aria-label="Primary navigation">
         <button class="nav-item active" onclick="showView('home')" id="nav-home"><i class="fas fa-home" aria-hidden="true"></i>Home</button>
         <button class="nav-item" onclick="showView('schedule')" id="nav-schedule"><i class="fas fa-calendar-alt" aria-hidden="true"></i>Schedule</button>
