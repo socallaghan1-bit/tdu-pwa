@@ -4,12 +4,46 @@ let currentCatFilter = 'All';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-const ADL_WEATHER_PLACEHOLDER = 'Today in Adelaide: 24°C • Partly cloudy';
+const ADELAIDE_COORDS = { latitude: -34.9285, longitude: 138.6007 };
+const WEATHER_CACHE_KEY = 'tduWeatherSummary';
+const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
+const WEATHER_UNAVAILABLE = 'Weather unavailable';
+const WEATHER_CODES = {
+    0: 'Clear sky',
+    1: 'Mostly clear',
+    2: 'Partly cloudy',
+    3: 'Overcast',
+    45: 'Foggy',
+    48: 'Foggy',
+    51: 'Light drizzle',
+    53: 'Drizzle',
+    55: 'Heavy drizzle',
+    56: 'Freezing drizzle',
+    57: 'Freezing drizzle',
+    61: 'Light rain',
+    63: 'Rain',
+    65: 'Heavy rain',
+    66: 'Freezing rain',
+    67: 'Freezing rain',
+    71: 'Light snow',
+    73: 'Snow',
+    75: 'Heavy snow',
+    77: 'Snow grains',
+    80: 'Rain showers',
+    81: 'Rain showers',
+    82: 'Heavy showers',
+    85: 'Snow showers',
+    86: 'Heavy snow showers',
+    95: 'Thunderstorms',
+    96: 'Thunderstorms',
+    99: 'Thunderstorms'
+};
 const recommendationState = {
     isOpen: false,
     intent: '',
     option: ''
 };
+let feedbackFrameLoadCount = 0;
 const RECOMMENDATION_OPTIONS = {
     ride: [
         { id: 'hills', label: 'Hills' },
@@ -72,6 +106,47 @@ function getEventRatingLabel(event) {
     if (typeof rating === 'string') return rating;
     if (typeof rating === 'object' && rating.label) return rating.label;
     return '';
+}
+
+function getEventRatingVibes(event) {
+    const rating = getEventRatingLabel(event);
+    if (!rating) return '';
+    return rating.toLowerCase().includes('vibes') ? rating : `${rating} vibes`;
+}
+
+function getFeaturedReason(event) {
+    return String(event.featured_reason || 'editorial').trim().toLowerCase();
+}
+
+function getSponsorName(event) {
+    return String(event.sponsor_name || '').trim();
+}
+
+function trackAnalyticsEvent(eventName, params = {}) {
+    if (typeof window.gtag !== 'function') return false;
+
+    try {
+        window.gtag('event', eventName, {
+            app_name: 'TDU PWA',
+            ...params
+        });
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+function getEventAnalyticsPayload(eventId) {
+    const event = allEvents.find((entry) => String(entry.id) === String(eventId));
+    if (!event) {
+        return { event_id: String(eventId) };
+    }
+
+    return {
+        event_id: String(event.id || eventId),
+        event_title: String(event.title || ''),
+        event_category: String(event.category || getEventType(event) || '')
+    };
 }
 
 function getEventStatus(event) {
@@ -168,14 +243,65 @@ function getSavedEvents() {
     }
 }
 
-function updateWeatherWidget() {
+function renderWeatherWidget(message) {
     const widget = document.getElementById('weather-widget');
     if (!widget) return;
 
     widget.innerHTML = `
         <i class="fas fa-cloud-sun" aria-hidden="true"></i>
-        <span>${ADL_WEATHER_PLACEHOLDER}</span>
+        <span>${escapeHTML(message)}</span>
     `;
+}
+
+function getCachedWeatherSummary() {
+    try {
+        return localStorage.getItem(WEATHER_CACHE_KEY) || '';
+    } catch (error) {
+        return '';
+    }
+}
+
+function setCachedWeatherSummary(value) {
+    try {
+        localStorage.setItem(WEATHER_CACHE_KEY, value);
+    } catch (error) {
+        // Ignore localStorage write errors.
+    }
+}
+
+function getWeatherCondition(code) {
+    return WEATHER_CODES[Number(code)] || 'Conditions unavailable';
+}
+
+async function updateWeatherWidget() {
+    const cachedWeather = getCachedWeatherSummary();
+    renderWeatherWidget(cachedWeather || WEATHER_PLACEHOLDER);
+
+    const params = new URLSearchParams({
+        latitude: ADELAIDE_COORDS.latitude,
+        longitude: ADELAIDE_COORDS.longitude,
+        current: 'temperature_2m,weather_code',
+        timezone: 'Australia/Adelaide'
+    });
+
+    try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+        if (!response.ok) throw new Error('Weather request failed');
+
+        const data = await response.json();
+        const temperature = Math.round(Number(data?.current?.temperature_2m));
+        const weatherCode = Number(data?.current?.weather_code);
+
+        if (!Number.isFinite(temperature) || !Number.isFinite(weatherCode)) {
+            throw new Error('Weather data unavailable');
+        }
+
+        const summary = `Today in Adelaide: ${temperature}°C • ${getWeatherCondition(weatherCode)}`;
+        setCachedWeatherSummary(summary);
+        renderWeatherWidget(summary);
+    } catch (error) {
+        renderWeatherWidget(cachedWeather || WEATHER_UNAVAILABLE);
+    }
 }
 
 function escapeIcsText(value) {
@@ -270,6 +396,10 @@ function exportSavedEvents() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    trackAnalyticsEvent('export_calendar', {
+        saved_event_count: selectedEvents.length
+    });
 }
 
 async function fetchEvents() {
@@ -351,7 +481,9 @@ function renderFeaturedEvents() {
     container.innerHTML = featuredEvents.map((event, index) => {
         const eventId = String(event.id || index + 1);
         const type = getEventType(event);
-        const rating = getEventRatingLabel(event);
+        const rating = getEventRatingVibes(event);
+        const sponsorName = getSponsorName(event);
+        const isSponsored = getFeaturedReason(event) === 'sponsored';
         const metaParts = [
             formatDate(event.date),
             event.category || type,
@@ -360,9 +492,10 @@ function renderFeaturedEvents() {
 
         return `
             <article class="featured-card">
+                ${isSponsored ? `<div class="event-badges"><span class="tag secondary-tag">Sponsored${sponsorName ? ` · ${escapeHTML(sponsorName)}` : ''}</span></div>` : ''}
                 <div class="featured-meta">${metaParts.map((part) => `<span>${escapeHTML(part)}</span>`).join('')}</div>
                 <h3>${escapeHTML(event.title || 'Featured event')}</h3>
-                <button class="btn btn-primary featured-action" onclick="openEventInSchedule('${escapeHTML(eventId)}')">View in schedule</button>
+                <button class="btn btn-primary featured-action" onclick="openEventInSchedule('${escapeHTML(eventId)}', 'featured')">View in schedule</button>
             </article>
         `;
     }).join('');
@@ -460,7 +593,7 @@ function renderRecommendationFlow() {
         <div class="helper-copy">${escapeHTML(result.summary)}</div>
         <div class="recommendation-list">
             ${result.matches.map(({ event, reason }, index) => {
-                const rating = getEventRatingLabel(event);
+                const rating = getEventRatingVibes(event);
                 const meta = [event.category || getEventType(event), formatDate(event.date), rating ? `TDU rating: ${rating}` : ''].filter(Boolean).join(' • ');
                 const eventId = String(event.id || index + 1);
                 return `
@@ -468,12 +601,19 @@ function renderRecommendationFlow() {
                         <div class="recommendation-meta">${escapeHTML(meta)}</div>
                         <h3>${escapeHTML(event.title || 'Recommended event')}</h3>
                         <p>${escapeHTML(reason)}</p>
-                        <button class="btn btn-primary recommendation-action" onclick="openEventInSchedule('${escapeHTML(eventId)}')">View in schedule</button>
+                        <button class="btn btn-primary recommendation-action" onclick="openEventInSchedule('${escapeHTML(eventId)}', 'recommendation')">View in schedule</button>
                     </article>
                 `;
             }).join('')}
         </div>
     `;
+
+    trackAnalyticsEvent('open_recommendation_result', {
+        recommendation_intent: recommendationState.intent,
+        recommendation_option: recommendationState.option,
+        result_count: result.matches.length,
+        top_result_id: result.matches[0] ? String(result.matches[0].event.id || '') : ''
+    });
 }
 
 function matchRecommendationOption(event, intent, optionId) {
@@ -526,27 +666,27 @@ function getRecommendationEmptyMessage(intent) {
 }
 
 function buildRecommendationReason(event, intent, optionId) {
-    const rating = getEventRatingLabel(event);
+    const rating = getEventRatingVibes(event);
     const area = getEventArea(event.finish_location || event.location);
 
     if (intent === 'watch') {
         if (optionId === 'climbing') {
-            return `Watch the race in ${area || 'the Adelaide Hills'} for a climbing-heavy stage${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+            return `Watch the race in ${area || 'the Adelaide Hills'} for a climbing-heavy stage${rating ? ` with ${rating}.` : '.'}`;
         }
         if (optionId === 'coastal') {
-            return `Watch the race in ${area || 'a coastal setting'} for a seaside stage day${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+            return `Watch the race in ${area || 'a coastal setting'} for a seaside stage day${rating ? ` with ${rating}.` : '.'}`;
         }
         if (optionId === 'city') {
-            return `Watch the race in ${area || 'a city setting'} for an accessible city-based stage option${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+            return `Watch the race in ${area || 'a city setting'} for an accessible city-based stage option${rating ? ` with ${rating}.` : '.'}`;
         }
-        return `Watch the race in ${area || 'South Australia'} on ${formatDate(event.date)}${rating ? ` with a ${rating} TDU rating.` : '.'}`;
+        return `Watch the race in ${area || 'South Australia'} on ${formatDate(event.date)}${rating ? ` with ${rating}.` : '.'}`;
     }
 
     if (intent === 'ride') {
-        return `This ${String(getEventType(event) || event.category || 'ride event').toLowerCase()} matched your ${formatOptionLabel(optionId)} ride preference${rating ? ` and carries a ${rating} TDU rating.` : '.'}`;
+        return `This ${String(getEventType(event) || event.category || 'ride event').toLowerCase()} matched your ${formatOptionLabel(optionId)} ride preference${rating ? ` and carries ${rating}.` : '.'}`;
     }
 
-    return `This ${String(getEventType(event) || event.category || 'social event').toLowerCase()} matched your ${formatOptionLabel(optionId)} social pick${rating ? ` and carries a ${rating} TDU rating.` : '.'}`;
+    return `This ${String(getEventType(event) || event.category || 'social event').toLowerCase()} matched your ${formatOptionLabel(optionId)} social pick${rating ? ` and carries ${rating}.` : '.'}`;
 }
 
 function getRecommendationResult(intent, optionId) {
@@ -589,7 +729,11 @@ function resetScheduleFilters() {
     });
 }
 
-window.openEventInSchedule = function(eventId) {
+window.openEventInSchedule = function(eventId, source = 'schedule') {
+    trackAnalyticsEvent('view_in_schedule_click', {
+        source,
+        ...getEventAnalyticsPayload(eventId)
+    });
     resetScheduleFilters();
     showView('schedule');
     setFilterType('day');
@@ -613,7 +757,7 @@ function createEventCardHTML(event, eventId, isSaved) {
     const routeUrl = event.route_url || '';
     const heartClass = isSaved ? 'fas saved' : 'far';
     const weatherText = event.weather || 'TBC';
-    const rating = getEventRatingLabel(event);
+    const rating = getEventRatingVibes(event);
     const { start, finish, hasDistinctFinish } = getEventLocations(event);
     const primaryLocation = start || finish;
     const primaryMapLink = primaryLocation ? `https://maps.google.com/?q=${encodeURIComponent(primaryLocation)}` : '#';
@@ -653,9 +797,9 @@ function createEventCardHTML(event, eventId, isSaved) {
             ${description ? `<div class="event-desc">${description}</div>` : ''}
 
             <div class="card-actions">
-                ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start map' : 'Navigate'}</a>` : ''}
-                ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish map</a>` : ''}
-                ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
+                ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start map' : 'Navigate'}</a>` : ''}
+                ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish map</a>` : ''}
+                ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
             </div>
         </div>
     `;
@@ -671,12 +815,14 @@ window.toggleSave = function(id, btnElement) {
             btnElement.classList.remove('saved');
             btnElement.innerHTML = '<i class="far fa-heart" aria-hidden="true"></i>';
         }
+        trackAnalyticsEvent('remove_saved_event', getEventAnalyticsPayload(strId));
     } else {
         savedEvents.push(strId);
         if (btnElement) {
             btnElement.classList.add('saved');
             btnElement.innerHTML = '<i class="fas fa-heart" aria-hidden="true"></i>';
         }
+        trackAnalyticsEvent('save_event', getEventAnalyticsPayload(strId));
     }
 
     localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
@@ -691,6 +837,7 @@ window.toggleSave = function(id, btnElement) {
 window.openRecommendationFlow = function() {
     recommendationState.isOpen = true;
     renderRecommendationFlow();
+    trackAnalyticsEvent('open_recommendation_flow');
 };
 
 window.selectRecommendationIntent = function(intent) {
@@ -698,11 +845,18 @@ window.selectRecommendationIntent = function(intent) {
     recommendationState.intent = intent;
     recommendationState.option = '';
     renderRecommendationFlow();
+    trackAnalyticsEvent('select_recommendation_intent', {
+        recommendation_intent: intent
+    });
 };
 
 window.selectRecommendationOption = function(optionId) {
     recommendationState.option = optionId;
     renderRecommendationFlow();
+    trackAnalyticsEvent('select_recommendation_option', {
+        recommendation_intent: recommendationState.intent,
+        recommendation_option: optionId
+    });
 };
 
 window.goBackRecommendation = function() {
@@ -784,6 +938,11 @@ window.applyCategoryFilter = function(category, btn) {
     renderSchedule();
 };
 
+window.trackEventAction = function(action, eventId) {
+    trackAnalyticsEvent(action, getEventAnalyticsPayload(eventId));
+    return true;
+};
+
 function checkPWAStatus() {
     const btn = document.getElementById('header-install-btn');
     if (!btn) return;
@@ -804,6 +963,36 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
+window.openFeedbackModal = function() {
+    const modal = document.getElementById('feedback-modal');
+    const frame = document.getElementById('feedback-form-frame');
+    feedbackFrameLoadCount = 0;
+    if (frame) {
+        frame.src = frame.src;
+    }
+    if (modal) modal.classList.add('active');
+};
+
+window.closeFeedbackModal = function(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') {
+        const modal = document.getElementById('feedback-modal');
+        if (modal) modal.classList.remove('active');
+    }
+};
+
+window.openSupportModal = function() {
+    trackAnalyticsEvent('click_support_coming_soon');
+    const modal = document.getElementById('support-modal');
+    if (modal) modal.classList.add('active');
+};
+
+window.closeSupportModal = function(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') {
+        const modal = document.getElementById('support-modal');
+        if (modal) modal.classList.remove('active');
+    }
+};
+
 window.triggerInstall = function() {
     if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -811,6 +1000,7 @@ window.triggerInstall = function() {
             if (result.outcome === 'accepted') {
                 const btn = document.getElementById('header-install-btn');
                 if (btn) btn.style.display = 'none';
+                trackAnalyticsEvent('app_install_accepted');
             }
             deferredPrompt = null;
         });
@@ -832,6 +1022,22 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./service-worker.js');
     });
 }
+
+window.addEventListener('load', () => {
+    if (isStandalone) {
+        trackAnalyticsEvent('standalone_launch');
+    }
+
+    const feedbackFrame = document.getElementById('feedback-form-frame');
+    if (feedbackFrame) {
+        feedbackFrame.addEventListener('load', () => {
+            feedbackFrameLoadCount += 1;
+            if (feedbackFrameLoadCount > 1) {
+                trackAnalyticsEvent('submit_feedback');
+            }
+        });
+    }
+});
 
 checkPWAStatus();
 updateWeatherWidget();

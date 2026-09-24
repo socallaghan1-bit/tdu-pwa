@@ -11,7 +11,15 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.6">
+    <link rel="stylesheet" href="style.css?v=1.7">
+    <!-- TODO: Replace G-XXXXXXXXXX with your real GA4 Measurement ID before launch. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 </head>
 <body>
     <header>
@@ -34,7 +42,7 @@
         <div class="home-container">
             <div id="weather-widget" class="weather-widget" aria-live="polite">
                 <i class="fas fa-cloud-sun" aria-hidden="true"></i>
-                <span>Today in Adelaide: 24°C • Partly cloudy</span>
+                <span>Today in Adelaide: Checking weather…</span>
             </div>
 
             <div class="section-title">Explore Schedule</div>
@@ -101,14 +109,15 @@
                 <div class="guide-panel">
                     <p class="guide-intro">Want to back the app or suggest an improvement?</p>
                     <div class="support-actions">
-                        <a class="btn" href="https://www.buymeacoffee.com/" target="_blank" rel="noopener">
+                        <!-- TODO: Replace this placeholder button/modal with the real support link when support is ready. -->
+                        <button class="btn btn-disabled" type="button" onclick="openSupportModal()">
                             <i class="fas fa-mug-hot" aria-hidden="true"></i>
-                            Buy me a coffee
-                        </a>
-                        <a class="btn btn-primary" href="https://github.com/socallaghan1-bit/tdu-pwa/issues/new?title=TDU%20PWA%20feedback&amp;body=Share%20your%20idea%20or%20bug%20report%20here." target="_blank" rel="noopener">
+                            Support coming soon
+                        </button>
+                        <button class="btn btn-primary" type="button" onclick="openFeedbackModal()">
                             <i class="far fa-comment-dots" aria-hidden="true"></i>
                             Send feedback
-                        </a>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -164,12 +173,43 @@
         </div>
     </div>
 
+    <div id="feedback-modal" class="modal-overlay" onclick="closeFeedbackModal(event)">
+        <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+            <div class="modal-header">
+                <h3 id="feedback-title">Send feedback</h3>
+                <button class="close-btn" onclick="closeFeedbackModal()" aria-label="Close feedback form">&times;</button>
+            </div>
+            <p class="modal-sub">Share a quick idea, bug, or request without leaving the app.</p>
+            <!-- TODO: Replace the placeholder Google Form embed URL below with the real Google Form embed URL. -->
+            <iframe
+                id="feedback-form-frame"
+                class="feedback-frame"
+                title="TDU feedback form"
+                loading="lazy"
+                src="https://docs.google.com/forms/d/e/REPLACE_WITH_REAL_FORM_ID/viewform?embedded=true"
+            ></iframe>
+            <p class="feedback-note">The live Google Form URL is still a placeholder for now.</p>
+            <button class="btn btn-primary modal-action-btn" type="button" onclick="closeFeedbackModal()">Done</button>
+        </div>
+    </div>
+
+    <div id="support-modal" class="modal-overlay" onclick="closeSupportModal(event)">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="support-modal-title">
+            <div class="modal-header">
+                <h3 id="support-modal-title">Support coming soon</h3>
+                <button class="close-btn" onclick="closeSupportModal()" aria-label="Close support placeholder">&times;</button>
+            </div>
+            <p class="modal-sub">Thanks for offering to help. This spot will link to the real support page once it is ready.</p>
+            <button class="btn btn-primary modal-action-btn" type="button" onclick="closeSupportModal()">Got it</button>
+        </div>
+    </div>
+
     <nav class="bottom-nav" aria-label="Primary navigation">
         <button class="nav-item active" onclick="showView('home')" id="nav-home"><i class="fas fa-home" aria-hidden="true"></i>Home</button>
         <button class="nav-item" onclick="showView('schedule')" id="nav-schedule"><i class="fas fa-calendar-alt" aria-hidden="true"></i>Schedule</button>
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=1.6"></script>
+    <script src="app.js?v=1.7"></script>
 </body>
 </html>
