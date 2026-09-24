@@ -3,7 +3,6 @@ let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const ADELAIDE_COORDS = { latitude: -34.9285, longitude: 138.6007 };
 const WEATHER_CACHE_KEY = 'tduWeatherSummary';
 const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
@@ -68,6 +67,10 @@ const INTENT_BUTTONS = [
     { id: 'watch', label: 'I want to watch racing' },
     { id: 'social', label: 'I want something social' }
 ];
+
+function isStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -948,7 +951,7 @@ function checkPWAStatus() {
     const btn = document.getElementById('header-install-btn');
     if (!btn) return;
 
-    if (isStandalone) {
+    if (isStandaloneMode()) {
         btn.style.display = 'none';
     } else if (isIOS) {
         btn.style.display = 'flex';
@@ -959,7 +962,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     const btn = document.getElementById('header-install-btn');
-    if (btn && !isStandalone) {
+    if (btn && !isStandaloneMode()) {
         btn.style.display = 'flex';
     }
 });
@@ -976,11 +979,15 @@ window.openFeedbackModal = function() {
         }
     }
 
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        const closeButton = modal.querySelector('.close-btn');
+        if (closeButton) closeButton.focus();
+    }
 };
 
 window.closeFeedbackModal = function(e) {
-    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn')) {
         const modal = document.getElementById('feedback-modal');
         if (modal) modal.classList.remove('active');
     }
@@ -994,11 +1001,15 @@ window.confirmFeedbackSubmitted = function() {
 window.openSupportModal = function() {
     trackAnalyticsEvent('click_support_coming_soon');
     const modal = document.getElementById('support-modal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        const closeButton = modal.querySelector('.close-btn');
+        if (closeButton) closeButton.focus();
+    }
 };
 
 window.closeSupportModal = function(e) {
-    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn')) {
         const modal = document.getElementById('support-modal');
         if (modal) modal.classList.remove('active');
     }
@@ -1035,7 +1046,7 @@ if ('serviceWorker' in navigator) {
 }
 
 window.addEventListener('load', () => {
-    if (isStandalone) {
+    if (isStandaloneMode()) {
         trackAnalyticsEvent('standalone_launch');
     }
 });
