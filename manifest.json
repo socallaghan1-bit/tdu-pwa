@@ -1,10 +1,10 @@
 {
-  "name": "TDU 2026 Companion",
-  "short_name": "TDU 2026",
+  "name": "TDU 2027 Companion",
+  "short_name": "TDU 2027",
   "description": "Interactive Adelaide guide for Tour Down Under rides, stages, and events.",
   "start_url": "./index.html",
   "scope": "./",
-  "id": "tdu-2026-pwa",
+  "id": "tdu-2027-pwa",
   "display": "standalone",
   "background_color": "#f4f4f9",
   "theme_color": "#f26522",

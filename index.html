@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Interactive Adelaide guide for Tour Down Under rides, stages, and events.">
-    <title>TDU 2026 Companion</title>
+    <title>TDU 2027 Companion</title>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f26522">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.4">
+    <link rel="stylesheet" href="style.css?v=1.5">
 </head>
 <body>
     <header>
         <button class="header-brand" onclick="showView('home')" aria-label="Go to TDU home">
-            <h1>TDU 2026</h1>
+            <h1>TDU 2027</h1>
             <div class="header-subtitle">Adelaide Companion</div>
         </button>
 
@@ -27,8 +27,8 @@
 
     <main id="view-home" class="view active">
         <div class="hero">
-            <h2>Welcome to Tour Down Under 2026</h2>
-            <p>Your interactive Adelaide guide to race stages, pop-up rides, and street parties.</p>
+            <h2>Welcome to Tour Down Under 2027</h2>
+            <p>Your interactive Adelaide guide to the Santos Tour Down Under stages.</p>
         </div>
 
         <div class="home-container">
@@ -43,13 +43,13 @@
                 <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
                     <i class="fas fa-calendar-day" aria-hidden="true"></i>
                     <h3>Browse by Day</h3>
-                    <p>Jan 16 – Jan 25</p>
+                    <p>Jan 19 – Jan 24</p>
                 </button>
 
                 <button class="action-card" onclick="showView('schedule'); setFilterType('category');">
                     <i class="fas fa-filter" aria-hidden="true"></i>
-                    <h3>Browse by Type</h3>
-                    <p>Rides, Races, Parties</p>
+                    <h3>Browse by Field</h3>
+                    <p>Men's & Women's Stages</p>
                 </button>
 
                 <button class="action-card primary-card" onclick="showView('saved')">
@@ -69,23 +69,18 @@
 
             <div class="filters" id="day-filters">
                 <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-16', this)">Fri 16 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-17', this)">Sat 17 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-18', this)">Sun 18 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-19', this)">Mon 19 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-20', this)">Tue 20 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-21', this)">Wed 21 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-22', this)">Thu 22 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-23', this)">Fri 23 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-24', this)">Sat 24 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2026-01-25', this)">Sun 25 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-19', this)">Tue 19 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-20', this)">Wed 20 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-21', this)">Thu 21 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-22', this)">Fri 22 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-23', this)">Sat 23 Jan</button>
+                <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
             </div>
 
             <div class="filters" id="category-filters" style="display:none;">
-                <button class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Types</button>
-                <button class="filter-btn" onclick="applyCategoryFilter('Group Ride', this)">Group Rides</button>
-                <button class="filter-btn" onclick="applyCategoryFilter('Official Event', this)">Race Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter('Social', this)">Social & Parties</button>
+                <button class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Stages</button>
+                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Men's Stage&quot;, this)">Men's Stages</button>
+                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Women's Stage&quot;, this)">Women's Stages</button>
             </div>
         </div>
 
@@ -106,21 +101,13 @@
     <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="install-title">
             <div class="modal-header">
-                <h3 id="install-title">Install TDU 2026</h3>
+                <h3 id="install-title">Install TDU 2027</h3>
                 <button class="close-btn" onclick="closeInstallModal()" aria-label="Close installation instructions">&times;</button>
             </div>
             <p class="modal-sub">Add this app to your phone's home screen for fast offline access:</p>
 
-            <div class="install-step">
-                <div class="step-num">1</div>
-                <div>Tap the <strong>Share</strong> button in your browser bar.</div>
-            </div>
-
-            <div class="install-step">
-                <div class="step-num">2</div>
-                <div>Select <strong>Add to Home Screen</strong>.</div>
-            </div>
-
+            <div class="install-step"><div class="step-num">1</div><div>Tap the <strong>Share</strong> button in your browser bar.</div></div>
+            <div class="install-step"><div class="step-num">2</div><div>Select <strong>Add to Home Screen</strong>.</div></div>
             <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="closeInstallModal()">Got It</button>
         </div>
     </div>
@@ -131,6 +118,6 @@
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=1.4"></script>
+    <script src="app.js?v=1.5"></script>
 </body>
 </html>
