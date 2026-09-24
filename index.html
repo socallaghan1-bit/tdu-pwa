@@ -10,11 +10,18 @@
     <style>
         :root {
             --primary: #f26522; /* TDU Orange */
+            --primary-dark: #d44d0e;
             --bg-color: #f4f4f9;
             --card-bg: #ffffff;
-            --text-dark: #333;
+            --text-dark: #222;
             --text-light: #666;
             --border: #e0e0e0;
+            /* Placeholder cycling image - replace URL with your custom photo later */
+            --hero-bg: url('https://images.unsplash.com/photo-1541625602330-2277a4c46182?auto=format&fit=crop&w=1000&q=80');
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -23,60 +30,209 @@
             margin: 0;
             padding: 0;
             color: var(--text-dark);
-            padding-bottom: 80px;
+            padding-bottom: 85px;
         }
 
+        /* TOP HEADER */
         header {
             background-color: var(--primary);
             color: white;
-            padding: 20px;
+            padding: 16px 20px;
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         header h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
-        header p {
-            margin: 5px 0 0 0;
-            font-size: 0.9rem;
+        .header-subtitle {
+            font-size: 0.75rem;
             opacity: 0.9;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* VIEWS TOGGLING */
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+
+        /* HOME / WELCOME SCREEN */
+        .hero {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.75) 100%), var(--hero-bg);
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 45px 20px 35px 20px;
+            text-align: center;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .hero h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 0.95rem;
+            margin: 0 0 20px 0;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .home-container {
+            padding: 20px 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 15px 0 12px 0;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* HOME ACTION CARDS */
+        .home-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        .action-card:active {
+            transform: scale(0.97);
+        }
+
+        .action-card i {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .action-card h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .action-card p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .primary-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #222 0%, #3a3a3a 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            padding: 20px;
+        }
+
+        .primary-card i {
+            font-size: 2.2rem;
+            color: #ff3b30;
+            margin: 0;
+        }
+
+        .primary-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .primary-card p {
+            color: #ccc;
+        }
+
+        /* FILTERS BAR */
+        .filter-wrapper {
+            background: white;
+            position: sticky;
+            top: 57px;
+            z-index: 90;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        .filter-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-light);
+            padding: 10px 15px 2px 15px;
+            letter-spacing: 0.5px;
         }
 
         .filters {
             display: flex;
             overflow-x: auto;
-            padding: 15px;
-            gap: 10px;
-            background: white;
-            border-bottom: 1px solid var(--border);
+            padding: 8px 15px 12px 15px;
+            gap: 8px;
             scrollbar-width: none;
         }
         .filters::-webkit-scrollbar {
             display: none;
         }
+
         .filter-btn {
             background: var(--bg-color);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 8px 15px;
-            font-size: 0.85rem;
+            padding: 6px 14px;
+            font-size: 0.8rem;
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.2s;
+            font-weight: 600;
         }
+
         .filter-btn.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
         }
 
+        /* SCHEDULE & MY TDU CONTAINER */
         #events-container {
             padding: 15px;
             max-width: 600px;
@@ -85,9 +241,9 @@
 
         .event-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
             position: relative;
@@ -95,13 +251,13 @@
 
         .event-card h3 {
             margin: 0 0 8px 0;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             padding-right: 35px;
-            line-height: 1.3;
+            line-height: 1.35;
         }
 
         .event-meta {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-light);
             margin-bottom: 12px;
             display: flex;
@@ -115,8 +271,8 @@
         }
 
         .event-desc {
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            font-size: 0.88rem;
+            margin-bottom: 14px;
             line-height: 1.4;
             color: #444;
         }
@@ -125,18 +281,19 @@
             display: inline-block;
             background: #ffe8dd;
             color: var(--primary);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             padding: 3px 10px;
             border-radius: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 700;
             text-transform: uppercase;
         }
 
         .card-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
+
         .btn {
             flex: 1;
             text-align: center;
@@ -146,33 +303,42 @@
             border-radius: 8px;
             text-decoration: none;
             color: var(--text-dark);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
         }
-        .btn:hover {
-            background: #e8e8e8;
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
         .fav-btn {
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 1.3rem;
+            font-size: 1.35rem;
             color: #ccc;
             cursor: pointer;
             background: none;
             border: none;
             padding: 0;
-            transition: color 0.2s;
+            transition: color 0.2s, transform 0.15s;
         }
+
         .fav-btn.saved {
             color: #ff3b30;
         }
 
+        .fav-btn:active {
+            transform: scale(1.2);
+        }
+
+        /* BOTTOM NAVIGATION BAR */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -181,27 +347,45 @@
             background: white;
             display: flex;
             justify-content: space-around;
-            padding: 12px 0 20px 0;
+            padding: 10px 0 22px 0;
             border-top: 1px solid var(--border);
             z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
         }
+
         .nav-item {
             text-align: center;
             color: var(--text-light);
             text-decoration: none;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             flex: 1;
             cursor: pointer;
+            font-weight: 600;
+            position: relative;
         }
+
         .nav-item i {
             display: block;
-            font-size: 1.2rem;
-            margin-bottom: 4px;
+            font-size: 1.25rem;
+            margin-bottom: 3px;
         }
+
         .nav-item.active {
             color: var(--primary);
         }
-        
+
+        .badge {
+            position: absolute;
+            top: -2px;
+            right: 28%;
+            background: #ff3b30;
+            color: white;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
         #loader {
             text-align: center;
             padding: 40px;
@@ -211,38 +395,116 @@
 </head>
 <body>
 
+    <!-- STICKY HEADER -->
     <header>
-        <h1>TDU 2026</h1>
-        <p>Interactive Companion</p>
+        <div>
+            <h1>TDU 2026</h1>
+        </div>
+        <div class="header-subtitle">Adelaide Companion</div>
     </header>
 
-    <div class="filters" id="filter-container">
-        <div class="filter-btn active" onclick="filterEvents('All', this)">All Events</div>
-        <div class="filter-btn" onclick="filterEvents('Group Ride', this)">Group Rides</div>
-        <div class="filter-btn" onclick="filterEvents('Official Event', this)">Official Events</div>
-        <div class="filter-btn" onclick="filterEvents('Social', this)">Social & Parties</div>
-        <div class="filter-btn" onclick="filterEvents('Women', this)">Women's</div>
+    <!-- 1. HOME / WELCOME VIEW -->
+    <div id="view-home" class="view active">
+        <div class="hero">
+            <h2>Welcome to Tour Down Under 2026</h2>
+            <p>Your interactive Adelaide guide to race stages, pop-up rides, and street parties.</p>
+        </div>
+
+        <div class="home-container">
+            <div class="section-title">Explore Schedule</div>
+            
+            <div class="home-grid">
+                <div class="action-card" onclick="showView('schedule'); setFilterType('day');">
+                    <i class="fas fa-calendar-day"></i>
+                    <h4>Browse by Day</h4>
+                    <p>Jan 16 – Jan 25</p>
+                </div>
+
+                <div class="action-card" onclick="showView('schedule'); setFilterType('category');">
+                    <i class="fas fa-filter"></i>
+                    <h4>Browse by Type</h4>
+                    <p>Rides, Races, Parties</p>
+                </div>
+
+                <div class="action-card primary-card" onclick="showView('saved')">
+                    <div>
+                        <h4>My TDU Itinerary</h4>
+                        <p id="home-saved-count">0 events saved</p>
+                    </div>
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="events-container">
-        <div id="loader"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading Events...</div>
+    <!-- 2. EXPLORE / SCHEDULE VIEW -->
+    <div id="view-schedule" class="view">
+        <div class="filter-wrapper">
+            <div class="filter-label" id="filter-label-text">Filter by Date</div>
+            
+            <!-- Date Filters -->
+            <div class="filters" id="day-filters">
+                <div class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-16', this)">Fri 16 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-17', this)">Sat 17 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-18', this)">Sun 18 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-19', this)">Mon 19 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-20', this)">Tue 20 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-21', this)">Wed 21 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-22', this)">Thu 22 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-23', this)">Fri 23 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-24', this)">Sat 24 Jan</div>
+                <div class="filter-btn" onclick="applyDayFilter('2026-01-25', this)">Sun 25 Jan</div>
+            </div>
+
+            <!-- Category Filters -->
+            <div class="filters" id="category-filters" style="display:none;">
+                <div class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Types</div>
+                <div class="filter-btn" onclick="applyCategoryFilter('Group Ride', this)">Group Rides</div>
+                <div class="filter-btn" onclick="applyCategoryFilter('Official Event', this)">Race Stages</div>
+                <div class="filter-btn" onclick="applyCategoryFilter('Social', this)">Social & Parties</div>
+            </div>
+        </div>
+
+        <div id="events-container">
+            <div id="loader"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading Events...</div>
+        </div>
     </div>
 
+    <!-- 3. MY TDU ITINERARY VIEW -->
+    <div id="view-saved" class="view">
+        <div style="padding: 15px 15px 0 15px; max-width: 600px; margin: 0 auto;">
+            <h2 style="margin: 5px 0 5px 0; font-size: 1.3rem;">My TDU</h2>
+            <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-light);">Your saved personal Tour Down Under schedule.</p>
+        </div>
+        
+        <div id="saved-events-container" style="padding: 0 15px 15px 15px; max-width: 600px; margin: 0 auto;">
+            <!-- Saved events render here -->
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('all')" id="nav-all">
+        <div class="nav-item active" onclick="showView('home')" id="nav-home">
+            <i class="fas fa-home"></i>
+            Home
+        </div>
+        <div class="nav-item" onclick="showView('schedule')" id="nav-schedule">
             <i class="fas fa-calendar-alt"></i>
             Schedule
         </div>
-        <div class="nav-item" onclick="switchTab('saved')" id="nav-saved">
+        <div class="nav-item" onclick="showView('saved')" id="nav-saved">
+            <span class="badge" id="nav-badge" style="display:none;">0</span>
             <i class="fas fa-heart"></i>
-            My Itinerary
+            My TDU
         </div>
     </div>
 
     <script>
         let allEvents = [];
-        let currentFilter = 'All';
-        let currentTab = 'all';
+        let currentDayFilter = 'All';
+        let currentCatFilter = 'All';
+        let activeFilterMode = 'day'; // 'day' or 'category'
 
         function formatDate(dateStr) {
             if (!dateStr) return '';
@@ -261,83 +523,112 @@
 
         async function fetchEvents() {
             try {
-const response = await fetch('./events.json?t=' + new Date().getTime());
-                if (!response.ok) throw new Error("Could not find events.json in repository.");
+                // Cache-busting parameter guarantees fresh fetch on every open
+                const response = await fetch('./events.json?t=' + new Date().getTime());
+                if (!response.ok) throw new Error("Could not load events.json");
                 allEvents = await response.json();
-                renderEvents();
+                updateSavedBadge();
+                renderSchedule();
             } catch (error) {
                 console.error("Fetch Error:", error);
                 document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
             }
         }
 
-        function renderEvents() {
+        function renderSchedule() {
             const container = document.getElementById('events-container');
             container.innerHTML = '';
-            
-            const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+
             let displayEvents = allEvents;
 
-            if (currentTab === 'saved') {
-                displayEvents = displayEvents.filter(e => savedEvents.includes(String(e.id)));
-                document.getElementById('filter-container').style.display = 'none';
-            } else {
-                document.getElementById('filter-container').style.display = 'flex';
-                if (currentFilter !== 'All') {
-                    displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentFilter.toLowerCase()));
-                }
+            // Apply Day Filter
+            if (currentDayFilter !== 'All') {
+                displayEvents = displayEvents.filter(e => e.date === currentDayFilter);
+            }
+
+            // Apply Category Filter
+            if (currentCatFilter !== 'All') {
+                displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentCatFilter.toLowerCase()));
             }
 
             if (displayEvents.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding:20px; color:#666;'>No events found in this view.</p>";
+                container.innerHTML = "<p style='text-align:center; padding:30px; color:#666;'>No events found for this selection.</p>";
+                return;
+            }
+
+            const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+
+            displayEvents.forEach((event, index) => {
+                const eventId = String(event.id || index + 1);
+                const isSaved = savedEvents.includes(eventId);
+                container.innerHTML += createEventCardHTML(event, eventId, isSaved);
+            });
+        }
+
+        function renderSaved() {
+            const container = document.getElementById('saved-events-container');
+            container.innerHTML = '';
+
+            const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+            const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
+
+            if (displayEvents.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px; color:#666; background:white; border-radius:16px; border:1px solid #e0e0e0;">
+                        <i class="far fa-heart" style="font-size:2.5rem; color:#ccc; margin-bottom:10px; display:block;"></i>
+                        <p style="margin:0 0 10px 0; font-weight:700;">Your itinerary is empty</p>
+                        <p style="margin:0; font-size:0.85rem; color:#888;">Tap the heart icon on any event in the Schedule to save it to My TDU.</p>
+                    </div>
+                `;
                 return;
             }
 
             displayEvents.forEach((event, index) => {
                 const eventId = String(event.id || index + 1);
-                const title = event.title || 'Untitled Event';
-                const category = event.category || '';
-                const dateDisplay = formatDate(event.date);
-                const startTime = event.start_time || '';
-                const endTime = event.end_time || '';
-                const location = event.location || '';
-                const description = event.description || '';
-                const routeUrl = event.route_url || '';
-
-                const isSaved = savedEvents.includes(eventId);
-                const heartClass = isSaved ? 'fas saved' : 'far';
-                const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
-
-                // Build clean time range string
-                let timeRange = startTime;
-                if (startTime && endTime) {
-                    timeRange += ' - ' + endTime;
-                }
-
-                const cardHTML = `
-                    <div class="event-card">
-                        <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
-                            <i class="${heartClass} fa-heart"></i>
-                        </button>
-                        
-                        ${category ? `<span class="tag">${category}</span>` : ''}
-                        <h3>${title}</h3>
-                        
-                        <div class="event-meta">
-                            ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
-                            ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
-                        </div>
-                        
-                        ${event.description ? `<div class="event-desc">${description}</div>` : ''}
-                        
-                        <div class="card-actions">
-                            ${location ? `<a href="${mapLink}" target="_blank" class="btn"><i class="fas fa-directions"></i> Navigate</a>` : ''}
-                            ${routeUrl ? `<a href="${routeUrl}" target="_blank" class="btn"><i class="fas fa-route"></i> Strava Route</a>` : ''}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += cardHTML;
+                container.innerHTML += createEventCardHTML(event, eventId, true);
             });
+        }
+
+        function createEventCardHTML(event, eventId, isSaved) {
+            const title = event.title || 'Untitled Event';
+            const category = event.category || '';
+            const dateDisplay = formatDate(event.date);
+            const startTime = event.start_time || '';
+            const endTime = event.end_time || '';
+            const location = event.location || '';
+            const description = event.description || '';
+            const routeUrl = event.route_url || '';
+            const heartClass = isSaved ? 'fas saved' : 'far';
+
+            const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
+
+            let timeRange = startTime;
+            if (startTime && endTime) {
+                timeRange += ' - ' + endTime;
+            }
+
+            return `
+                <div class="event-card">
+                    <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
+                        <i class="${heartClass} fa-heart"></i>
+                    </button>
+                    
+                    ${category ? `<span class="tag">${category}</span>` : ''}
+                    <h3>${title}</h3>
+                    
+                    <div class="event-meta">
+                        ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
+                        ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
+                    </div>
+                    
+                    ${description ? `<div class="event-desc">${description}</div>` : ''}
+                    
+                    <div class="card-actions">
+                        ${location ? `<a href="${mapLink}" target="_blank" class="btn"><i class="fas fa-directions"></i> Navigate</a>` : ''}
+                        ${routeUrl ? `<a href="${routeUrl}" target="_blank" class="btn btn-primary"><i class="fas fa-route"></i> Route</a>` : ''}
+                    </div>
+                </div>
+            `;
         }
 
         window.toggleSave = function(id, btnElement) {
@@ -346,37 +637,87 @@ const response = await fetch('./events.json?t=' + new Date().getTime());
             
             if (savedEvents.includes(strId)) {
                 savedEvents = savedEvents.filter(eventId => eventId !== strId);
-                btnElement.classList.remove('saved');
-                btnElement.innerHTML = '<i class="far fa-heart"></i>';
+                if (btnElement) {
+                    btnElement.classList.remove('saved');
+                    btnElement.innerHTML = '<i class="far fa-heart"></i>';
+                }
             } else {
                 savedEvents.push(strId);
-                btnElement.classList.add('saved');
-                btnElement.innerHTML = '<i class="fas fa-heart"></i>';
+                if (btnElement) {
+                    btnElement.classList.add('saved');
+                    btnElement.innerHTML = '<i class="fas fa-heart"></i>';
+                }
             }
             
             localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
+            updateSavedBadge();
+
+            // Refresh current view
+            const activeView = document.querySelector('.view.active').id;
+            if (activeView === 'view-saved') {
+                renderSaved();
+            }
+        };
+
+        function updateSavedBadge() {
+            const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
+            const badge = document.getElementById('nav-badge');
+            const homeCount = document.getElementById('home-saved-count');
             
-            if (currentTab === 'saved') {
-                renderEvents();
+            if (savedEvents.length > 0) {
+                badge.innerText = savedEvents.length;
+                badge.style.display = 'block';
+                homeCount.innerText = savedEvents.length + " event" + (savedEvents.length > 1 ? "s" : "") + " saved";
+            } else {
+                badge.style.display = 'none';
+                homeCount.innerText = "0 events saved";
+            }
+        }
+
+        window.showView = function(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            document.getElementById('view-' + viewName).classList.add('active');
+            document.getElementById('nav-' + viewName).classList.add('active');
+
+            if (viewName === 'schedule') {
+                renderSchedule();
+            } else if (viewName === 'saved') {
+                renderSaved();
+            }
+            window.scrollTo(0, 0);
+        };
+
+        window.setFilterType = function(type) {
+            activeFilterMode = type;
+            const dayFilters = document.getElementById('day-filters');
+            const catFilters = document.getElementById('category-filters');
+            const label = document.getElementById('filter-label-text');
+
+            if (type === 'day') {
+                dayFilters.style.display = 'flex';
+                catFilters.style.display = 'none';
+                label.innerText = "Filter by Date";
+            } else {
+                dayFilters.style.display = 'none';
+                catFilters.style.display = 'flex';
+                label.innerText = "Filter by Category";
             }
         };
 
-        window.filterEvents = function(category, element) {
-            currentFilter = category;
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            if (element) {
-                element.classList.add('active');
-            }
-            renderEvents();
+        window.applyDayFilter = function(day, btn) {
+            currentDayFilter = day;
+            document.querySelectorAll('#day-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderSchedule();
         };
 
-        window.switchTab = function(tabName) {
-            currentTab = tabName;
-            document.getElementById('nav-all').classList.remove('active');
-            document.getElementById('nav-saved').classList.remove('active');
-            document.getElementById('nav-' + tabName).classList.add('active');
-            renderEvents();
+        window.applyCategoryFilter = function(category, btn) {
+            currentCatFilter = category;
+            document.querySelectorAll('#category-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderSchedule();
         };
 
         fetchEvents();
