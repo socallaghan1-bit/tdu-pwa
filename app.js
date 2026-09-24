@@ -84,6 +84,30 @@ function getEventArea(location) {
     return parts[parts.length - 1] || String(location).trim();
 }
 
+function getEventLocations(event) {
+    const start = String(event.location || '').trim();
+    const finish = String(event.finish_location || '').trim();
+
+    if (!start && !finish) {
+        return { start: '', finish: '', hasDistinctFinish: false };
+    }
+
+    if (!finish) {
+        return { start, finish: '', hasDistinctFinish: false };
+    }
+
+    return {
+        start: start || finish,
+        finish,
+        hasDistinctFinish: Boolean(start && finish && start !== finish)
+    };
+}
+
+function getCalendarLocation(event) {
+    const { start, finish, hasDistinctFinish } = getEventLocations(event);
+    return hasDistinctFinish ? `Start: ${start} / Finish: ${finish}` : (start || finish);
+}
+
 function formatOptionLabel(optionId) {
     return String(optionId || '').replace(/-/g, ' ');
 }
@@ -94,7 +118,7 @@ function getEventTags(event) {
             ? event.tags.map((tag) => String(tag).toLowerCase().trim()).filter(Boolean)
             : []
     );
-    const text = `${event.category || ''} ${getEventType(event)} ${event.title || ''} ${event.description || ''} ${event.location || ''}`.toLowerCase();
+    const text = `${event.category || ''} ${getEventType(event)} ${event.title || ''} ${event.description || ''} ${event.location || ''} ${event.finish_location || ''}`.toLowerCase();
 
     if (text.includes('stage')) tags.add('race');
     if (text.includes('hill') || text.includes('mount lofty') || text.includes('corkscrew') || text.includes('climb')) {
@@ -217,7 +241,7 @@ function exportSavedEvents() {
     selectedEvents.forEach((event, index) => {
         const summary = event.title || 'TDU Event';
         const description = event.description || '';
-        const location = event.location || '';
+        const location = getCalendarLocation(event);
         const startDateTime = formatIcsDateTime(event.date, event.start_time || '09:00');
         const endDateTime = getEventEndDateTime(event);
 
@@ -309,7 +333,15 @@ function renderFeaturedEvents() {
     const container = document.getElementById('featured-events');
     if (!container) return;
 
-    const featuredEvents = allEvents.filter((event) => event.featured === true);
+    const featuredEvents = allEvents
+        .filter((event) => event.featured === true)
+        .sort((a, b) => {
+            const priorityA = Number.isFinite(Number(a.featured_priority)) ? Number(a.featured_priority) : Number.MAX_SAFE_INTEGER;
+            const priorityB = Number.isFinite(Number(b.featured_priority)) ? Number(b.featured_priority) : Number.MAX_SAFE_INTEGER;
+            if (priorityA !== priorityB) return priorityA - priorityB;
+            return String(a.date || '').localeCompare(String(b.date || ''));
+        })
+        .slice(0, 2);
 
     if (!featuredEvents.length) {
         container.innerHTML = "<div class='placeholder-card'>Featured events will appear here as more TDU events are announced.</div>";
@@ -495,7 +527,7 @@ function getRecommendationEmptyMessage(intent) {
 
 function buildRecommendationReason(event, intent, optionId) {
     const rating = getEventRatingLabel(event);
-    const area = getEventArea(event.location);
+    const area = getEventArea(event.finish_location || event.location);
 
     if (intent === 'watch') {
         if (optionId === 'climbing') {
@@ -577,14 +609,23 @@ function createEventCardHTML(event, eventId, isSaved) {
     const dateDisplay = formatDate(event.date);
     const startTime = event.start_time || '';
     const endTime = event.end_time || '';
-    const location = event.location || '';
     const description = event.description || '';
     const routeUrl = event.route_url || '';
     const heartClass = isSaved ? 'fas saved' : 'far';
     const weatherText = event.weather || 'TBC';
     const rating = getEventRatingLabel(event);
-
-    const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
+    const { start, finish, hasDistinctFinish } = getEventLocations(event);
+    const primaryLocation = start || finish;
+    const primaryMapLink = primaryLocation ? `https://maps.google.com/?q=${encodeURIComponent(primaryLocation)}` : '#';
+    const finishMapLink = hasDistinctFinish ? `https://maps.google.com/?q=${encodeURIComponent(finish)}` : primaryMapLink;
+    const locationMeta = hasDistinctFinish
+        ? `
+            <span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Start: ${escapeHTML(start)}</span>
+            <span><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish: ${escapeHTML(finish)}</span>
+        `
+        : primaryLocation
+            ? `<span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${escapeHTML(primaryLocation)}</span>`
+            : '';
 
     let timeRange = startTime;
     if (startTime && endTime) {
@@ -601,18 +642,19 @@ function createEventCardHTML(event, eventId, isSaved) {
                 ${category ? `<span class="tag">${category}</span>` : ''}
                 ${rating ? `<span class="tag secondary-tag">${rating}</span>` : ''}
             </div>
-            <h3>${title}</h3>
+            <h3>${escapeHTML(title)}</h3>
 
             <div class="event-meta">
                 ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
-                ${location ? `<span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${location}</span>` : ''}
+                ${locationMeta}
                 <span class="event-weather"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Weather: ${weatherText}</span>
             </div>
 
             ${description ? `<div class="event-desc">${description}</div>` : ''}
 
             <div class="card-actions">
-                ${location ? `<a href="${mapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> Navigate</a>` : ''}
+                ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start map' : 'Navigate'}</a>` : ''}
+                ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish map</a>` : ''}
                 ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
             </div>
         </div>
