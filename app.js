@@ -5,6 +5,7 @@ let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const ADELAIDE_COORDS = { latitude: -34.9285, longitude: 138.6007 };
 const WEATHER_CACHE_KEY = 'tduWeatherSummary';
+const STANDALONE_LAUNCH_SESSION_KEY = 'tduStandaloneLaunchTracked';
 const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
 const WEATHER_UNAVAILABLE = 'Weather unavailable';
 const WEATHER_CODES = {
@@ -1046,8 +1047,10 @@ if ('serviceWorker' in navigator) {
 }
 
 function trackStandaloneLaunchIfNeeded() {
-    if (isStandaloneMode()) {
+    const alreadyTracked = sessionStorage.getItem(STANDALONE_LAUNCH_SESSION_KEY) === 'true';
+    if (isStandaloneMode() && !alreadyTracked) {
         trackAnalyticsEvent('standalone_launch');
+        sessionStorage.setItem(STANDALONE_LAUNCH_SESSION_KEY, 'true');
     }
 }
 
