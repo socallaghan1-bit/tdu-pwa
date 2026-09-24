@@ -1,13 +1,134 @@
 [
   {
     "id": "1",
+    "title": "Ziptrak® Women's Stage 1: Willunga to Willunga",
+    "category": "Official Event",
+    "date": "2026-01-16",
+    "start_time": "11:10",
+    "end_time": "15:02",
+    "location": "High St, Willunga",
+    "description": "Women's Stage 1. Distance: 137.4km. Start: High St, Willunga | Finish: High St, Willunga.",
+    "route_url": ""
+  },
+  {
+    "id": "2",
+    "title": "Health Partners Women's Stage 2: Magill to Paracombe",
+    "category": "Official Event",
+    "date": "2026-01-17",
+    "start_time": "11:10",
+    "end_time": "14:49",
+    "location": "Magill Rd, Magill",
+    "description": "Women's Stage 2. Distance: 130.7km. Start: Magill Rd | Finish: Paracombe Rd, Paracombe.",
+    "route_url": ""
+  },
+  {
+    "id": "3",
+    "title": "Hyundai Women's Stage 3: Norwood to Campbelltown",
+    "category": "Official Event",
+    "date": "2026-01-18",
+    "start_time": "11:10",
+    "end_time": "15:04",
+    "location": "The Parade, Norwood",
+    "description": "Women's Stage 3. Distance: 126.5km. Start: The Parade, Norwood | Finish: Maryvale Rd, Athelstone.",
+    "route_url": ""
+  },
+  {
+    "id": "4",
+    "title": "South Australia Prologue",
+    "category": "Official Event",
+    "date": "2026-01-19",
+    "start_time": "18:00",
+    "end_time": "20:30",
+    "location": "Wakefield St, Adelaide",
+    "description": "Men's Prologue. Distance: 3.6km. Start: Wakefield St | Finish: Victoria Park, Adelaide.",
+    "route_url": ""
+  },
+  {
+    "id": "5",
+    "title": "Men's Stage 1: Tanunda to Tanunda",
+    "category": "Official Event",
+    "date": "2026-01-20",
+    "start_time": "11:10",
+    "end_time": "14:15",
+    "location": "Murray St, Tanunda",
+    "description": "Men's Stage 1. Distance: 120.6km. Start & Finish: Murray St, Tanunda.",
+    "route_url": ""
+  },
+  {
+    "id": "6",
     "title": "MAAP x Specialized Ride 1 - Windy Point",
     "category": "Group Ride",
     "date": "2026-01-16",
     "start_time": "07:30",
-    "end_time": "09:30",
-    "location": "63 Light Square, Adelaide",
-    "description": "46km / 348m elevation group ride starting at ILA.",
-    "route_url": "https://www.strava.com"
+    "end_time": "",
+    "location": "ILA, 63 Light Square, Adelaide",
+    "description": "ADL26 Ride 1 - Windy Point | 46km / 348m elevation group ride.",
+    "route_url": "https://www.strava.com/routes/31234567"
+  },
+  {
+    "id": "7",
+    "title": "MAAP x Specialized Ride 2 - Bradbury > Nortons",
+    "category": "Group Ride",
+    "date": "2026-01-17",
+    "start_time": "07:30",
+    "end_time": "",
+    "location": "ILA, 63 Light Square, Adelaide",
+    "description": "ADL26 Ride 2 - Bradbury > Nortons | 70km / 1302m elevation group ride.",
+    "route_url": "https://www.strava.com/routes/31234568"
+  },
+  {
+    "id": "8",
+    "title": "LITP Gravel Ride with Mitch Docker",
+    "category": "Group Ride",
+    "date": "2026-01-18",
+    "start_time": "14:30",
+    "end_time": "",
+    "location": "ILA, 63 Light Square, Adelaide",
+    "description": "Gravel ride with Mitch Docker | 30km / 142m elevation.",
+    "route_url": "https://www.strava.com/routes/31234569"
+  },
+  {
+    "id": "9",
+    "title": "Pedla + Trek: NORTACUTE Classic Ride",
+    "category": "Group Ride",
+    "date": "2026-01-17",
+    "start_time": "07:00",
+    "end_time": "",
+    "location": "145 Franklin St, Adelaide",
+    "description": "Classic ride starting from Franklin St pop-up.",
+    "route_url": ""
+  },
+  {
+    "id": "10",
+    "title": "Rapha Open Ride: KOM Hunting with Richie Porte",
+    "category": "Group Ride",
+    "date": "2026-01-17",
+    "start_time": "07:45",
+    "end_time": "",
+    "location": "31-33 North Street, Adelaide",
+    "description": "76km | 1260m elevation climb ride joined by Richie Porte.",
+    "route_url": ""
+  },
+  {
+    "id": "11",
+    "title": "Red Bull - BORA - hansgrohe: Meet & Greet",
+    "category": "Social",
+    "date": "2026-01-16",
+    "start_time": "13:30",
+    "end_time": "",
+    "location": "Bike Society Adelaide, 274 Waymouth St, Adelaide",
+    "description": "Team meet & greet and rider signings.",
+    "route_url": ""
+  },
+  {
+    "id": "12",
+    "title": "Tour Village Expo & Hot Dub Time Machine Concert",
+    "category": "Social",
+    "date": "2026-01-16",
+    "start_time": "12:00",
+    "end_time": "22:00",
+    "location": "Victoria Square, Adelaide",
+    "description": "Bike expo, team presentation at 7pm, and free concert at 8:15pm.",
+    "route_url": ""
   }
 ]
