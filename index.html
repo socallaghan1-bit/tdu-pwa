@@ -37,6 +37,30 @@
                 <span>Today in Adelaide: 24°C • Partly cloudy</span>
             </div>
 
+            <div class="section-title">Explore Schedule</div>
+
+            <div class="home-grid">
+                <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
+                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                    <h3>Browse by Day</h3>
+                    <p>Jan 19 – Jan 24</p>
+                </button>
+
+                <button class="action-card" onclick="showView('schedule'); setFilterType('category');">
+                    <i class="fas fa-filter" aria-hidden="true"></i>
+                    <h3>Browse by Field</h3>
+                    <p>Men's & Women's Stages</p>
+                </button>
+
+                <button class="action-card primary-card" onclick="showView('saved')">
+                    <div>
+                        <h3>My TDU Itinerary</h3>
+                        <p id="home-saved-count">0 events saved</p>
+                    </div>
+                    <i class="fas fa-heart" aria-hidden="true"></i>
+                </button>
+            </div>
+
             <section class="home-section" aria-labelledby="guide-title">
                 <div class="section-title" id="guide-title">What should I do?</div>
                 <div class="guide-panel">
@@ -68,33 +92,26 @@
             </section>
 
             <section class="home-section" aria-labelledby="featured-title">
-                <div class="section-title" id="featured-title">Featured this week</div>
+                <div class="section-title" id="featured-title">Featured Events</div>
                 <div id="featured-events" class="featured-events" aria-live="polite"></div>
             </section>
 
-            <div class="section-title">Explore Schedule</div>
-
-            <div class="home-grid">
-                <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
-                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
-                    <h3>Browse by Day</h3>
-                    <p>Jan 19 – Jan 24</p>
-                </button>
-
-                <button class="action-card" onclick="showView('schedule'); setFilterType('category');">
-                    <i class="fas fa-filter" aria-hidden="true"></i>
-                    <h3>Browse by Field</h3>
-                    <p>Men's & Women's Stages</p>
-                </button>
-
-                <button class="action-card primary-card" onclick="showView('saved')">
-                    <div>
-                        <h3>My TDU Itinerary</h3>
-                        <p id="home-saved-count">0 events saved</p>
+            <section class="home-section" aria-labelledby="support-title">
+                <div class="section-title" id="support-title">Support &amp; Feedback</div>
+                <div class="guide-panel">
+                    <p class="guide-intro">Want to back the app or suggest an improvement?</p>
+                    <div class="support-actions">
+                        <a class="btn" href="https://www.buymeacoffee.com/" target="_blank" rel="noopener">
+                            <i class="fas fa-mug-hot" aria-hidden="true"></i>
+                            Buy me a coffee
+                        </a>
+                        <a class="btn btn-primary" href="https://github.com/socallaghan1-bit/tdu-pwa/issues/new?title=TDU%20PWA%20feedback&amp;body=Share%20your%20idea%20or%20bug%20report%20here." target="_blank" rel="noopener">
+                            <i class="far fa-comment-dots" aria-hidden="true"></i>
+                            Send feedback
+                        </a>
                     </div>
-                    <i class="fas fa-heart" aria-hidden="true"></i>
-                </button>
-            </div>
+                </div>
+            </section>
         </div>
     </main>
 

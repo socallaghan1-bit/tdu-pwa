@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdu-pwa-v3';
+const CACHE_NAME = 'tdu-pwa-v4';
 const ASSETS = [
     './',
     './index.html',

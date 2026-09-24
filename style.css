@@ -299,6 +299,16 @@ header {
     width: 100%;
 }
 
+.support-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.support-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+}
+
 .home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -495,6 +505,11 @@ header {
 .card-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+}
+
+.card-actions .btn {
+    flex: 1 1 calc(50% - 4px);
 }
 
 .btn {
