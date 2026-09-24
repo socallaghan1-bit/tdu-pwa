@@ -271,3 +271,56 @@ if ('serviceWorker' in navigator) {
 
 checkPWAStatus();
 fetchEvents();
+// OPEN-METEO WEATHER INTEGRATION (Adelaide: Lat -34.9285, Lon 138.6007)
+async function fetchAdelaideWeather() {
+    const widget = document.getElementById('weather-widget');
+    if (!widget) return;
+
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Australia%2FAdelaide';
+
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Weather unavailable");
+        const data = await res.json();
+        
+        const temp = Math.round(data.current.temperature_2m);
+        const wind = Math.round(data.current.wind_speed_10m);
+        const code = data.current.weather_code;
+
+        // Map WMO Weather Codes to FontAwesome Icons
+        let iconClass = 'fa-sun';
+        let conditionText = 'Sunny';
+
+        if (code >= 1 && code <= 3) {
+            iconClass = 'fa-cloud-sun';
+            conditionText = 'Partly Cloudy';
+        } else if (code >= 45 && code <= 48) {
+            iconClass = 'fa-smog';
+            conditionText = 'Foggy';
+        } else if (code >= 51 && code <= 67) {
+            iconClass = 'fa-cloud-rain';
+            conditionText = 'Rainy';
+        } else if (code >= 80) {
+            iconClass = 'fa-cloud-showers-heavy';
+            conditionText = 'Showers';
+        }
+
+        widget.innerHTML = `
+            <div class="weather-info">
+                <i class="fas ${iconClass} weather-icon"></i>
+                <div>
+                    <span class="weather-temp">${temp}°C</span>
+                    <div class="weather-details">${conditionText} • Adelaide</div>
+                </div>
+            </div>
+            <div class="weather-wind">
+                <i class="fas fa-wind"></i> ${wind} km/h
+            </div>
+        `;
+    } catch (e) {
+        widget.innerHTML = `<span style="color:#888; font-size:0.8rem;"><i class="fas fa-sun" style="color:#f26522;"></i> Adelaide Weather: Sunny</span>`;
+    }
+}
+
+// Trigger weather fetch on app load
+fetchAdelaideWeather();
