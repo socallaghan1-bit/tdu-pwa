@@ -309,6 +309,12 @@ header {
     flex: 1 1 calc(50% - 4px);
 }
 
+.btn-disabled {
+    background: #f1f1f4;
+    border-color: #dddddf;
+    color: #7a7a84;
+}
+
 .home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -671,6 +677,10 @@ header {
     animation: popIn 0.22s ease-out;
 }
 
+.modal-card-wide {
+    max-width: 520px;
+}
+
 @keyframes popIn {
     from { transform: scale(0.88); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -703,6 +713,42 @@ header {
     font-size: 0.85rem;
     color: #555;
     line-height: 1.4;
+}
+
+.modal-action-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.modal-actions .btn {
+    flex: 1 1 50%;
+}
+
+.modal-secondary-btn {
+    background: var(--bg-color);
+    border-color: var(--border);
+    color: var(--text-dark);
+}
+
+.feedback-frame {
+    width: 100%;
+    min-height: 360px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fafafa;
+}
+
+.feedback-note {
+    margin: 10px 0 0 0;
+    font-size: 0.78rem;
+    color: var(--text-light);
 }
 
 .install-step {
@@ -744,5 +790,9 @@ header {
 
     .choice-grid {
         grid-template-columns: 1fr;
+    }
+
+    .modal-actions {
+        flex-direction: column;
     }
 }
