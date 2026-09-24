@@ -10,19 +10,23 @@
     <meta name="theme-color" content="#f26522">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
-    <!-- Icons -->
+    <!-- Icons & Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Clean External Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <link rel="stylesheet" href="style.css?v=1.2">
 </head>
 <body>
 
-    <!-- STICKY HEADER -->
+    <!-- STICKY HEADER WITH SMART INSTALL PILL -->
     <header>
         <div>
             <h1>TDU 2026</h1>
+            <div class="header-subtitle">Adelaide Companion</div>
         </div>
-        <div class="header-subtitle">Adelaide Companion</div>
+        
+        <!-- Header Install Button (Managed by app.js) -->
+        <button id="header-install-btn" class="header-install-btn" onclick="triggerInstall()" style="display: none;">
+            <i class="fas fa-mobile-alt"></i> Get App
+        </button>
     </header>
 
     <!-- 1. HOME / WELCOME VIEW -->
@@ -33,21 +37,6 @@
         </div>
 
         <div class="home-container">
-            
-            <!-- INSTALL APP PROMPT BANNER -->
-            <div id="pwa-install-banner" class="install-banner">
-                <div class="install-content">
-                    <i class="fas fa-mobile-alt install-icon"></i>
-                    <div>
-                        <h4>Get the Phone App</h4>
-                        <p>Install on your phone home screen for fast offline access.</p>
-                    </div>
-                </div>
-                <button class="btn btn-primary install-btn" onclick="triggerInstall()">
-                    <i class="fas fa-download"></i> Install Now
-                </button>
-            </div>
-
             <div class="section-title">Explore Schedule</div>
             
             <div class="home-grid">
@@ -118,23 +107,26 @@
         <div id="saved-events-container" style="padding: 0 15px 15px 15px; max-width: 600px; margin: 0 auto;"></div>
     </div>
 
-    <!-- SAFARI / GENERIC INSTALL INSTRUCTIONS MODAL -->
+    <!-- SAFARI / IOS INSTRUCTIONS MODAL (Strictly hidden by default) -->
     <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
         <div class="modal-card">
-            <h3>How to Install App</h3>
-            <p style="margin-bottom:15px; font-size:0.9rem; color:#555;">Add TDU 2026 directly to your phone's home screen:</p>
+            <div class="modal-header">
+                <h3>Install TDU 2026</h3>
+                <button class="close-btn" onclick="closeInstallModal()">&times;</button>
+            </div>
+            <p class="modal-sub">Add this app to your phone's home screen for fast offline access:</p>
             
             <div class="install-step">
                 <div class="step-num">1</div>
-                <div>Tap the <strong>Share</strong> button <i class="fas fa-arrow-up-from-bracket" style="color:#007aff;"></i> at the bottom or top of Safari.</div>
+                <div>Tap the <strong>Share</strong> button <i class="fas fa-arrow-up-from-bracket" style="color:#007aff;"></i> in your browser bar.</div>
             </div>
 
             <div class="install-step">
                 <div class="step-num">2</div>
-                <div>Scroll down and select <strong>Add to Home Screen</strong> <i class="far fa-plus-square" style="color:#007aff;"></i>.</div>
+                <div>Select <strong>Add to Home Screen</strong> <i class="far fa-plus-square" style="color:#007aff;"></i>.</div>
             </div>
 
-            <button class="btn btn-primary" style="width:100%; margin-top:20px; padding:12px;" onclick="closeInstallModal()">Got It</button>
+            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="closeInstallModal()">Got It</button>
         </div>
     </div>
 
@@ -155,7 +147,6 @@
         </div>
     </div>
 
-    <!-- Clean External JavaScript Logic -->
-    <script src="app.js?v=1.1"></script>
+    <script src="app.js?v=1.2"></script>
 </body>
 </html>
