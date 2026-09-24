@@ -96,18 +96,19 @@
         }
 
         .event-card h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.2rem;
-            padding-right: 30px;
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            padding-right: 35px;
+            line-height: 1.3;
         }
 
         .event-meta {
             font-size: 0.85rem;
             color: var(--text-light);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         
         .event-meta i {
@@ -116,21 +117,22 @@
         }
 
         .event-desc {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 15px;
             line-height: 1.4;
+            color: #444;
         }
 
         .tag {
             display: inline-block;
-            background: #eee;
+            background: #ffe8dd;
+            color: var(--primary);
             font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
             margin-bottom: 10px;
+            font-weight: 700;
             text-transform: uppercase;
-            font-weight: bold;
-            color: #555;
         }
 
         .card-actions {
@@ -142,12 +144,16 @@
             text-align: center;
             background: var(--bg-color);
             border: 1px solid var(--border);
-            padding: 8px;
-            border-radius: 6px;
+            padding: 9px;
+            border-radius: 8px;
             text-decoration: none;
             color: var(--text-dark);
             font-size: 0.85rem;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         .btn:hover {
             background: #e8e8e8;
@@ -157,12 +163,13 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: #ccc;
             cursor: pointer;
             background: none;
             border: none;
             padding: 0;
+            transition: color 0.2s;
         }
         .fav-btn.saved {
             color: #ff3b30;
@@ -212,11 +219,11 @@
     </header>
 
     <div class="filters" id="filter-container">
-        <div class="filter-btn active" onclick="filterEvents('All')">All Events</div>
-        <div class="filter-btn" onclick="filterEvents('Group Ride')">Group Rides</div>
-        <div class="filter-btn" onclick="filterEvents('Official Event')">Official Events</div>
-        <div class="filter-btn" onclick="filterEvents('Social')">Social & Parties</div>
-        <div class="filter-btn" onclick="filterEvents('Women')">Women's</div>
+        <div class="filter-btn active" onclick="filterEvents('All', this)">All Events</div>
+        <div class="filter-btn" onclick="filterEvents('Group Ride', this)">Group Rides</div>
+        <div class="filter-btn" onclick="filterEvents('Official Event', this)">Official Events</div>
+        <div class="filter-btn" onclick="filterEvents('Social', this)">Social & Parties</div>
+        <div class="filter-btn" onclick="filterEvents('Women', this)">Women's</div>
     </div>
 
     <div id="events-container">
@@ -236,13 +243,56 @@
 
     <script>
         const RAW_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_acwLQlGitpXd_GxJvx3GNjq1ZZJ80_2C7A_Xdya6z-Dn_vphi4PBa7emQqAroD1-cmwh8vscbwgA/pub?output=csv";
-        const PROXY_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(RAW_SHEET_URL);
         
+        // Proxy list with direct URL prioritized
+        const PROXIES = [
+            RAW_SHEET_URL,
+            "https://corsproxy.io/?" + encodeURIComponent(RAW_SHEET_URL),
+            "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(RAW_SHEET_URL)
+        ];
+
         let allEvents = [];
         let currentFilter = 'All';
         let currentTab = 'all';
 
-        // Smart field lookup: handles column names regardless of case or spacing
+        // Clean markdown links like [https://strava.com](https://strava.com)
+        function cleanUrl(val) {
+            if (!val) return '';
+            val = String(val).trim();
+            const m = val.match(/\((https?:\/\/[^\)]+)\)/);
+            if (m) return m[1];
+            const m2 = val.match(/https?:\/\/[^\s\]\)]+/);
+            if (m2) return m2[0];
+            return val;
+        }
+
+        // Clean time formats like 07:30:00 -> 07:30
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            timeStr = String(timeStr).trim();
+            if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
+                return timeStr.substring(0, 5);
+            }
+            return timeStr;
+        }
+
+        // Clean date formats like 2026-01-16 -> Fri, 16 Jan
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = String(dateStr).trim().split('-');
+            if (parts.length === 3) {
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const day = parseInt(parts[2]);
+                const d = new Date(year, month, day);
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+                }
+            }
+            return dateStr;
+        }
+
+        // Case/space invariant field lookup
         function getFieldValue(obj, ...possibleKeys) {
             if (!obj) return '';
             const normalizedKeys = possibleKeys.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
@@ -256,27 +306,54 @@
         }
 
         async function fetchEvents() {
-            try {
-                const response = await fetch(PROXY_URL);
-                if (!response.ok) throw new Error("Could not connect to Google Sheet server.");
-                const csvText = await response.text();
-                
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        if (results.data && results.data.length > 0) {
-                            allEvents = results.data;
-                            renderEvents();
+            let csvText = null;
+
+            for (let url of PROXIES) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) continue;
+                    const text = await response.text();
+                    
+                    // Ignore HTML responses (proxy error pages)
+                    if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
+                        continue;
+                    }
+                    
+                    if (text.includes(",") && text.length > 20) {
+                        csvText = text;
+                        break;
+                    }
+                } catch (e) {
+                    console.warn("Proxy attempt failed:", url);
+                }
+            }
+
+            if (!csvText) {
+                document.getElementById('events-container').innerHTML = 
+                    `<p style='text-align:center; padding:20px; color:red;'>Could not connect to Google Sheet. Check that the sheet is set to 'Publish to Web'.</p>`;
+                return;
+            }
+
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: 'greedy',
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
+                        // Keep only rows with an actual title
+                        allEvents = results.data.filter(row => {
+                            const title = getFieldValue(row, 'title', 'name', 'event', 'event_title');
+                            return title.length > 0;
+                        });
+
+                        if (allEvents.length === 0) {
+                            document.getElementById('events-container').innerHTML = 
+                                "<p style='text-align:center; padding:20px;'>Spreadsheet loaded, but no event rows were found.</p>";
                         } else {
-                            document.getElementById('events-container').innerHTML = "<p style='text-align:center; padding:20px;'>Sheet connected, but no event rows were found!</p>";
+                            renderEvents();
                         }
                     }
-                });
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
-            }
+                }
+            });
         }
 
         function renderEvents() {
@@ -309,25 +386,19 @@
 
             displayEvents.forEach((event, index) => {
                 const eventId = getFieldValue(event, 'id') || String(index + 1);
-                const title = getFieldValue(event, 'title', 'name', 'event', 'event_title') || 'TDU Event';
+                const title = getFieldValue(event, 'title', 'name', 'event', 'event_title');
                 const category = getFieldValue(event, 'category', 'type');
                 const dateRaw = getFieldValue(event, 'date', 'day');
-                const startTime = getFieldValue(event, 'start_time', 'start', 'time');
-                const endTime = getFieldValue(event, 'end_time', 'end');
+                const startTime = formatTime(getFieldValue(event, 'start_time', 'start', 'time'));
+                const endTime = formatTime(getFieldValue(event, 'end_time', 'end'));
                 const location = getFieldValue(event, 'location', 'venue', 'address');
                 const description = getFieldValue(event, 'description', 'details', 'desc');
-                const routeUrl = getFieldValue(event, 'route_url', 'route', 'strava', 'gpx');
+                const rawRoute = getFieldValue(event, 'route_url', 'route', 'strava', 'gpx');
+                const routeUrl = cleanUrl(rawRoute);
 
                 const isSaved = savedEvents.includes(eventId);
                 const heartClass = isSaved ? 'fas saved' : 'far';
-                
-                let dateDisplay = dateRaw;
-                try {
-                    const d = new Date(dateRaw);
-                    if (!isNaN(d)) {
-                        dateDisplay = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-                    }
-                } catch(e) {}
+                const dateDisplay = formatDate(dateRaw);
 
                 const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
 
@@ -349,7 +420,7 @@
                         
                         <div class="card-actions">
                             ${location ? `<a href="${mapLink}" target="_blank" class="btn"><i class="fas fa-directions"></i> Navigate</a>` : ''}
-                            ${routeUrl ? `<a href="${routeUrl}" target="_blank" class="btn"><i class="fas fa-route"></i> Route</a>` : ''}
+                            ${routeUrl ? `<a href="${routeUrl}" target="_blank" class="btn"><i class="fas fa-route"></i> Strava Route</a>` : ''}
                         </div>
                     </div>
                 `;
@@ -378,12 +449,12 @@
             }
         };
 
-        window.filterEvents = function(category) {
+        window.filterEvents = function(category, element) {
             currentFilter = category;
             const buttons = document.querySelectorAll('.filter-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
+            if (element) {
+                element.classList.add('active');
             }
             renderEvents();
         };
