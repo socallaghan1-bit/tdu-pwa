@@ -261,7 +261,7 @@
 
         async function fetchEvents() {
             try {
-                const response = await fetch('./events.json');
+const response = await fetch('./events.json?t=' + new Date().getTime());
                 if (!response.ok) throw new Error("Could not find events.json in repository.");
                 allEvents = await response.json();
                 renderEvents();
