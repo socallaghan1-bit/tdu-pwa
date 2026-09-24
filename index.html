@@ -261,7 +261,6 @@
 
         async function fetchEvents() {
             try {
-                // Fetch direct relative path inside same repo - 100% immune to CORS errors
                 const response = await fetch('./events.json');
                 if (!response.ok) throw new Error("Could not find events.json in repository.");
                 allEvents = await response.json();
@@ -309,6 +308,12 @@
                 const heartClass = isSaved ? 'fas saved' : 'far';
                 const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
 
+                // Build clean time range string
+                let timeRange = startTime;
+                if (startTime && endTime) {
+                    timeRange += ' - ' + endTime;
+                }
+
                 const cardHTML = `
                     <div class="event-card">
                         <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
@@ -319,11 +324,11 @@
                         <h3>${title}</h3>
                         
                         <div class="event-meta">
-                            ${dateDisplay || startTime ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${startTime ? '\vert{} ' + startTime : ''} ${endTime ? '- ' + endTime : ''}</span>` : ''}
+                            ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
                             ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
                         </div>
                         
-                        ${description ? `<div class="event-desc">${description}</div>` : ''}
+                        ${event.description ? `<div class="event-desc">${description}</div>` : ''}
                         
                         <div class="card-actions">
                             ${location ? `<a href="${mapLink}" target="_blank" class="btn"><i class="fas fa-directions"></i> Navigate</a>` : ''}
