@@ -18,29 +18,10 @@ body {
     background-color: var(--bg-color);
     margin: 0;
     padding: 0;
-    color: var(--text-dark);
-    padding-bottom: 85px;
+.header-brand {
+    cursor: pointer;
+    user-select: none;
 }
-
-/* TOP HEADER */
-header {
-    background-color: var(--primary);
-    color: white;
-    padding: 12px 18px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
 }
 
 .header-subtitle {
