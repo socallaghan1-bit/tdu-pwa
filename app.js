@@ -214,3 +214,8 @@ window.applyCategoryFilter = function(category, btn) {
 };
 
 fetchEvents();
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js');
+    });
+}
