@@ -1124,6 +1124,5 @@ if (document.readyState === 'complete') {
 checkPWAStatus();
 updateWeatherWidget();
 renderRecommendationFlow();
-fetchEvents().finally(() => {
-    showView(currentViewName);
-});
+showView(currentViewName);
+fetchEvents();
