@@ -544,3 +544,22 @@ header {
     font-weight: 600;
     color: #27ae60;
 }
+/* PER-EVENT WEATHER BADGE */
+.card-weather {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #334155;
+    margin-top: 4px;
+    width: fit-content;
+}
+
+.weather-sep {
+    color: #cbd5e1;
+    font-weight: bold;
+}
