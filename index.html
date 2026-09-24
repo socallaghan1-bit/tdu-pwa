@@ -235,32 +235,38 @@
     </div>
 
     <script>
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_acwLQlGitpXd_GxJvx3GNjq1ZZJ80_2C7A_Xdya6z-Dn_vphi4PBa7emQqAroD1-cmwh8vscbwgA/pub?output=csv";
+        const RAW_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_acwLQlGitpXd_GxJvx3GNjq1ZZJ80_2C7A_Xdya6z-Dn_vphi4PBa7emQqAroD1-cmwh8vscbwgA/pub?output=csv";
+        // CORS Proxy wrapper to bypass browser cross-domain download blocks
+        const PROXY_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent(RAW_SHEET_URL);
         
         let allEvents = [];
         let currentFilter = 'All';
         let currentTab = 'all';
 
-        function fetchEvents() {
-            // Use PapaParse download mode to bypass browser CORS fetch restrictions
-            Papa.parse(SHEET_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                transformHeader: h => h.trim().toLowerCase().replace(/\s+/g, '_'),
-                complete: function(results) {
-                    if (results.data && results.data.length > 0) {
-                        allEvents = results.data;
-                        renderEvents();
-                    } else {
-                        document.getElementById('events-container').innerHTML = "<p style='text-align:center; padding:20px;'>Spreadsheet loaded, but no event rows were found.</p>";
+        async function fetchEvents() {
+            try {
+                const response = await fetch(PROXY_URL);
+                if (!response.ok) throw new Error("Could not connect to Google Sheet server.");
+                const csvText = await response.text();
+                
+                // Parse the clean CSV text using PapaParse
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    transformHeader: h => h.trim().toLowerCase().replace(/\s+/g, '_'),
+                    complete: function(results) {
+                        if (results.data && results.data.length > 0) {
+                            allEvents = results.data;
+                            renderEvents();
+                        } else {
+                            document.getElementById('events-container').innerHTML = "<p style='text-align:center; padding:20px;'>Sheet connected, but no event rows were found!</p>";
+                        }
                     }
-                },
-                error: function(err) {
-                    console.error("PapaParse Download Error:", err);
-                    document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error loading sheet. Verify the Google Sheet 'Publish to Web' status.</p>`;
-                }
-            });
+                });
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
+            }
         }
 
         function renderEvents() {
@@ -281,7 +287,7 @@
             }
 
             if (displayEvents.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding:20px; color:#666;'>No events found.</p>";
+                container.innerHTML = "<p style='text-align:center; padding:20px; color:#666;'>No events found in this view.</p>";
                 return;
             }
 
