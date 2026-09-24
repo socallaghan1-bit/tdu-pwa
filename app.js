@@ -2,7 +2,10 @@ let allEvents = [];
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let activeFilterMode = 'day';
+
 let deferredPrompt = null;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -161,10 +164,10 @@ function updateSavedBadge() {
     if (savedEvents.length > 0) {
         badge.innerText = savedEvents.length;
         badge.style.display = 'block';
-        homeCount.innerText = savedEvents.length + " event" + (savedEvents.length > 1 ? "s" : "") + " saved";
+        if (homeCount) homeCount.innerText = savedEvents.length + " event" + (savedEvents.length > 1 ? "s" : "") + " saved";
     } else {
         badge.style.display = 'none';
-        homeCount.innerText = "0 events saved";
+        if (homeCount) homeCount.innerText = "0 events saved";
     }
 }
 
@@ -214,44 +217,57 @@ window.applyCategoryFilter = function(category, btn) {
     renderSchedule();
 };
 
-// PWA INSTALL LOGIC
+// PWA SMART INSTALL DETECTION
+function checkPWAStatus() {
+    const btn = document.getElementById('header-install-btn');
+    if (!btn) return;
+
+    if (isStandalone) {
+        btn.style.display = 'none'; // Hide if already running as installed app
+    } else if (isIOS) {
+        btn.style.display = 'flex'; // Always show for iOS Safari users
+    }
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    const btn = document.getElementById('header-install-btn');
+    if (btn && !isStandalone) {
+        btn.style.display = 'flex'; // Show on Android Chrome
+    }
 });
 
 window.triggerInstall = function() {
     if (deferredPrompt) {
+        // Android / Chrome 1-tap install
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                document.getElementById('pwa-install-banner').style.display = 'none';
+        deferredPrompt.userChoice.then((result) => {
+            if (result.outcome === 'accepted') {
+                const btn = document.getElementById('header-install-btn');
+                if (btn) btn.style.display = 'none';
             }
             deferredPrompt = null;
         });
     } else {
-        // iOS Safari or browser where prompt isn't supported directly
-        document.getElementById('install-modal').classList.add('active');
+        // iOS or manual fallback
+        const modal = document.getElementById('install-modal');
+        if (modal) modal.classList.add('active');
     }
 };
 
 window.closeInstallModal = function(e) {
-    if (!e || e.target.classList.contains('modal-overlay') || e.target.tagName === 'BUTTON') {
-        document.getElementById('install-modal').classList.remove('active');
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') {
+        const modal = document.getElementById('install-modal');
+        if (modal) modal.classList.remove('active');
     }
 };
 
-// Check if app is already running in standalone (installed) mode
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-    const banner = document.getElementById('pwa-install-banner');
-    if (banner) banner.style.display = 'none';
-}
-
-// Service Worker Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js');
     });
 }
 
+checkPWAStatus();
 fetchEvents();
