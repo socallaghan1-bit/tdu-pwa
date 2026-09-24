@@ -288,13 +288,15 @@ async function updateWeatherWidget() {
         if (!response.ok) throw new Error('Weather request failed');
 
         const data = await response.json();
-        const temperature = Math.round(Number(data?.current?.temperature_2m));
-        const weatherCode = Number(data?.current?.weather_code);
+        const rawTemperature = data?.current?.temperature_2m;
+        const rawWeatherCode = data?.current?.weather_code;
 
-        if (!Number.isFinite(temperature) || !Number.isFinite(weatherCode)) {
+        if (!Number.isFinite(Number(rawTemperature)) || !Number.isFinite(Number(rawWeatherCode))) {
             throw new Error('Weather data unavailable');
         }
 
+        const temperature = Math.round(Number(rawTemperature));
+        const weatherCode = Number(rawWeatherCode);
         const summary = `Today in Adelaide: ${temperature}°C • ${getWeatherCondition(weatherCode)}`;
         setCachedWeatherSummary(summary);
         renderWeatherWidget(summary);
