@@ -2,6 +2,7 @@ let allEvents = [];
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let activeFilterMode = 'day';
+let deferredPrompt = null;
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -213,9 +214,44 @@ window.applyCategoryFilter = function(category, btn) {
     renderSchedule();
 };
 
-fetchEvents();
+// PWA INSTALL LOGIC
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
+
+window.triggerInstall = function() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                document.getElementById('pwa-install-banner').style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+    } else {
+        // iOS Safari or browser where prompt isn't supported directly
+        document.getElementById('install-modal').classList.add('active');
+    }
+};
+
+window.closeInstallModal = function(e) {
+    if (!e || e.target.classList.contains('modal-overlay') || e.target.tagName === 'BUTTON') {
+        document.getElementById('install-modal').classList.remove('active');
+    }
+};
+
+// Check if app is already running in standalone (installed) mode
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.style.display = 'none';
+}
+
+// Service Worker Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js');
     });
 }
+
+fetchEvents();
