@@ -60,6 +60,7 @@ const recommendationState = {
 const activeViewEl = document.querySelector('.view.active');
 let currentViewName = activeViewEl && activeViewEl.id ? activeViewEl.id.replace('view-', '') : 'home';
 let hasTrackedInitialView = false;
+let lastTrackedPageLocation = '';
 const RECOMMENDATION_OPTIONS = {
     ride: [
         { id: 'hills', label: 'Hills' },
@@ -173,11 +174,32 @@ function trackVirtualPageView(viewName) {
     const viewConfig = VIEW_ANALYTICS_CONFIG[viewName];
     if (!viewConfig) return false;
 
-    return trackAnalyticsEvent('page_view', {
+    const pageLocation = getVirtualPageLocation(viewConfig.page_path);
+    const payload = {
         page_title: viewConfig.page_title,
         page_path: getVirtualPagePath(viewConfig.page_path),
-        page_location: getVirtualPageLocation(viewConfig.page_path)
-    });
+        page_location: pageLocation
+    };
+
+    if (lastTrackedPageLocation && lastTrackedPageLocation !== pageLocation) {
+        payload.page_referrer = lastTrackedPageLocation;
+    }
+
+    const tracked = trackAnalyticsEvent('page_view', payload);
+    if (tracked) {
+        lastTrackedPageLocation = pageLocation;
+    }
+
+    return tracked;
+}
+
+function isAllowedFeedbackUrl(urlValue) {
+    try {
+        const url = new URL(urlValue, window.location.href);
+        return url.protocol === 'https:' && ['forms.gle', 'docs.google.com'].includes(url.hostname);
+    } catch (error) {
+        return false;
+    }
 }
 
 function getEventAnalyticsPayload(eventId) {
@@ -1053,7 +1075,7 @@ window.openFeedbackForm = function() {
     const frame = document.getElementById('feedback-form-frame');
     const shareUrl = String(frame && frame.dataset ? frame.dataset.formShareUrl || '' : '').trim();
 
-    if (!shareUrl) return false;
+    if (!shareUrl || !isAllowedFeedbackUrl(shareUrl)) return false;
 
     trackAnalyticsEvent('click_feedback_form_link');
     window.open(shareUrl, '_blank', 'noopener,noreferrer');
