@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- PWA Manifest & Theme -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f26522">
-<link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/bicycle.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TDU 2026 Companion</title>
+
+    <!-- PWA Manifest & Theme -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f26522">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Clean External Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.0">
+    <link rel="stylesheet" href="style.css?v=1.1">
 </head>
 <body>
 
@@ -31,6 +33,21 @@
         </div>
 
         <div class="home-container">
+            
+            <!-- INSTALL APP PROMPT BANNER -->
+            <div id="pwa-install-banner" class="install-banner">
+                <div class="install-content">
+                    <i class="fas fa-mobile-alt install-icon"></i>
+                    <div>
+                        <h4>Get the Phone App</h4>
+                        <p>Install on your phone home screen for fast offline access.</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary install-btn" onclick="triggerInstall()">
+                    <i class="fas fa-download"></i> Install Now
+                </button>
+            </div>
+
             <div class="section-title">Explore Schedule</div>
             
             <div class="home-grid">
@@ -101,6 +118,26 @@
         <div id="saved-events-container" style="padding: 0 15px 15px 15px; max-width: 600px; margin: 0 auto;"></div>
     </div>
 
+    <!-- SAFARI / GENERIC INSTALL INSTRUCTIONS MODAL -->
+    <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
+        <div class="modal-card">
+            <h3>How to Install App</h3>
+            <p style="margin-bottom:15px; font-size:0.9rem; color:#555;">Add TDU 2026 directly to your phone's home screen:</p>
+            
+            <div class="install-step">
+                <div class="step-num">1</div>
+                <div>Tap the <strong>Share</strong> button <i class="fas fa-arrow-up-from-bracket" style="color:#007aff;"></i> at the bottom or top of Safari.</div>
+            </div>
+
+            <div class="install-step">
+                <div class="step-num">2</div>
+                <div>Scroll down and select <strong>Add to Home Screen</strong> <i class="far fa-plus-square" style="color:#007aff;"></i>.</div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%; margin-top:20px; padding:12px;" onclick="closeInstallModal()">Got It</button>
+        </div>
+    </div>
+
     <!-- BOTTOM NAVIGATION -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showView('home')" id="nav-home">
@@ -119,6 +156,6 @@
     </div>
 
     <!-- Clean External JavaScript Logic -->
-    <script src="app.js?v=1.0"></script>
+    <script src="app.js?v=1.1"></script>
 </body>
 </html>
