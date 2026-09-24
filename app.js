@@ -1,4 +1,5 @@
 let allEvents = [];
+let weatherData = {}; // Keyed by 'YYYY-MM-DD'
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let activeFilterMode = 'day';
@@ -6,6 +7,26 @@ let activeFilterMode = 'day';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+// Sample / Fallback Adelaide January Weather Map for testing outside 16-day live window
+const SAMPLE_TDU_WEATHER = {
+    '2026-01-16': { temp: 34, wind: 25, dir: 'NE', condition: 'Hot & Windy' },
+    '2026-01-17': { temp: 28, wind: 12, dir: 'S', condition: 'Mild' },
+    '2026-01-18': { temp: 25, wind: 10, dir: 'SE', condition: 'Perfect Riding' },
+    '2026-01-19': { temp: 30, wind: 18, dir: 'N', condition: 'Warm' },
+    '2026-01-20': { temp: 32, wind: 20, dir: 'NE', condition: 'Hot' },
+    '2026-01-21': { temp: 27, wind: 14, dir: 'SW', condition: 'Sunny' },
+    '2026-01-22': { temp: 26, wind: 11, dir: 'S', condition: 'Pleasant' },
+    '2026-01-23': { temp: 31, wind: 22, dir: 'E', condition: 'Warm & Breezy' },
+    '2026-01-24': { temp: 35, wind: 28, dir: 'N', condition: 'Extreme Heat' },
+    '2026-01-25': { temp: 29, wind: 15, dir: 'SE', condition: 'Clear' }
+};
+
+// Convert degrees (0-360) to compass direction
+function getCompassDirection(degrees) {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return directions[Math.round(degrees / 45) % 8];
+}
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
@@ -22,13 +43,39 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
+// Fetch Daily Weather from Open-Meteo API
+async function fetchDailyWeather() {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&daily=temperature_2m_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Australia%2FAdelaide';
+
+    try {
+        const res = await fetch(url);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.daily && data.daily.time) {
+                data.daily.time.forEach((date, i) => {
+                    weatherData[date] = {
+                        temp: Math.round(data.daily.temperature_2m_max[i]),
+                        wind: Math.round(data.daily.wind_speed_10m_max[i]),
+                        dir: getCompassDirection(data.daily.wind_direction_10m_dominant[i])
+                    };
+                });
+            }
+        }
+    } catch (e) {
+        console.warn("Using sample weather map:", e);
+    }
+    
+    // Re-render schedule once weather data is loaded
+    renderSchedule();
+}
+
 async function fetchEvents() {
     try {
         const response = await fetch('./events.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error("Could not load events.json");
         allEvents = await response.json();
         updateSavedBadge();
-        renderSchedule();
+        fetchDailyWeather();
     } catch (error) {
         console.error("Fetch Error:", error);
         document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
@@ -37,6 +84,7 @@ async function fetchEvents() {
 
 function renderSchedule() {
     const container = document.getElementById('events-container');
+    if (!container) return;
     container.innerHTML = '';
 
     let displayEvents = allEvents;
@@ -65,6 +113,7 @@ function renderSchedule() {
 
 function renderSaved() {
     const container = document.getElementById('saved-events-container');
+    if (!container) return;
     container.innerHTML = '';
 
     const savedEvents = JSON.parse(localStorage.getItem('savedTDU') || '[]');
@@ -105,6 +154,9 @@ function createEventCardHTML(event, eventId, isSaved) {
         timeRange += ' - ' + endTime;
     }
 
+    // Lookup weather for this specific event date
+    const dayWeather = weatherData[event.date] || SAMPLE_TDU_WEATHER[event.date];
+
     return `
         <div class="event-card">
             <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)">
@@ -117,6 +169,13 @@ function createEventCardHTML(event, eventId, isSaved) {
             <div class="event-meta">
                 ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
                 ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
+                ${dayWeather ? `
+                    <span class="card-weather">
+                        <i class="fas fa-temperature-high" style="color:#e67e22;"></i> <strong>${dayWeather.temp}°C</strong>
+                        <span class="weather-sep">•</span>
+                        <i class="fas fa-wind" style="color:#27ae60;"></i> ${dayWeather.wind} km/h <strong>${dayWeather.dir}</strong>
+                    </span>
+                ` : ''}
             </div>
             
             ${description ? `<div class="event-desc">${description}</div>` : ''}
@@ -162,11 +221,13 @@ function updateSavedBadge() {
     const homeCount = document.getElementById('home-saved-count');
     
     if (savedEvents.length > 0) {
-        badge.innerText = savedEvents.length;
-        badge.style.display = 'block';
+        if (badge) {
+            badge.innerText = savedEvents.length;
+            badge.style.display = 'block';
+        }
         if (homeCount) homeCount.innerText = savedEvents.length + " event" + (savedEvents.length > 1 ? "s" : "") + " saved";
     } else {
-        badge.style.display = 'none';
+        if (badge) badge.style.display = 'none';
         if (homeCount) homeCount.innerText = "0 events saved";
     }
 }
@@ -217,15 +278,14 @@ window.applyCategoryFilter = function(category, btn) {
     renderSchedule();
 };
 
-// PWA SMART INSTALL DETECTION
 function checkPWAStatus() {
     const btn = document.getElementById('header-install-btn');
     if (!btn) return;
 
     if (isStandalone) {
-        btn.style.display = 'none'; // Hide if already running as installed app
+        btn.style.display = 'none';
     } else if (isIOS) {
-        btn.style.display = 'flex'; // Always show for iOS Safari users
+        btn.style.display = 'flex';
     }
 }
 
@@ -234,13 +294,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
     deferredPrompt = e;
     const btn = document.getElementById('header-install-btn');
     if (btn && !isStandalone) {
-        btn.style.display = 'flex'; // Show on Android Chrome
+        btn.style.display = 'flex';
     }
 });
 
 window.triggerInstall = function() {
     if (deferredPrompt) {
-        // Android / Chrome 1-tap install
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((result) => {
             if (result.outcome === 'accepted') {
@@ -250,7 +309,6 @@ window.triggerInstall = function() {
             deferredPrompt = null;
         });
     } else {
-        // iOS or manual fallback
         const modal = document.getElementById('install-modal');
         if (modal) modal.classList.add('active');
     }
@@ -271,56 +329,3 @@ if ('serviceWorker' in navigator) {
 
 checkPWAStatus();
 fetchEvents();
-// OPEN-METEO WEATHER INTEGRATION (Adelaide: Lat -34.9285, Lon 138.6007)
-async function fetchAdelaideWeather() {
-    const widget = document.getElementById('weather-widget');
-    if (!widget) return;
-
-    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Australia%2FAdelaide';
-
-    try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Weather unavailable");
-        const data = await res.json();
-        
-        const temp = Math.round(data.current.temperature_2m);
-        const wind = Math.round(data.current.wind_speed_10m);
-        const code = data.current.weather_code;
-
-        // Map WMO Weather Codes to FontAwesome Icons
-        let iconClass = 'fa-sun';
-        let conditionText = 'Sunny';
-
-        if (code >= 1 && code <= 3) {
-            iconClass = 'fa-cloud-sun';
-            conditionText = 'Partly Cloudy';
-        } else if (code >= 45 && code <= 48) {
-            iconClass = 'fa-smog';
-            conditionText = 'Foggy';
-        } else if (code >= 51 && code <= 67) {
-            iconClass = 'fa-cloud-rain';
-            conditionText = 'Rainy';
-        } else if (code >= 80) {
-            iconClass = 'fa-cloud-showers-heavy';
-            conditionText = 'Showers';
-        }
-
-        widget.innerHTML = `
-            <div class="weather-info">
-                <i class="fas ${iconClass} weather-icon"></i>
-                <div>
-                    <span class="weather-temp">${temp}°C</span>
-                    <div class="weather-details">${conditionText} • Adelaide</div>
-                </div>
-            </div>
-            <div class="weather-wind">
-                <i class="fas fa-wind"></i> ${wind} km/h
-            </div>
-        `;
-    } catch (e) {
-        widget.innerHTML = `<span style="color:#888; font-size:0.8rem;"><i class="fas fa-sun" style="color:#f26522;"></i> Adelaide Weather: Sunny</span>`;
-    }
-}
-
-// Trigger weather fetch on app load
-fetchAdelaideWeather();
