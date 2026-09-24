@@ -142,6 +142,13 @@ header {
     font-size: 1.2rem;
 }
 
+.section-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .section-title {
     font-size: 1.05rem;
     font-weight: 700;
@@ -149,6 +156,77 @@ header {
     color: var(--text-dark);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.section-subtitle {
+    margin: -6px 0 12px 0;
+    font-size: 0.82rem;
+    color: var(--text-light);
+}
+
+.featured-section[hidden] {
+    display: none !important;
+}
+
+.featured-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.featured-card {
+    background: linear-gradient(135deg, rgba(242, 101, 34, 0.08) 0%, #fff 55%);
+    border: 1px solid #f4d8b6;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.featured-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.featured-pill,
+.featured-date {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.featured-pill {
+    color: var(--primary);
+}
+
+.featured-date {
+    color: var(--text-light);
+}
+
+.featured-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.featured-card p,
+.featured-meta {
+    margin: 0 0 10px 0;
+    font-size: 0.84rem;
+    color: #4c4c4c;
+    line-height: 1.4;
+}
+
+.featured-meta {
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.featured-btn {
+    width: 100%;
 }
 
 .home-grid {
@@ -229,6 +307,45 @@ header {
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
+.search-wrapper {
+    padding: 10px 15px 0 15px;
+}
+
+.search-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff8f3 0%, #fff 100%);
+    border: 1px solid #f4d8b6;
+    border-radius: 14px;
+    padding: 0 12px;
+    min-height: 46px;
+}
+
+.search-control i {
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+.search-control input {
+    appearance: none;
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    color: var(--text-dark);
+    padding: 12px 0;
+    outline: none;
+}
+
+.search-control input::placeholder {
+    color: #8b8b8b;
+}
+
+.filter-group {
+    padding-top: 2px;
+}
+
 .filter-label {
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -284,11 +401,24 @@ header {
     position: relative;
 }
 
+.event-card-focused {
+    border-color: #f4b183;
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.12);
+}
+
 .event-card h3 {
     margin: 0 0 8px 0;
     font-size: 1.1rem;
     padding-right: 35px;
     line-height: 1.35;
+}
+
+.tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-right: 35px;
 }
 
 .event-meta {
@@ -327,18 +457,28 @@ header {
     font-size: 0.72rem;
     padding: 3px 10px;
     border-radius: 12px;
-    margin-bottom: 8px;
     font-weight: 700;
     text-transform: uppercase;
+}
+
+.tag-secondary {
+    background: #f4f4f9;
+    color: #444;
+}
+
+.tag-featured {
+    background: rgba(242, 101, 34, 0.12);
+    color: var(--primary-dark);
 }
 
 .card-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .btn {
-    flex: 1;
+    flex: 1 1 140px;
     text-align: center;
     background: var(--bg-color);
     border: 1px solid var(--border);
@@ -410,6 +550,35 @@ header {
     padding: 8px 12px;
     font-size: 0.75rem;
     border-radius: 999px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+}
+
+.empty-state i {
+    font-size: 2.2rem;
+    color: #d4d4d4;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.empty-state-title {
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.empty-state-body {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.4;
 }
 
 .bottom-nav {
@@ -563,6 +732,11 @@ header {
 
 @media (max-width: 420px) {
     .saved-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .featured-card-top {
         align-items: flex-start;
         flex-direction: column;
     }

@@ -1,6 +1,8 @@
 let allEvents = [];
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
+let currentSearchQuery = '';
+let selectedEventId = null;
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -19,6 +21,15 @@ function formatDate(dateStr) {
         }
     }
     return dateStr;
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function getSavedEvents() {
@@ -133,20 +144,206 @@ function exportSavedEvents() {
     URL.revokeObjectURL(url);
 }
 
+function extractDistance(description) {
+    const match = String(description || '').match(/(\d+(?:\.\d+)?)\s*km/i);
+    return match ? Number(match[1]) : null;
+}
+
+function normalizeStageType(value) {
+    const lowerValue = String(value || '').toLowerCase();
+    if (lowerValue.includes('women')) return "Women's Stage";
+    if (lowerValue.includes('men')) return "Men's Stage";
+    return '';
+}
+
+function inferDifficulty(category, distanceKm) {
+    if (category === 'Race Stage') {
+        if (typeof distanceKm === 'number' && distanceKm <= 90) return 'Moderate';
+        return 'Hard';
+    }
+    return 'Moderate';
+}
+
+function inferTags(event, category, type) {
+    const haystack = `${event.title || ''} ${event.description || ''} ${event.location || ''}`.toLowerCase();
+    const tags = new Set();
+
+    if (category === 'Race Stage') {
+        tags.add('race');
+        tags.add('stage');
+        tags.add('spectator');
+    }
+    if (type === "Men's Stage") tags.add('men');
+    if (type === "Women's Stage") tags.add('women');
+    if (/hill|hills|mount lofty|corkscrew|summit|stirling/.test(haystack)) tags.add('hills');
+    if (/beach|glenelg|henley|esplanade|coastal/.test(haystack)) tags.add('coastal');
+    if (/victor harbor|willunga|mclaren vale/.test(haystack)) tags.add('iconic');
+    if (/angaston|tanunda|barossa/.test(haystack)) tags.add('barossa');
+
+    return Array.from(tags);
+}
+
+function normalizeEvent(event, index) {
+    const normalized = event && typeof event === 'object' ? { ...event } : {};
+    const type = normalized.type || normalizeStageType(normalized.category);
+    const category = normalized.category && normalized.category !== type
+        ? normalized.category
+        : (type ? 'Race Stage' : normalized.category || 'General');
+    const distanceKm = typeof normalized.distance_km === 'number'
+        ? normalized.distance_km
+        : extractDistance(normalized.description);
+    const sourceUrl = normalized.source_url || normalized.details_url || '';
+    const tags = Array.isArray(normalized.tags) && normalized.tags.length
+        ? normalized.tags.map(tag => String(tag).trim()).filter(Boolean)
+        : inferTags(normalized, category, type);
+
+    return {
+        ...normalized,
+        id: String(normalized.id || `event-${index + 1}`),
+        category,
+        type,
+        distance_km: typeof distanceKm === 'number' && !Number.isNaN(distanceKm) ? distanceKm : null,
+        difficulty: normalized.difficulty || inferDifficulty(category, distanceKm),
+        tags,
+        featured: Boolean(normalized.featured),
+        status: normalized.status || 'upcoming',
+        source_url: sourceUrl,
+        details_url: normalized.details_url || sourceUrl
+    };
+}
+
 async function fetchEvents() {
     try {
         const response = await fetch('./events.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error('Could not load events.json');
-        allEvents = await response.json();
+        const events = await response.json();
+        allEvents = Array.isArray(events) ? events.map(normalizeEvent) : [];
         updateSavedBadge();
+        renderFilterControls();
+        renderFeaturedEvents();
         renderSchedule();
     } catch (error) {
         console.error('Fetch Error:', error);
         const container = document.getElementById('events-container');
         if (container) {
-            container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
+            container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${escapeHtml(error.message)}</p>`;
         }
     }
+}
+
+function getDateOptions() {
+    const dates = Array.from(new Set(allEvents.map(event => event.date).filter(Boolean)));
+    return dates.sort();
+}
+
+function getCategoryOptions() {
+    const optionSet = new Set();
+    allEvents.forEach((event) => {
+        if (event.category) optionSet.add(event.category);
+        if (event.type) optionSet.add(event.type);
+    });
+
+    const preferred = ['Race Stage', "Men's Stage", "Women's Stage"];
+    const ordered = preferred.filter(option => optionSet.has(option));
+    const extra = Array.from(optionSet)
+        .filter(option => !preferred.includes(option))
+        .sort((a, b) => a.localeCompare(b));
+
+    return ordered.concat(extra);
+}
+
+function createFilterButton(value, text, isActive, onClick) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `filter-btn${isActive ? ' active' : ''}`;
+    button.dataset.value = value;
+    button.setAttribute('aria-pressed', String(isActive));
+    button.textContent = text;
+    button.addEventListener('click', () => onClick(value));
+    return button;
+}
+
+function updateFilterButtonState(containerId, activeValue) {
+    document.querySelectorAll(`#${containerId} .filter-btn`).forEach((button) => {
+        const isActive = button.dataset.value === activeValue;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
+}
+
+function renderFilterControls() {
+    const dayFilters = document.getElementById('day-filters');
+    const categoryFilters = document.getElementById('category-filters');
+    if (!dayFilters || !categoryFilters) return;
+
+    dayFilters.innerHTML = '';
+    categoryFilters.innerHTML = '';
+
+    dayFilters.appendChild(createFilterButton('All', 'All Days', currentDayFilter === 'All', applyDayFilter));
+    getDateOptions().forEach((date) => {
+        dayFilters.appendChild(createFilterButton(date, formatDate(date), currentDayFilter === date, applyDayFilter));
+    });
+
+    categoryFilters.appendChild(createFilterButton('All', 'All Events', currentCatFilter === 'All', applyCategoryFilter));
+    getCategoryOptions().forEach((category) => {
+        categoryFilters.appendChild(createFilterButton(category, category, currentCatFilter === category, applyCategoryFilter));
+    });
+}
+
+function matchesSearch(event, query) {
+    if (!query) return true;
+    const tokens = String(query).toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return true;
+
+    const searchable = [
+        event.title,
+        event.location,
+        event.description,
+        event.category,
+        event.type,
+        Array.isArray(event.tags) ? event.tags.join(' ') : ''
+    ].join(' ').toLowerCase();
+
+    return tokens.every(token => searchable.includes(token));
+}
+
+function matchesCategory(event, value) {
+    if (value === 'All') return true;
+    return event.category === value || event.type === value;
+}
+
+function createEmptyState(container) {
+    container.innerHTML = '';
+    const card = document.createElement('div');
+    card.className = 'empty-state';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-search';
+    icon.setAttribute('aria-hidden', 'true');
+
+    const title = document.createElement('p');
+    title.className = 'empty-state-title';
+    title.textContent = 'No events match this search yet';
+
+    const body = document.createElement('p');
+    body.className = 'empty-state-body';
+    body.textContent = currentSearchQuery || currentDayFilter !== 'All' || currentCatFilter !== 'All'
+        ? 'Try clearing your search or changing the date/category filters.'
+        : 'Add more events to events.json to see them here.';
+
+    card.appendChild(icon);
+    card.appendChild(title);
+    card.appendChild(body);
+    container.appendChild(card);
+}
+
+function scrollToSelectedEvent() {
+    if (!selectedEventId) return;
+    const card = document.querySelector('.event-card-focused');
+    if (!card) return;
+    requestAnimationFrame(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 }
 
 function renderSchedule() {
@@ -154,28 +351,24 @@ function renderSchedule() {
     if (!container) return;
     container.innerHTML = '';
 
-    let displayEvents = allEvents;
+    const displayEvents = allEvents.filter((event) => {
+        const matchesDay = currentDayFilter === 'All' || event.date === currentDayFilter;
+        return matchesDay && matchesCategory(event, currentCatFilter) && matchesSearch(event, currentSearchQuery);
+    });
 
-    if (currentDayFilter !== 'All') {
-        displayEvents = displayEvents.filter(e => e.date === currentDayFilter);
-    }
-
-    if (currentCatFilter !== 'All') {
-        displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentCatFilter.toLowerCase()));
-    }
-
-    if (displayEvents.length === 0) {
-        container.innerHTML = "<p style='text-align:center; padding:30px; color:#666;'>No events found for this selection.</p>";
+    if (!displayEvents.length) {
+        createEmptyState(container);
         return;
     }
 
     const savedEvents = getSavedEvents();
-
-    displayEvents.forEach((event, index) => {
+    container.innerHTML = displayEvents.map((event, index) => {
         const eventId = String(event.id || index + 1);
         const isSaved = savedEvents.includes(eventId);
-        container.innerHTML += createEventCardHTML(event, eventId, isSaved);
-    });
+        return createEventCardHTML(event, eventId, isSaved);
+    }).join('');
+
+    scrollToSelectedEvent();
 }
 
 function renderSaved() {
@@ -188,34 +381,50 @@ function renderSaved() {
 
     if (displayEvents.length === 0) {
         container.innerHTML = `
-            <div style="text-align:center; padding:40px 20px; color:#666; background:white; border-radius:16px; border:1px solid #e0e0e0;">
-                <i class="far fa-heart" style="font-size:2.5rem; color:#ccc; margin-bottom:10px; display:block;"></i>
-                <p style="margin:0 0 10px 0; font-weight:700;">Your itinerary is empty</p>
-                <p style="margin:0; font-size:0.85rem; color:#888;">Tap the heart icon on any event in the Schedule to save it to My TDU.</p>
+            <div class="empty-state">
+                <i class="far fa-heart" aria-hidden="true"></i>
+                <p class="empty-state-title">Your itinerary is empty</p>
+                <p class="empty-state-body">Tap the heart icon on any event in the Schedule to save it to My TDU.</p>
             </div>
         `;
         return;
     }
 
-    displayEvents.forEach((event, index) => {
+    container.innerHTML = displayEvents.map((event, index) => {
         const eventId = String(event.id || index + 1);
-        container.innerHTML += createEventCardHTML(event, eventId, true);
-    });
+        return createEventCardHTML(event, eventId, true);
+    }).join('');
+}
+
+function getSaveButtonLabel(title, isSaved) {
+    return `${isSaved ? 'Remove' : 'Save'} ${title || 'event'} ${isSaved ? 'from' : 'to'} your itinerary`;
+}
+
+function createBadgeHtml(label, modifier) {
+    return `<span class="tag${modifier ? ` ${modifier}` : ''}">${escapeHtml(label)}</span>`;
 }
 
 function createEventCardHTML(event, eventId, isSaved) {
     const title = event.title || 'Untitled Event';
     const category = event.category || '';
+    const type = event.type || '';
     const dateDisplay = formatDate(event.date);
     const startTime = event.start_time || '';
     const endTime = event.end_time || '';
     const location = event.location || '';
     const description = event.description || '';
     const routeUrl = event.route_url || '';
+    const sourceUrl = event.source_url || event.details_url || '';
     const heartClass = isSaved ? 'fas saved' : 'far';
     const weatherText = event.weather || 'TBC';
-
+    const distanceText = typeof event.distance_km === 'number' ? `${event.distance_km.toFixed(1)} km` : '';
+    const difficultyText = event.difficulty || '';
     const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
+    const badges = [];
+
+    if (category) badges.push(createBadgeHtml(category));
+    if (type) badges.push(createBadgeHtml(type, 'tag-secondary'));
+    if (event.featured) badges.push(createBadgeHtml('Featured', 'tag-featured'));
 
     let timeRange = startTime;
     if (startTime && endTime) {
@@ -223,45 +432,81 @@ function createEventCardHTML(event, eventId, isSaved) {
     }
 
     return `
-        <div class="event-card">
-            <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)" aria-label="Save event">
+        <div class="event-card${selectedEventId === eventId ? ' event-card-focused' : ''}" data-event-id="${escapeHtml(eventId)}">
+            <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${escapeHtml(eventId)}', this)" aria-label="${escapeHtml(getSaveButtonLabel(title, isSaved))}">
                 <i class="${heartClass} fa-heart" aria-hidden="true"></i>
             </button>
 
-            ${category ? `<span class="tag">${category}</span>` : ''}
-            <h3>${title}</h3>
+            ${badges.length ? `<div class="tag-row">${badges.join('')}</div>` : ''}
+            <h3>${escapeHtml(title)}</h3>
 
             <div class="event-meta">
-                ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
-                ${location ? `<span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${location}</span>` : ''}
-                <span class="event-weather"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Weather: ${weatherText}</span>
+                ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${escapeHtml(dateDisplay)}${dateDisplay && timeRange ? ' • ' : ''}${escapeHtml(timeRange)}</span>` : ''}
+                ${location ? `<span><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${escapeHtml(location)}</span>` : ''}
+                ${distanceText || difficultyText ? `<span><i class="fas fa-route" aria-hidden="true"></i> ${escapeHtml([distanceText, difficultyText].filter(Boolean).join(' • '))}</span>` : ''}
+                <span class="event-weather"><i class="fas fa-cloud-sun" aria-hidden="true"></i> Weather: ${escapeHtml(weatherText)}</span>
             </div>
 
-            ${description ? `<div class="event-desc">${description}</div>` : ''}
+            ${description ? `<div class="event-desc">${escapeHtml(description)}</div>` : ''}
 
             <div class="card-actions">
-                ${location ? `<a href="${mapLink}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> Navigate</a>` : ''}
-                ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
+                ${location ? `<a href="${escapeHtml(mapLink)}" target="_blank" rel="noopener" class="btn"><i class="fas fa-directions" aria-hidden="true"></i> Navigate</a>` : ''}
+                ${sourceUrl ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener" class="btn"><i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> Official Info</a>` : ''}
+                ${routeUrl ? `<a href="${escapeHtml(routeUrl)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
             </div>
         </div>
     `;
 }
 
+function renderFeaturedEvents() {
+    const section = document.getElementById('featured-section');
+    const container = document.getElementById('featured-events');
+    if (!section || !container) return;
+
+    const featuredEvents = allEvents.filter((event) => event.featured);
+    if (!featuredEvents.length) {
+        section.hidden = true;
+        container.innerHTML = '';
+        return;
+    }
+
+    section.hidden = false;
+    container.innerHTML = featuredEvents.map((event) => {
+        const metaParts = [formatDate(event.date), event.type || event.category, typeof event.distance_km === 'number' ? `${event.distance_km.toFixed(1)} km` : ''].filter(Boolean);
+        return `
+            <article class="featured-card">
+                <div class="featured-card-top">
+                    <span class="featured-pill">Featured</span>
+                    <span class="featured-date">${escapeHtml(formatDate(event.date))}</span>
+                </div>
+                <h3>${escapeHtml(event.title || 'Featured event')}</h3>
+                <p>${escapeHtml(event.location || event.description || '')}</p>
+                <div class="featured-meta">${escapeHtml(metaParts.join(' • '))}</div>
+                <button type="button" class="btn btn-primary featured-btn" onclick="focusEventInSchedule('${escapeHtml(String(event.id))}')">Open in Schedule</button>
+            </article>
+        `;
+    }).join('');
+}
+
 window.toggleSave = function(id, btnElement) {
     let savedEvents = getSavedEvents();
     const strId = String(id);
+    const targetEvent = allEvents.find((event) => String(event.id) === strId);
+    const title = targetEvent ? targetEvent.title : 'event';
 
     if (savedEvents.includes(strId)) {
         savedEvents = savedEvents.filter(eventId => eventId !== strId);
         if (btnElement) {
             btnElement.classList.remove('saved');
             btnElement.innerHTML = '<i class="far fa-heart" aria-hidden="true"></i>';
+            btnElement.setAttribute('aria-label', getSaveButtonLabel(title, false));
         }
     } else {
         savedEvents.push(strId);
         if (btnElement) {
             btnElement.classList.add('saved');
             btnElement.innerHTML = '<i class="fas fa-heart" aria-hidden="true"></i>';
+            btnElement.setAttribute('aria-label', getSaveButtonLabel(title, true));
         }
     }
 
@@ -309,35 +554,48 @@ window.showView = function(viewName) {
 };
 
 window.setFilterType = function(type) {
-    const dayFilters = document.getElementById('day-filters');
-    const catFilters = document.getElementById('category-filters');
-    const label = document.getElementById('filter-label-text');
+    const target = document.getElementById(type === 'day' ? 'day-filter-label' : 'category-filter-label');
+    const firstButton = document.querySelector(type === 'day' ? '#day-filters .filter-btn.active' : '#category-filters .filter-btn.active');
 
-    if (!dayFilters || !catFilters || !label) return;
-
-    if (type === 'day') {
-        dayFilters.style.display = 'flex';
-        catFilters.style.display = 'none';
-        label.innerText = 'Filter by Date';
-    } else {
-        dayFilters.style.display = 'none';
-        catFilters.style.display = 'flex';
-        label.innerText = 'Filter by Category';
-    }
+    requestAnimationFrame(() => {
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (firstButton) {
+            firstButton.focus({ preventScroll: true });
+        }
+    });
 };
 
-window.applyDayFilter = function(day, btn) {
+window.applyDayFilter = function(day) {
     currentDayFilter = day;
-    document.querySelectorAll('#day-filters .filter-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+    selectedEventId = null;
+    updateFilterButtonState('day-filters', currentDayFilter);
     renderSchedule();
 };
 
-window.applyCategoryFilter = function(category, btn) {
+window.applyCategoryFilter = function(category) {
     currentCatFilter = category;
-    document.querySelectorAll('#category-filters .filter-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+    selectedEventId = null;
+    updateFilterButtonState('category-filters', currentCatFilter);
     renderSchedule();
+};
+
+window.focusEventInSchedule = function(eventId) {
+    const event = allEvents.find((item) => String(item.id) === String(eventId));
+    if (!event) return;
+
+    selectedEventId = String(event.id);
+    currentSearchQuery = '';
+    currentDayFilter = event.date || 'All';
+    currentCatFilter = event.type || event.category || 'All';
+
+    const searchInput = document.getElementById('event-search');
+    if (searchInput) searchInput.value = '';
+
+    updateFilterButtonState('day-filters', currentDayFilter);
+    updateFilterButtonState('category-filters', currentCatFilter);
+    showView('schedule');
 };
 
 function checkPWAStatus() {
@@ -386,6 +644,15 @@ window.closeInstallModal = function(e) {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js');
+    });
+}
+
+const searchInput = document.getElementById('event-search');
+if (searchInput) {
+    searchInput.addEventListener('input', (event) => {
+        currentSearchQuery = event.target.value || '';
+        selectedEventId = null;
+        renderSchedule();
     });
 }
 

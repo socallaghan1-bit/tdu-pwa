@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.5">
+    <link rel="stylesheet" href="style.css?v=1.6">
 </head>
 <body>
     <header>
@@ -37,6 +37,16 @@
                 <span>Today in Adelaide: 24°C • Partly cloudy</span>
             </div>
 
+            <section id="featured-section" class="featured-section" aria-labelledby="featured-title" hidden>
+                <div class="section-title-row">
+                    <div>
+                        <div class="section-title" id="featured-title">Featured Events</div>
+                        <p class="section-subtitle">Quick picks for the biggest race days.</p>
+                    </div>
+                </div>
+                <div id="featured-events" class="featured-grid"></div>
+            </section>
+
             <div class="section-title">Explore Schedule</div>
 
             <div class="home-grid">
@@ -48,8 +58,8 @@
 
                 <button class="action-card" onclick="showView('schedule'); setFilterType('category');">
                     <i class="fas fa-filter" aria-hidden="true"></i>
-                    <h3>Browse by Field</h3>
-                    <p>Men's & Women's Stages</p>
+                    <h3>Browse by Category</h3>
+                    <p>Race, men's &amp; women's stages</p>
                 </button>
 
                 <button class="action-card primary-card" onclick="showView('saved')">
@@ -65,22 +75,22 @@
 
     <section id="view-schedule" class="view" aria-label="Event schedule">
         <div class="filter-wrapper">
-            <div class="filter-label" id="filter-label-text">Filter by Date</div>
-
-            <div class="filters" id="day-filters">
-                <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-19', this)">Tue 19 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-20', this)">Wed 20 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-21', this)">Thu 21 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-22', this)">Fri 22 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-23', this)">Sat 23 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
+            <div class="search-wrapper">
+                <label for="event-search" class="filter-label">Search events</label>
+                <div class="search-control">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input id="event-search" type="search" inputmode="search" placeholder="Search stages, places, tags and more" aria-label="Search events by title, place, category or tag">
+                </div>
             </div>
 
-            <div class="filters" id="category-filters" style="display:none;">
-                <button class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Men's Stage&quot;, this)">Men's Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Women's Stage&quot;, this)">Women's Stages</button>
+            <div class="filter-group" aria-labelledby="day-filter-label">
+                <div class="filter-label" id="day-filter-label">Filter by Date</div>
+                <div class="filters" id="day-filters"></div>
+            </div>
+
+            <div class="filter-group" aria-labelledby="category-filter-label">
+                <div class="filter-label" id="category-filter-label">Filter by Category or Type</div>
+                <div class="filters" id="category-filters"></div>
             </div>
         </div>
 
@@ -118,6 +128,6 @@
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=1.5"></script>
+    <script src="app.js?v=1.6"></script>
 </body>
 </html>
