@@ -6,8 +6,6 @@
     <title>TDU 2026 Companion</title>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PapaParse CSV Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <style>
         :root {
@@ -242,41 +240,10 @@
     </div>
 
     <script>
-        const RAW_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_acwLQlGitpXd_GxJvx3GNjq1ZZJ80_2C7A_Xdya6z-Dn_vphi4PBa7emQqAroD1-cmwh8vscbwgA/pub?output=csv";
-        
-        // Proxy list with direct URL prioritized
-        const PROXIES = [
-            RAW_SHEET_URL,
-            "https://corsproxy.io/?" + encodeURIComponent(RAW_SHEET_URL),
-            "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(RAW_SHEET_URL)
-        ];
-
         let allEvents = [];
         let currentFilter = 'All';
         let currentTab = 'all';
 
-        // Clean markdown links like [https://strava.com](https://strava.com)
-        function cleanUrl(val) {
-            if (!val) return '';
-            val = String(val).trim();
-            const m = val.match(/\((https?:\/\/[^\)]+)\)/);
-            if (m) return m[1];
-            const m2 = val.match(/https?:\/\/[^\s\]\)]+/);
-            if (m2) return m2[0];
-            return val;
-        }
-
-        // Clean time formats like 07:30:00 -> 07:30
-        function formatTime(timeStr) {
-            if (!timeStr) return '';
-            timeStr = String(timeStr).trim();
-            if (timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
-                return timeStr.substring(0, 5);
-            }
-            return timeStr;
-        }
-
-        // Clean date formats like 2026-01-16 -> Fri, 16 Jan
         function formatDate(dateStr) {
             if (!dateStr) return '';
             const parts = String(dateStr).trim().split('-');
@@ -292,68 +259,17 @@
             return dateStr;
         }
 
-        // Case/space invariant field lookup
-        function getFieldValue(obj, ...possibleKeys) {
-            if (!obj) return '';
-            const normalizedKeys = possibleKeys.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
-            for (let prop in obj) {
-                const normProp = prop.toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (normalizedKeys.includes(normProp) && obj[prop]) {
-                    return String(obj[prop]).trim();
-                }
-            }
-            return '';
-        }
-
         async function fetchEvents() {
-            let csvText = null;
-
-            for (let url of PROXIES) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) continue;
-                    const text = await response.text();
-                    
-                    // Ignore HTML responses (proxy error pages)
-                    if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
-                        continue;
-                    }
-                    
-                    if (text.includes(",") && text.length > 20) {
-                        csvText = text;
-                        break;
-                    }
-                } catch (e) {
-                    console.warn("Proxy attempt failed:", url);
-                }
+            try {
+                // Fetch direct relative path inside same repo - 100% immune to CORS errors
+                const response = await fetch('./events.json');
+                if (!response.ok) throw new Error("Could not find events.json in repository.");
+                allEvents = await response.json();
+                renderEvents();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                document.getElementById('events-container').innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
             }
-
-            if (!csvText) {
-                document.getElementById('events-container').innerHTML = 
-                    `<p style='text-align:center; padding:20px; color:red;'>Could not connect to Google Sheet. Check that the sheet is set to 'Publish to Web'.</p>`;
-                return;
-            }
-
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: 'greedy',
-                complete: function(results) {
-                    if (results.data && results.data.length > 0) {
-                        // Keep only rows with an actual title
-                        allEvents = results.data.filter(row => {
-                            const title = getFieldValue(row, 'title', 'name', 'event', 'event_title');
-                            return title.length > 0;
-                        });
-
-                        if (allEvents.length === 0) {
-                            document.getElementById('events-container').innerHTML = 
-                                "<p style='text-align:center; padding:20px;'>Spreadsheet loaded, but no event rows were found.</p>";
-                        } else {
-                            renderEvents();
-                        }
-                    }
-                }
-            });
         }
 
         function renderEvents() {
@@ -364,18 +280,12 @@
             let displayEvents = allEvents;
 
             if (currentTab === 'saved') {
-                displayEvents = displayEvents.filter((e, idx) => {
-                    const eId = getFieldValue(e, 'id') || String(idx + 1);
-                    return savedEvents.includes(eId);
-                });
+                displayEvents = displayEvents.filter(e => savedEvents.includes(String(e.id)));
                 document.getElementById('filter-container').style.display = 'none';
             } else {
                 document.getElementById('filter-container').style.display = 'flex';
                 if (currentFilter !== 'All') {
-                    displayEvents = displayEvents.filter(e => {
-                        const cat = getFieldValue(e, 'category', 'type');
-                        return cat.toLowerCase().includes(currentFilter.toLowerCase());
-                    });
+                    displayEvents = displayEvents.filter(e => e.category && e.category.toLowerCase().includes(currentFilter.toLowerCase()));
                 }
             }
 
@@ -385,21 +295,18 @@
             }
 
             displayEvents.forEach((event, index) => {
-                const eventId = getFieldValue(event, 'id') || String(index + 1);
-                const title = getFieldValue(event, 'title', 'name', 'event', 'event_title');
-                const category = getFieldValue(event, 'category', 'type');
-                const dateRaw = getFieldValue(event, 'date', 'day');
-                const startTime = formatTime(getFieldValue(event, 'start_time', 'start', 'time'));
-                const endTime = formatTime(getFieldValue(event, 'end_time', 'end'));
-                const location = getFieldValue(event, 'location', 'venue', 'address');
-                const description = getFieldValue(event, 'description', 'details', 'desc');
-                const rawRoute = getFieldValue(event, 'route_url', 'route', 'strava', 'gpx');
-                const routeUrl = cleanUrl(rawRoute);
+                const eventId = String(event.id || index + 1);
+                const title = event.title || 'Untitled Event';
+                const category = event.category || '';
+                const dateDisplay = formatDate(event.date);
+                const startTime = event.start_time || '';
+                const endTime = event.end_time || '';
+                const location = event.location || '';
+                const description = event.description || '';
+                const routeUrl = event.route_url || '';
 
                 const isSaved = savedEvents.includes(eventId);
                 const heartClass = isSaved ? 'fas saved' : 'far';
-                const dateDisplay = formatDate(dateRaw);
-
                 const mapLink = location ? `https://maps.google.com/?q=${encodeURIComponent(location)}` : '#';
 
                 const cardHTML = `
