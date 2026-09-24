@@ -1,5 +1,5 @@
 let allEvents = [];
-let weatherData = {}; // Keyed by 'YYYY-MM-DD'
+let weatherData = {}; // Live weather keyed by 'YYYY-MM-DD'
 let currentDayFilter = 'All';
 let currentCatFilter = 'All';
 let activeFilterMode = 'day';
@@ -7,20 +7,6 @@ let activeFilterMode = 'day';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
-// Sample / Fallback Adelaide January Weather Map for testing outside 16-day live window
-const SAMPLE_TDU_WEATHER = {
-    '2026-01-16': { temp: 34, wind: 25, dir: 'NE', condition: 'Hot & Windy' },
-    '2026-01-17': { temp: 28, wind: 12, dir: 'S', condition: 'Mild' },
-    '2026-01-18': { temp: 25, wind: 10, dir: 'SE', condition: 'Perfect Riding' },
-    '2026-01-19': { temp: 30, wind: 18, dir: 'N', condition: 'Warm' },
-    '2026-01-20': { temp: 32, wind: 20, dir: 'NE', condition: 'Hot' },
-    '2026-01-21': { temp: 27, wind: 14, dir: 'SW', condition: 'Sunny' },
-    '2026-01-22': { temp: 26, wind: 11, dir: 'S', condition: 'Pleasant' },
-    '2026-01-23': { temp: 31, wind: 22, dir: 'E', condition: 'Warm & Breezy' },
-    '2026-01-24': { temp: 35, wind: 28, dir: 'N', condition: 'Extreme Heat' },
-    '2026-01-25': { temp: 29, wind: 15, dir: 'SE', condition: 'Clear' }
-};
 
 // Convert degrees (0-360) to compass direction
 function getCompassDirection(degrees) {
@@ -43,7 +29,7 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
-// Fetch Daily Weather from Open-Meteo API
+// Fetch Daily Weather strictly from live Open-Meteo API
 async function fetchDailyWeather() {
     const url = 'https://api.open-meteo.com/v1/forecast?latitude=-34.9285&longitude=138.6007&daily=temperature_2m_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Australia%2FAdelaide';
 
@@ -53,19 +39,21 @@ async function fetchDailyWeather() {
             const data = await res.json();
             if (data.daily && data.daily.time) {
                 data.daily.time.forEach((date, i) => {
-                    weatherData[date] = {
-                        temp: Math.round(data.daily.temperature_2m_max[i]),
-                        wind: Math.round(data.daily.wind_speed_10m_max[i]),
-                        dir: getCompassDirection(data.daily.wind_direction_10m_dominant[i])
-                    };
+                    if (data.daily.temperature_2m_max[i] !== null) {
+                        weatherData[date] = {
+                            temp: Math.round(data.daily.temperature_2m_max[i]),
+                            wind: Math.round(data.daily.wind_speed_10m_max[i]),
+                            dir: getCompassDirection(data.daily.wind_direction_10m_dominant[i])
+                        };
+                    }
                 });
             }
         }
     } catch (e) {
-        console.warn("Using sample weather map:", e);
+        console.warn("Live weather fetch unnavailable:", e);
     }
     
-    // Re-render schedule once weather data is loaded
+    // Refresh schedule display with live weather data
     renderSchedule();
 }
 
@@ -154,8 +142,8 @@ function createEventCardHTML(event, eventId, isSaved) {
         timeRange += ' - ' + endTime;
     }
 
-    // Lookup weather for this specific event date
-    const dayWeather = weatherData[event.date] || SAMPLE_TDU_WEATHER[event.date];
+    // Lookup strictly live weather for event date
+    const dayWeather = weatherData[event.date];
 
     return `
         <div class="event-card">
@@ -169,13 +157,15 @@ function createEventCardHTML(event, eventId, isSaved) {
             <div class="event-meta">
                 ${dateDisplay || timeRange ? `<span><i class="far fa-calendar"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
                 ${location ? `<span><i class="fas fa-map-marker-alt"></i> ${location}</span>` : ''}
-                ${dayWeather ? `
-                    <span class="card-weather">
+                <span class="card-weather">
+                    ${dayWeather ? `
                         <i class="fas fa-temperature-high" style="color:#e67e22;"></i> <strong>${dayWeather.temp}°C</strong>
                         <span class="weather-sep">•</span>
                         <i class="fas fa-wind" style="color:#27ae60;"></i> ${dayWeather.wind} km/h <strong>${dayWeather.dir}</strong>
-                    </span>
-                ` : ''}
+                    ` : `
+                        <i class="fas fa-cloud-sun" style="color:#94a3b8;"></i> Forecast N/A
+                    `}
+                </span>
             </div>
             
             ${description ? `<div class="event-desc">${description}</div>` : ''}
