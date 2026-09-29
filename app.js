@@ -4,7 +4,9 @@ let currentCatFilter = 'All';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const ADELAIDE_COORDS = { latitude: -34.9285, longitude: 138.6007 };
-const WEATHER_CACHE_KEY = 'tduWeatherSummary';
+const WEATHER_CACHE_KEY = 'tduWeatherSummaryV2';
+const AUDIO_FEEDBACK_KEY = 'tduAudioFeedback';
+let audioFeedbackContext = null;
 const STANDALONE_LAUNCH_SESSION_KEY = 'tduStandaloneLaunchTracked';
 const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
 const WEATHER_UNAVAILABLE = 'Weather unavailable';
@@ -309,6 +311,118 @@ function getSavedEvents() {
     }
 }
 
+function isAudioFeedbackEnabled() {
+    try {
+        return localStorage.getItem(AUDIO_FEEDBACK_KEY) === 'true';
+    } catch (error) {
+        return false;
+    }
+}
+
+function setAudioFeedbackEnabled(enabled) {
+    try {
+        localStorage.setItem(AUDIO_FEEDBACK_KEY, enabled ? 'true' : 'false');
+    } catch (error) {
+        // Ignore localStorage write errors.
+    }
+    updateSoundButtonUI(enabled);
+}
+
+function updateSoundButtonUI(enabled) {
+    const btn = document.getElementById('header-sound-btn');
+    const icon = document.getElementById('sound-btn-icon');
+    if (!btn || !icon) return;
+
+    if (enabled) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-label', 'Sound feedback enabled. Click to mute.');
+        btn.setAttribute('title', 'Sound feedback: On');
+        icon.className = 'fas fa-volume-up';
+    } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-label', 'Sound feedback muted. Click to enable.');
+        btn.setAttribute('title', 'Sound feedback: Off');
+        icon.className = 'fas fa-volume-mute';
+    }
+}
+
+function getAudioFeedbackContext() {
+    if (!audioFeedbackContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioFeedbackContext = new AudioContextClass();
+        }
+    }
+    if (audioFeedbackContext && audioFeedbackContext.state === 'suspended') {
+        audioFeedbackContext.resume();
+    }
+    return audioFeedbackContext;
+}
+
+function playAudioCue(type) {
+    if (!isAudioFeedbackEnabled()) return;
+    try {
+        const ctx = getAudioFeedbackContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        if (type === 'save') {
+            // Ascending cheerful chime (C5 -> G5)
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } else if (type === 'unsave') {
+            // Gentle descending tone (D5 -> G4)
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.exponentialRampToValueAtTime(392.00, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.22);
+        } else if (type === 'export') {
+            // Three-note celebratory arpeggio (C5, E5, G5)
+            [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                const noteTime = now + (idx * 0.08);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, noteTime);
+                gain.gain.setValueAtTime(0.12, noteTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.25);
+            });
+        }
+    } catch (e) {
+        // Silently ignore audio playback errors
+    }
+}
+
+window.toggleAudioFeedback = function() {
+    const currentState = isAudioFeedbackEnabled();
+    const newState = !currentState;
+    setAudioFeedbackEnabled(newState);
+    if (newState) {
+        playAudioCue('save');
+    }
+    trackAnalyticsEvent('toggle_sound_feedback', { enabled: newState });
+};
+
 function renderWeatherWidget(message) {
     const widget = document.getElementById('weather-widget');
     if (!widget) return;
@@ -339,6 +453,13 @@ function getWeatherCondition(code) {
     return WEATHER_CODES[Number(code)] || 'Conditions unavailable';
 }
 
+function getWindCompass(degrees) {
+    if (!Number.isFinite(degrees)) return '';
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(((degrees % 360) + 360) % 360 / 22.5) % 16;
+    return directions[index];
+}
+
 async function updateWeatherWidget() {
     const cachedWeather = getCachedWeatherSummary();
     renderWeatherWidget(cachedWeather || WEATHER_PLACEHOLDER);
@@ -346,7 +467,7 @@ async function updateWeatherWidget() {
     const params = new URLSearchParams({
         latitude: ADELAIDE_COORDS.latitude,
         longitude: ADELAIDE_COORDS.longitude,
-        current: 'temperature_2m,weather_code',
+        current: 'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m',
         timezone: 'Australia/Adelaide'
     });
 
@@ -357,6 +478,8 @@ async function updateWeatherWidget() {
         const data = await response.json();
         const rawTemperature = data?.current?.temperature_2m;
         const rawWeatherCode = data?.current?.weather_code;
+        const rawWindSpeed = data?.current?.wind_speed_10m;
+        const rawWindDirection = data?.current?.wind_direction_10m;
 
         if (!Number.isFinite(Number(rawTemperature)) || !Number.isFinite(Number(rawWeatherCode))) {
             throw new Error('Weather data unavailable');
@@ -364,7 +487,16 @@ async function updateWeatherWidget() {
 
         const temperature = Math.round(Number(rawTemperature));
         const weatherCode = Number(rawWeatherCode);
-        const summary = `Today in Adelaide: ${temperature}°C • ${getWeatherCondition(weatherCode)}`;
+        let summary = `Today in Adelaide: ${temperature}°C • ${getWeatherCondition(weatherCode)}`;
+
+        if (Number.isFinite(Number(rawWindSpeed)) && Number.isFinite(Number(rawWindDirection))) {
+            const windSpeed = Math.round(Number(rawWindSpeed));
+            const windDir = getWindCompass(Number(rawWindDirection));
+            if (windDir) {
+                summary += ` • Wind: ${windDir} ${windSpeed} km/h`;
+            }
+        }
+
         setCachedWeatherSummary(summary);
         renderWeatherWidget(summary);
     } catch (error) {
@@ -464,6 +596,8 @@ function exportSavedEvents() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    playAudioCue('export');
 
     trackAnalyticsEvent('export_calendar', {
         saved_event_count: selectedEvents.length
@@ -883,6 +1017,7 @@ window.toggleSave = function(id, btnElement) {
             btnElement.classList.remove('saved');
             btnElement.innerHTML = '<i class="far fa-heart" aria-hidden="true"></i>';
         }
+        playAudioCue('unsave');
         trackAnalyticsEvent('remove_saved_event', getEventAnalyticsPayload(strId));
     } else {
         savedEvents.push(strId);
@@ -890,6 +1025,7 @@ window.toggleSave = function(id, btnElement) {
             btnElement.classList.add('saved');
             btnElement.innerHTML = '<i class="fas fa-heart" aria-hidden="true"></i>';
         }
+        playAudioCue('save');
         trackAnalyticsEvent('save_event', getEventAnalyticsPayload(strId));
     }
 
@@ -1051,8 +1187,13 @@ window.openFeedbackModal = function() {
     if (frame) {
         const formSrc = String(frame.dataset.formSrc || '').trim();
         const hasConfiguredForm = formSrc && !formSrc.includes('REPLACE_WITH_REAL_FORM_ID');
-        if (hasConfiguredForm && frame.src !== formSrc) {
-            frame.src = formSrc;
+        if (hasConfiguredForm) {
+            if (frame.hasAttribute('srcdoc')) {
+                frame.removeAttribute('srcdoc');
+            }
+            if (frame.src !== formSrc) {
+                frame.src = formSrc;
+            }
         }
     }
 
@@ -1144,6 +1285,7 @@ if (document.readyState === 'complete') {
 }
 
 checkPWAStatus();
+updateSoundButtonUI(isAudioFeedbackEnabled());
 updateWeatherWidget();
 renderRecommendationFlow();
 showView(currentViewName);
