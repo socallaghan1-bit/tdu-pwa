@@ -171,7 +171,7 @@
             <button class="btn btn-primary export-btn" onclick="exportSavedEvents()">Export to Calendar</button>
         </div>
         <p class="saved-sub">Your saved personal Tour Down Under schedule.</p>
-        <div id="smart-assistant-bar" class="assistant-bar hidden" onclick="toggleAssistantDrawer(true)">
+        <div id="smart-assistant-bar" class="assistant-bar hidden" role="button" tabindex="0" onclick="toggleAssistantDrawer(true)" onkeydown="handleAssistantBarKeydown(event)">
             <span id="assistant-summary-text">⚡ Insights available</span>
             <button class="btn-sm" type="button">View Details →</button>
         </div>

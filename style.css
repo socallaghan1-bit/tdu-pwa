@@ -906,14 +906,6 @@ header {
     flex: 1 1 auto;
 }
 
-#drawer-insights-list:empty::after {
-    content: 'No insights for your itinerary yet.';
-    display: block;
-    padding: 10px 0;
-    color: var(--text-light);
-    font-size: 0.85rem;
-}
-
 .insight-actions {
     display: flex;
     flex-wrap: wrap;

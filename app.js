@@ -15,6 +15,7 @@ const DEFAULT_RIDE_ELEVATION_M = 0;
 const RIDE_AVERAGE_SPEED_KMH = 23;
 const RIDE_ELEVATION_PER_HOUR_M = 1000;
 const RIDE_BUFFER_MINUTES = 30;
+const BROUTER_MAP_CENTRE = '12/-34.85/138.80/standard';
 const VIEW_ANALYTICS_CONFIG = {
     home: {
         page_title: 'TDU 2027 - Home',
@@ -783,6 +784,12 @@ function calculateEventEndTime(event) {
     return { time: minutesToTimeString(endMinutes), minutes: endMinutes, isEstimated: true };
 }
 
+function hasRideDistanceData(event) {
+    if (!event || typeof event !== 'object') return false;
+    const distance = Number(event.distance_km);
+    return Number.isFinite(distance) && distance > 0;
+}
+
 function parseCoordinates(coords) {
     if (!coords) return null;
 
@@ -851,7 +858,7 @@ function buildTransferFileName(destName) {
 }
 
 function buildBrouterUrl(origin, dest) {
-    return `https://brouter.de/brouter-web/#map=12/-34.85/138.80/standard&lonlats=${origin.lng},${origin.lat}|${dest.lng},${dest.lat}&profile=trekking`;
+    return `https://brouter.de/brouter-web/#map=${BROUTER_MAP_CENTRE}&lonlats=${origin.lng},${origin.lat}|${dest.lng},${dest.lat}&profile=trekking`;
 }
 
 function downloadTransferGPX(originName, originCoords, destName, destCoords) {
@@ -1054,9 +1061,32 @@ function renderItineraryInsights(insights) {
 function toggleAssistantDrawer(show) {
     const overlay = document.getElementById('assistant-drawer-overlay');
     if (!overlay) return;
-    overlay.classList.toggle('open', show === true);
-    overlay.setAttribute('aria-hidden', show === true ? 'false' : 'true');
+
+    const shouldOpen = show === true;
+    const wasOpen = overlay.classList.contains('open');
+    overlay.classList.toggle('open', shouldOpen);
+    overlay.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+
+    if (shouldOpen) {
+        const closeButton = overlay.querySelector('.close-btn');
+        if (closeButton) closeButton.focus();
+    } else if (wasOpen) {
+        const bar = document.getElementById('smart-assistant-bar');
+        if (bar && !bar.classList.contains('hidden')) bar.focus();
+    }
 }
+
+function handleAssistantBarKeydown(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    toggleAssistantDrawer(true);
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const overlay = document.getElementById('assistant-drawer-overlay');
+    if (overlay && overlay.classList.contains('open')) toggleAssistantDrawer(false);
+});
 
 function renderSaved() {
     const container = document.getElementById('saved-events-container');
@@ -1332,7 +1362,7 @@ function createEventCardHTML(event, eventId, isSaved) {
     let timeRange = startTime;
     if (startTime && endTime) {
         timeRange += ' - ' + endTime;
-    } else if (startTime) {
+    } else if (startTime && hasRideDistanceData(event)) {
         const estimatedEnd = calculateEventEndTime(event);
         if (estimatedEnd.isEstimated && estimatedEnd.time) {
             timeRange += ' - ' + estimatedEnd.time + ' (est.)';
