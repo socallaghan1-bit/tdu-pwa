@@ -183,8 +183,23 @@
     "start_time": "08:00",
     "end_time": "11:00",
     "location": "Light Square, Adelaide CBD",
+    "coords": "-34.926,138.591",
+    "distance_km": 55,
+    "elevation_m": 250,
     "category": "Group Ride",
     "description": "Morning social ride ending in the CBD with coffee."
+  },
+  {
+    "id": "test-estimated-ride",
+    "title": "TEST: Hills Coffee Ride (estimated finish)",
+    "date": "2027-01-19",
+    "start_time": "07:30",
+    "location": "Light Square, Adelaide CBD",
+    "coords": "-34.926,138.591",
+    "distance_km": 45,
+    "elevation_m": 600,
+    "category": "Group Ride",
+    "description": "Group ride with no published finish time, so the app estimates it from distance and elevation."
   },
   {
     "id": "test-conflict-event",
@@ -193,6 +208,7 @@
     "start_time": "10:45",
     "end_time": "11:45",
     "location": "North Terrace, Adelaide",
+    "coords": "-34.921,138.600",
     "category": "Social",
     "description": "Conflict test event."
   }
