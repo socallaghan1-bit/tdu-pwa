@@ -14,7 +14,13 @@
     "tdu_rating": "Hindley",
     "tags": ["race", "coastal", "hills"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=1968b897-f546-4042-8fde-d80edf8593b7",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-1-henley-beach-to-gumeracha"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-1-henley-beach-to-gumeracha",
+    "checkpoints": [
+      {"name":"Checker Hill KOM","coords":"-34.825,138.871","pass_times":["12:55","13:47","14:38"],"description":"Cat 1 climb (18.4% max gradient). Peloton passes 3 times.","arrival_deadline":"12:20"},
+      {"name":"Gorge Rd / Cudlee Creek","coords":"-34.832,138.831","pass_times":["13:34","14:25"],"description":"Scenic gorge roadside viewing. Peloton passes 2 times.","arrival_deadline":"13:00"},
+      {"name":"Lobethal Hotel (Sprint 2)","coords":"-34.912,138.870","pass_times":["13:20","14:11"],"description":"Intermediate sprint point in town.","arrival_deadline":"12:45"},
+      {"name":"Gumeracha Finish Line","coords":"-34.821,138.884","pass_times":["13:04","13:55","14:47"],"description":"Stage 1 finish hub and lap transitions.","arrival_deadline":"12:30"}
+    ]
   },
   {
     "id": "2027-men-2",
@@ -31,7 +37,8 @@
     "tdu_rating": "Carapaz",
     "tags": ["race", "hills", "barossa"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=2c7b0b44-b3fe-4843-856c-981fef389628",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-2-angaston-to-angaston"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-2-angaston-to-angaston",
+    "checkpoints": []
   },
   {
     "id": "2027-men-3",
@@ -51,7 +58,8 @@
     "tdu_rating": "Carapaz",
     "tags": ["race", "climbing", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=0d7f7b45-198c-4521-b2b1-767aa552934a",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-3-lobethal-to-campbelltown"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-3-lobethal-to-campbelltown",
+    "checkpoints": []
   },
   {
     "id": "2027-men-4",
@@ -68,7 +76,8 @@
     "tdu_rating": "WVA",
     "tags": ["race", "coastal", "hills"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
+    "checkpoints": []
   },
   {
     "id": "2027-women-1",
@@ -85,7 +94,8 @@
     "tdu_rating": "Plouffe",
     "tags": ["race", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
+    "checkpoints": []
   },
   {
     "id": "2027-men-5",
@@ -106,7 +116,8 @@
     "tdu_rating": "Pogi",
     "tags": ["race", "climbing", "hills", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
+    "checkpoints": []
   },
   {
     "id": "2027-women-2",
@@ -126,7 +137,8 @@
     "tdu_rating": "Plouffe",
     "tags": ["race", "climbing", "hills", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
+    "checkpoints": []
   },
   {
     "id": "2027-men-6",
@@ -143,7 +155,8 @@
     "tdu_rating": "Hindley",
     "tags": ["race", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
+    "checkpoints": []
   },
   {
     "id": "2027-women-3",
@@ -160,6 +173,7 @@
     "tdu_rating": "Plouffe",
     "tags": ["race", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
-    "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling"
+    "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
+    "checkpoints": []
   }
 ]
