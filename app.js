@@ -10,6 +10,11 @@ let audioFeedbackContext = null;
 const STANDALONE_LAUNCH_SESSION_KEY = 'tduStandaloneLaunchTracked';
 const WEATHER_PLACEHOLDER = 'Today in Adelaide: Checking weather…';
 const WEATHER_UNAVAILABLE = 'Weather unavailable';
+const DEFAULT_RIDE_DISTANCE_KM = 45;
+const DEFAULT_RIDE_ELEVATION_M = 0;
+const RIDE_AVERAGE_SPEED_KMH = 23;
+const RIDE_ELEVATION_PER_HOUR_M = 1000;
+const RIDE_BUFFER_MINUTES = 30;
 const VIEW_ANALYTICS_CONFIG = {
     home: {
         page_title: 'TDU 2027 - Home',
@@ -747,6 +752,136 @@ function isValidCheckpointCoords(coords) {
     return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 }
 
+function minutesToTimeString(totalMinutes) {
+    const normalized = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+    const hours = Math.floor(normalized / 60);
+    const minutes = normalized % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function calculateEventEndTime(event) {
+    const unknown = { time: '', minutes: null, isEstimated: false };
+    if (!event || typeof event !== 'object') return unknown;
+
+    const declaredEnd = timeToMinutes(event.end_time);
+    if (declaredEnd !== null) {
+        return { time: minutesToTimeString(declaredEnd), minutes: declaredEnd, isEstimated: false };
+    }
+
+    const start = timeToMinutes(event.start_time);
+    if (start === null) return unknown;
+
+    const distanceValue = Number(event.distance_km);
+    const distance = Number.isFinite(distanceValue) && distanceValue > 0 ? distanceValue : DEFAULT_RIDE_DISTANCE_KM;
+    const elevationValue = Number(event.elevation_m);
+    const elevation = Number.isFinite(elevationValue) && elevationValue > 0 ? elevationValue : DEFAULT_RIDE_ELEVATION_M;
+
+    const movingMinutes = (distance / RIDE_AVERAGE_SPEED_KMH) * 60;
+    const climbingMinutes = (elevation / RIDE_ELEVATION_PER_HOUR_M) * 60;
+    const endMinutes = Math.round(start + movingMinutes + climbingMinutes + RIDE_BUFFER_MINUTES);
+
+    return { time: minutesToTimeString(endMinutes), minutes: endMinutes, isEstimated: true };
+}
+
+function parseCoordinates(coords) {
+    if (!coords) return null;
+
+    let latitude = null;
+    let longitude = null;
+
+    if (typeof coords === 'string') {
+        if (!isValidCheckpointCoords(coords)) return null;
+        const parts = coords.trim().split(',');
+        latitude = Number(parts[0]);
+        longitude = Number(parts[1]);
+    } else if (Array.isArray(coords) && coords.length >= 2) {
+        latitude = Number(coords[0]);
+        longitude = Number(coords[1]);
+    } else if (typeof coords === 'object') {
+        latitude = Number(coords.lat !== undefined ? coords.lat : coords.latitude);
+        longitude = Number(coords.lng !== undefined ? coords.lng : (coords.lon !== undefined ? coords.lon : coords.longitude));
+    }
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+
+    return { lat: latitude, lng: longitude };
+}
+
+function getEventCoords(event) {
+    if (!event || typeof event !== 'object') return null;
+    return parseCoordinates(event.coords || event.start_coords || event.location_coords);
+}
+
+function escapeXML(value) {
+    return String(value === undefined || value === null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+function buildTransferGPX(originName, origin, destName, dest) {
+    const trackName = `TDU Transfer: ${originName || 'Start'} to ${destName || 'Finish'}`;
+    return [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<gpx version="1.1" creator="TDU PWA" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">',
+        '  <metadata>',
+        `    <name>${escapeXML(trackName)}</name>`,
+        '  </metadata>',
+        `  <wpt lat="${origin.lat}" lon="${origin.lng}"><name>${escapeXML(originName || 'Start')}</name></wpt>`,
+        `  <wpt lat="${dest.lat}" lon="${dest.lng}"><name>${escapeXML(destName || 'Finish')}</name></wpt>`,
+        '  <trk>',
+        `    <name>${escapeXML(trackName)}</name>`,
+        '    <trkseg>',
+        `      <trkpt lat="${origin.lat}" lon="${origin.lng}"></trkpt>`,
+        `      <trkpt lat="${dest.lat}" lon="${dest.lng}"></trkpt>`,
+        '    </trkseg>',
+        '  </trk>',
+        '</gpx>'
+    ].join('\n');
+}
+
+function buildTransferFileName(destName) {
+    const safeName = String(destName || 'Route')
+        .replace(/[^a-z0-9]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+    return `TDU_Transfer_${safeName || 'Route'}.gpx`;
+}
+
+function buildBrouterUrl(origin, dest) {
+    return `https://brouter.de/brouter-web/#map=12/-34.85/138.80/standard&lonlats=${origin.lng},${origin.lat}|${dest.lng},${dest.lat}&profile=trekking`;
+}
+
+function downloadTransferGPX(originName, originCoords, destName, destCoords) {
+    const origin = parseCoordinates(originCoords);
+    const dest = parseCoordinates(destCoords);
+
+    if (!origin || !dest) {
+        alert('Sorry, this transfer does not have valid coordinates for a GPX route yet.');
+        return false;
+    }
+
+    const gpxContent = buildTransferGPX(originName, origin, destName, dest);
+    const blob = new Blob([gpxContent], { type: 'application/gpx+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = buildTransferFileName(destName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    trackAnalyticsEvent('download_transfer_gpx', {
+        transfer_origin: String(originName || ''),
+        transfer_destination: String(destName || '')
+    });
+
+    return true;
+}
+
 function isTransferEvent(event) {
     if (getEventType(event).toLowerCase() === 'race stage') return false;
     const eventKind = `${event.category || ''} ${event.type || ''}`.toLowerCase();
@@ -754,9 +889,6 @@ function isTransferEvent(event) {
 }
 
 function generateItineraryInsights(savedEvents) {
-    const container = document.getElementById('itinerary-insights-container');
-    if (!container) return;
-
     const eventsByDate = savedEvents.reduce((groups, event) => {
         if (!event || typeof event.date !== 'string' || !event.date.trim()) return groups;
         const date = event.date.trim();
@@ -768,11 +900,16 @@ function generateItineraryInsights(savedEvents) {
 
     Object.values(eventsByDate).forEach((events) => {
         const timedEvents = events
-            .map(event => ({
-                event,
-                start: timeToMinutes(event.start_time),
-                end: timeToMinutes(event.end_time)
-            }))
+            .map((event) => {
+                const endInfo = calculateEventEndTime(event);
+                return {
+                    event,
+                    start: timeToMinutes(event.start_time),
+                    end: endInfo.minutes,
+                    endTime: endInfo.time,
+                    isEstimatedEnd: endInfo.isEstimated
+                };
+            })
             .filter(item => item.start !== null && item.end !== null && item.end >= item.start)
             .sort((a, b) => a.start - b.start);
 
@@ -780,10 +917,11 @@ function generateItineraryInsights(savedEvents) {
             timedEvents.slice(index + 1).forEach((next) => {
                 const gap = next.start - current.end;
                 if (gap >= 20) return;
+                const endLabel = `${formatTime(current.endTime)}${current.isEstimatedEnd ? ' (estimated)' : ''}`;
                 insights.push({
                     type: 'warning',
                     title: '⚠️ Schedule Conflict',
-                    text: `${current.event.title || 'Earlier event'} ends at ${formatTime(current.event.end_time)}, leaving under 20 mins before ${next.event.title || 'next event'} starts at ${formatTime(next.event.start_time)}.`
+                    text: `${current.event.title || 'Earlier event'} ends at ${endLabel}, leaving under 20 mins before ${next.event.title || 'next event'} starts at ${formatTime(next.event.start_time)}.`
                 });
             });
         });
@@ -793,13 +931,17 @@ function generateItineraryInsights(savedEvents) {
             && Array.isArray(event.checkpoints)
             && event.checkpoints.length
         );
-        const morningEvents = events.filter((event) => {
-            const end = timeToMinutes(event.end_time);
-            return isTransferEvent(event) && end !== null && end <= timeToMinutes('12:30') && String(event.location || '').trim();
-        });
+        const morningEvents = events
+            .map(event => ({ event, endInfo: calculateEventEndTime(event) }))
+            .filter(({ event, endInfo }) =>
+                isTransferEvent(event)
+                && endInfo.minutes !== null
+                && endInfo.minutes <= timeToMinutes('12:30')
+                && String(event.location || '').trim()
+            );
 
-        morningEvents.forEach((morningEvent) => {
-            const eventEnd = timeToMinutes(morningEvent.end_time);
+        morningEvents.forEach(({ event: morningEvent, endInfo }) => {
+            const eventEnd = endInfo.minutes;
             stages.forEach((stage) => {
                 const feasibleCheckpoints = stage.checkpoints
                     .filter((checkpoint) => {
@@ -828,28 +970,92 @@ function generateItineraryInsights(savedEvents) {
                 const checkpoint = feasibleCheckpoints[0];
                 if (!checkpoint) return;
 
-                const origin = String(morningEvent.location).trim();
-                const destination = String(checkpoint.coords).trim().replace(/\s+/g, '');
-                const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=bicycling`;
+                const originName = String(morningEvent.location).trim();
+                const originCoords = getEventCoords(morningEvent);
+                const destCoords = parseCoordinates(checkpoint.coords);
+                const finishLabel = `${formatTime(endInfo.time)}${endInfo.isEstimated ? ' (estimated finish)' : ''}`;
+                const route = originCoords && destCoords
+                    ? {
+                        originName,
+                        originCoords: `${originCoords.lat},${originCoords.lng}`,
+                        destName: String(checkpoint.name).trim(),
+                        destCoords: `${destCoords.lat},${destCoords.lng}`,
+                        brouterUrl: buildBrouterUrl(originCoords, destCoords)
+                    }
+                    : null;
+
                 insights.push({
                     type: 'suggestion',
                     title: '💡 Smart Spectator Transfer Tip',
-                    text: `After ${morningEvent.title || 'your morning event'} finishes at ${formatTime(morningEvent.end_time)}, cycle to ${checkpoint.name}. The peloton passes from ${formatTimeRange(checkpoint.validPassTimes[0], checkpoint.validPassTimes[checkpoint.validPassTimes.length - 1])}!`,
-                    note: `Allow at least 45 minutes to transfer. This conservative buffer assumes a 20–25 km/h cycling pace because the event data has no origin coordinates; confirm the actual route and travel time in Google Maps.`,
-                    routeUrl
+                    text: `After ${morningEvent.title || 'your morning event'} finishes at ${finishLabel}, cycle to ${checkpoint.name}. The peloton passes from ${formatTimeRange(checkpoint.validPassTimes[0], checkpoint.validPassTimes[checkpoint.validPassTimes.length - 1])}!`,
+                    note: route
+                        ? 'Allow at least 45 minutes to transfer. Download the GPX for your head unit, or open the route in BRouter to fine-tune it.'
+                        : 'Allow at least 45 minutes to transfer. This conservative buffer assumes a 20–25 km/h cycling pace because the event data has no origin coordinates.',
+                    route
                 });
             });
         });
     });
 
-    container.innerHTML = insights.map((insight) => `
+    renderItineraryInsights(insights);
+}
+
+function renderInsightRouteActions(route) {
+    if (!route) return '';
+    return `
+            <div class="insight-actions">
+                <button
+                    type="button"
+                    class="btn-gpx"
+                    data-origin-name="${escapeHTML(route.originName)}"
+                    data-origin-coords="${escapeHTML(route.originCoords)}"
+                    data-dest-name="${escapeHTML(route.destName)}"
+                    data-dest-coords="${escapeHTML(route.destCoords)}"
+                    onclick="downloadTransferGPX(this.dataset.originName, this.dataset.originCoords, this.dataset.destName, this.dataset.destCoords)"
+                >📥 Download GPX</button>
+                <a class="btn-brouter" href="${escapeHTML(route.brouterUrl)}" target="_blank" rel="noopener noreferrer">🚴 Open in BRouter</a>
+            </div>`;
+}
+
+function renderItineraryInsights(insights) {
+    const list = document.getElementById('drawer-insights-list');
+    const bar = document.getElementById('smart-assistant-bar');
+    const summary = document.getElementById('assistant-summary-text');
+
+    if (list) {
+        list.innerHTML = insights.map((insight) => `
         <article class="insight-card ${insight.type}" ${insight.type === 'warning' ? 'role="alert"' : 'role="status"'}>
             <h4>${escapeHTML(insight.title)}</h4>
             <p>${escapeHTML(insight.text)}</p>
             ${insight.note ? `<p class="insight-note">${escapeHTML(insight.note)}</p>` : ''}
-            ${insight.routeUrl ? `<a class="insight-btn" href="${escapeHTML(insight.routeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open bicycle route in Google Maps">Open bicycle route</a>` : ''}
+            ${renderInsightRouteActions(insight.route)}
         </article>
     `).join('');
+    }
+
+    if (summary) {
+        const warnings = insights.filter(insight => insight.type === 'warning').length;
+        const suggestions = insights.length - warnings;
+        const parts = [];
+        if (warnings) parts.push(`${warnings} schedule ${warnings === 1 ? 'conflict' : 'conflicts'}`);
+        if (suggestions) parts.push(`${suggestions} transfer ${suggestions === 1 ? 'tip' : 'tips'}`);
+        summary.textContent = parts.length ? `⚡ ${parts.join(' • ')}` : '⚡ Insights available';
+    }
+
+    if (bar) {
+        bar.classList.toggle('hidden', insights.length === 0);
+    }
+
+    if (!insights.length) {
+        toggleAssistantDrawer(false);
+    }
+}
+
+function toggleAssistantDrawer(show) {
+    const overlay = document.getElementById('assistant-drawer-overlay');
+    if (!overlay) return;
+    overlay.classList.toggle('open', show === true);
+    overlay.setAttribute('aria-hidden', show === true ? 'false' : 'true');
 }
 
 function renderSaved() {
@@ -1126,6 +1332,11 @@ function createEventCardHTML(event, eventId, isSaved) {
     let timeRange = startTime;
     if (startTime && endTime) {
         timeRange += ' - ' + endTime;
+    } else if (startTime) {
+        const estimatedEnd = calculateEventEndTime(event);
+        if (estimatedEnd.isEstimated && estimatedEnd.time) {
+            timeRange += ' - ' + estimatedEnd.time + ' (est.)';
+        }
     }
 
     return `
