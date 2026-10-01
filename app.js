@@ -108,6 +108,41 @@ function formatDate(dateStr) {
     return dateStr;
 }
 
+function timeToMinutes(timeStr) {
+    if (typeof timeStr !== 'string') return null;
+    const match = timeStr.trim().match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)?$/i);
+    if (!match) return null;
+
+    let hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const meridiem = match[3] ? match[3].toUpperCase() : '';
+
+    if (meridiem) {
+        if (hours < 1 || hours > 12) return null;
+        hours = (hours % 12) + (meridiem === 'PM' ? 12 : 0);
+    } else if (hours > 23) {
+        return null;
+    }
+
+    return (hours * 60) + minutes;
+}
+
+function formatTime(timeStr) {
+    const totalMinutes = timeToMinutes(timeStr);
+    if (totalMinutes === null) return '';
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`;
+}
+
+function formatTimeRange(startStr, endStr) {
+    const start = formatTime(startStr);
+    const end = formatTime(endStr);
+    if (start && end) return `${start}–${end}`;
+    return start || end;
+}
+
 function escapeHTML(value) {
     return String(value || '')
         .replace(/&/g, '&amp;')
@@ -703,6 +738,120 @@ function renderFeaturedEvents() {
     }).join('');
 }
 
+function isValidCheckpointCoords(coords) {
+    if (typeof coords !== 'string') return false;
+    const match = coords.trim().match(/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/);
+    if (!match) return false;
+    const latitude = Number(match[1]);
+    const longitude = Number(match[2]);
+    return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+}
+
+function isTransferEvent(event) {
+    if (getEventType(event).toLowerCase() === 'race stage') return false;
+    const eventKind = `${event.category || ''} ${event.type || ''}`.toLowerCase();
+    return ['ride', 'social', 'pop-up', 'popup'].some(kind => eventKind.includes(kind));
+}
+
+function generateItineraryInsights(savedEvents) {
+    const container = document.getElementById('itinerary-insights-container');
+    if (!container) return;
+
+    const eventsByDate = savedEvents.reduce((groups, event) => {
+        if (!event || typeof event.date !== 'string' || !event.date.trim()) return groups;
+        const date = event.date.trim();
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(event);
+        return groups;
+    }, {});
+    const insights = [];
+
+    Object.values(eventsByDate).forEach((events) => {
+        const timedEvents = events
+            .map(event => ({
+                event,
+                start: timeToMinutes(event.start_time),
+                end: timeToMinutes(event.end_time)
+            }))
+            .filter(item => item.start !== null && item.end !== null && item.end >= item.start)
+            .sort((a, b) => a.start - b.start);
+
+        timedEvents.forEach((current, index) => {
+            timedEvents.slice(index + 1).forEach((next) => {
+                const gap = next.start - current.end;
+                if (gap >= 20) return;
+                insights.push({
+                    type: 'warning',
+                    title: '⚠️ Schedule Conflict',
+                    text: `${current.event.title || 'Earlier event'} ends at ${formatTime(current.event.end_time)}, leaving under 20 mins before ${next.event.title || 'next event'} starts at ${formatTime(next.event.start_time)}.`
+                });
+            });
+        });
+
+        const stages = events.filter(event =>
+            getEventType(event).toLowerCase() === 'race stage'
+            && Array.isArray(event.checkpoints)
+            && event.checkpoints.length
+        );
+        const morningEvents = events.filter((event) => {
+            const end = timeToMinutes(event.end_time);
+            return isTransferEvent(event) && end !== null && end <= timeToMinutes('12:30') && String(event.location || '').trim();
+        });
+
+        morningEvents.forEach((morningEvent) => {
+            const eventEnd = timeToMinutes(morningEvent.end_time);
+            stages.forEach((stage) => {
+                const feasibleCheckpoints = stage.checkpoints
+                    .filter((checkpoint) => {
+                        const deadline = timeToMinutes(checkpoint && checkpoint.arrival_deadline);
+                        const passTimes = checkpoint && Array.isArray(checkpoint.pass_times)
+                            ? checkpoint.pass_times.filter(time => timeToMinutes(time) !== null)
+                            : [];
+                        return checkpoint
+                            && String(checkpoint.name || '').trim()
+                            && isValidCheckpointCoords(checkpoint.coords)
+                            && deadline !== null
+                            && deadline >= eventEnd + 45
+                            && passTimes.length;
+                    })
+                    .map(checkpoint => ({
+                        ...checkpoint,
+                        validPassTimes: checkpoint.pass_times
+                            .filter(time => timeToMinutes(time) !== null)
+                            .sort((a, b) => timeToMinutes(a) - timeToMinutes(b))
+                    }))
+                    .sort((a, b) =>
+                        b.validPassTimes.length - a.validPassTimes.length
+                        || timeToMinutes(a.arrival_deadline) - timeToMinutes(b.arrival_deadline)
+                    );
+
+                const checkpoint = feasibleCheckpoints[0];
+                if (!checkpoint) return;
+
+                const origin = String(morningEvent.location).trim();
+                const destination = String(checkpoint.coords).trim().replace(/\s+/g, '');
+                const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=bicycling`;
+                insights.push({
+                    type: 'suggestion',
+                    title: '💡 Smart Spectator Transfer Tip',
+                    text: `After ${morningEvent.title || 'your morning event'} finishes at ${formatTime(morningEvent.end_time)}, cycle to ${checkpoint.name}. The peloton passes from ${formatTimeRange(checkpoint.validPassTimes[0], checkpoint.validPassTimes[checkpoint.validPassTimes.length - 1])}!`,
+                    note: `Allow at least 45 minutes to transfer. This conservative buffer assumes a 20–25 km/h cycling pace because the event data has no origin coordinates; confirm the actual route and travel time in Google Maps.`,
+                    routeUrl
+                });
+            });
+        });
+    });
+
+    container.innerHTML = insights.map((insight) => `
+        <article class="insight-card ${insight.type}" ${insight.type === 'warning' ? 'role="alert"' : 'role="status"'}>
+            <h4>${escapeHTML(insight.title)}</h4>
+            <p>${escapeHTML(insight.text)}</p>
+            ${insight.note ? `<p class="insight-note">${escapeHTML(insight.note)}</p>` : ''}
+            ${insight.routeUrl ? `<a class="insight-btn" href="${escapeHTML(insight.routeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open bicycle route in Google Maps">Open bicycle route</a>` : ''}
+        </article>
+    `).join('');
+}
+
 function renderSaved() {
     const container = document.getElementById('saved-events-container');
     if (!container) return;
@@ -710,6 +859,7 @@ function renderSaved() {
 
     const savedEvents = getSavedEvents();
     const displayEvents = allEvents.filter(e => savedEvents.includes(String(e.id)));
+    generateItineraryInsights(displayEvents);
 
     if (displayEvents.length === 0) {
         container.innerHTML = `
