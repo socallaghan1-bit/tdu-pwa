@@ -780,8 +780,9 @@ function calculateEventEndTime(event) {
     const movingMinutes = (distance / RIDE_AVERAGE_SPEED_KMH) * 60;
     const climbingMinutes = (elevation / RIDE_ELEVATION_PER_HOUR_M) * 60;
     const endMinutes = Math.round(start + movingMinutes + climbingMinutes + RIDE_BUFFER_MINUTES);
+    const time = minutesToTimeString(endMinutes);
 
-    return { time: minutesToTimeString(endMinutes), minutes: endMinutes, isEstimated: true };
+    return { time, minutes: timeToMinutes(time), isEstimated: true };
 }
 
 function hasRideDistanceData(event) {
@@ -879,7 +880,7 @@ function downloadTransferGPX(originName, originCoords, destName, destCoords) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 
     trackAnalyticsEvent('download_transfer_gpx', {
         transfer_origin: String(originName || ''),
@@ -1077,6 +1078,7 @@ function toggleAssistantDrawer(show) {
 }
 
 function handleAssistantBarKeydown(event) {
+    if (event.target !== event.currentTarget) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     toggleAssistantDrawer(true);
