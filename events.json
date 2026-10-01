@@ -175,5 +175,28 @@
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
     "checkpoints": []
+
+    [
+  {
+    "id": "test-maap-ride",
+    "title": "TEST: MAAP Morning CBD Loop",
+    "date": "2027-01-19",
+    "start_time": "08:00",
+    "end_time": "11:00",
+    "location": "Light Square, Adelaide CBD",
+    "category": "Group Ride",
+    "description": "Morning social ride ending in the CBD with coffee."
+  },
+  {
+    "id": "test-conflict-event",
+    "title": "TEST: Overlapping Coffee Meetup",
+    "date": "2027-01-19",
+    "start_time": "10:45",
+    "end_time": "11:45",
+    "location": "North Terrace, Adelaide",
+    "category": "Social",
+    "description": "Conflict test event."
+  }
+]
   }
 ]
