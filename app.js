@@ -732,7 +732,7 @@ async function fetchEvents() {
         console.error('Fetch Error:', error);
         const container = document.getElementById('events-container');
         if (container) {
-            container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${error.message}</p>`;
+            container.innerHTML = `<p style='text-align:center; padding:20px; color:red;'>Error: ${escapeHTML(error.message)}</p>`;
         }
         const featuredContainer = document.getElementById('featured-events');
         if (featuredContainer) {
