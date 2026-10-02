@@ -89,8 +89,8 @@
         const button = getElement('push-toggle-btn');
         if (button) {
             button.disabled = disabled || isBusy;
-            button.textContent = isSubscribed ? 'Turn off alerts' : 'Enable alerts';
-            button.setAttribute('aria-pressed', String(isSubscribed));
+            button.textContent = isSubscribed ? 'On' : 'Off';
+            button.setAttribute('aria-checked', String(isSubscribed));
         }
         document.querySelectorAll('#push-topic-list input').forEach((input) => {
             input.disabled = disabled || isBusy;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdu-pwa-v10';
+const CACHE_NAME = 'tdu-pwa-v11';
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
