@@ -589,15 +589,7 @@ function getEventEndDateTime(event) {
     return startDate.toISOString().replace(/[-:]/g, '').replace('.000Z', 'Z');
 }
 
-function exportSavedEvents() {
-    const savedEventIds = getSavedEvents();
-    const selectedEvents = allEvents.filter((event) => savedEventIds.includes(String(event.id)));
-
-    if (!selectedEvents.length) {
-        alert('No saved events to export yet.');
-        return;
-    }
-
+function buildCalendarContent(events) {
     const lines = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
@@ -605,7 +597,7 @@ function exportSavedEvents() {
         'CALSCALE:GREGORIAN'
     ];
 
-    selectedEvents.forEach((event, index) => {
+    events.forEach((event, index) => {
         const summary = event.title || 'TDU Event';
         const description = event.description || '';
         const location = getCalendarLocation(event);
@@ -626,24 +618,105 @@ function exportSavedEvents() {
     });
 
     lines.push('END:VCALENDAR');
+    return lines.join('\r\n');
+}
 
-    const icsContent = lines.join('\r\n');
+function getCalendarFileName(value) {
+    const slug = String(value || 'tdu-event').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return `${slug || 'tdu-event'}.ics`;
+}
+
+// Resolves true only once the calendar file has been handed to the browser (download started or share completed).
+async function deliverCalendarFile(icsContent, fileName) {
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const supportsDownload = typeof HTMLAnchorElement !== 'undefined' && 'download' in HTMLAnchorElement.prototype;
+
+    if (!supportsDownload && typeof File === 'function' && typeof navigator.canShare === 'function' && typeof navigator.share === 'function') {
+        const file = new File([blob], fileName, { type: 'text/calendar' });
+        if (navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file], title: 'TDU 2027 calendar' });
+                return true;
+            } catch (error) {
+                if (error && error.name === 'AbortError') return false;
+            }
+        }
+    }
+
+    if (!window.URL || typeof URL.createObjectURL !== 'function') return false;
+
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'my-tdu-itinerary.ics';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return true;
+    } catch (error) {
+        console.error('Calendar export failed:', error);
+        return false;
+    } finally {
+        // Revoking immediately can cancel the download in some browsers.
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+}
+
+async function exportEventsToCalendar(events, fileName) {
+    if (!events.length) return false;
+
+    let exported = false;
+    try {
+        exported = await deliverCalendarFile(buildCalendarContent(events), fileName);
+    } catch (error) {
+        console.error('Calendar export failed:', error);
+    }
+
+    if (!exported) return false;
 
     playAudioCue('export');
-
-    trackAnalyticsEvent('export_calendar', {
-        saved_event_count: selectedEvents.length
-    });
+    if (window.TDUCelebrate) {
+        window.TDUCelebrate.success({ confetti: true });
+    }
+    return true;
 }
+
+async function exportSavedEvents() {
+    const savedEventIds = getSavedEvents();
+    const selectedEvents = allEvents.filter((event) => savedEventIds.includes(String(event.id)));
+
+    if (!selectedEvents.length) {
+        alert('No saved events to export yet.');
+        return false;
+    }
+
+    const exported = await exportEventsToCalendar(selectedEvents, 'my-tdu-itinerary.ics');
+    if (exported) {
+        trackAnalyticsEvent('export_calendar', {
+            saved_event_count: selectedEvents.length
+        });
+    }
+    return exported;
+}
+
+async function exportStageToCalendar(eventId) {
+    const strId = String(eventId);
+    const event = allEvents.find((item) => String(item.id) === strId);
+
+    if (!event) {
+        alert('This event could not be found. Please refresh and try again.');
+        return false;
+    }
+
+    const exported = await exportEventsToCalendar([event], getCalendarFileName(event.title || event.id));
+    if (exported) {
+        trackAnalyticsEvent('export_stage_calendar', getEventAnalyticsPayload(strId));
+    }
+    return exported;
+}
+
+window.exportStageToCalendar = exportStageToCalendar;
 
 async function fetchEvents() {
     try {
@@ -654,6 +727,7 @@ async function fetchEvents() {
         renderFeaturedEvents();
         renderRecommendationFlow();
         renderSchedule();
+        handleEventDeepLink();
     } catch (error) {
         console.error('Fetch Error:', error);
         const container = document.getElementById('events-container');
@@ -664,6 +738,29 @@ async function fetchEvents() {
         if (featuredContainer) {
             featuredContainer.innerHTML = "<div class='placeholder-card'>Featured events will appear here as more TDU events are announced.</div>";
         }
+    }
+}
+
+// Notification taps open ./index.html?event=<id>; jump straight to that event card.
+function handleEventDeepLink() {
+    let params;
+    try {
+        params = new URLSearchParams(window.location.search);
+    } catch (error) {
+        return;
+    }
+
+    const eventId = params.get('event');
+    if (!eventId) return;
+
+    params.delete('event');
+    const query = params.toString();
+    if (window.history && typeof window.history.replaceState === 'function') {
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+    }
+
+    if (allEvents.some((event) => String(event.id) === eventId)) {
+        window.openEventInSchedule(eventId, 'deep_link');
     }
 }
 
@@ -700,6 +797,8 @@ function renderSchedule() {
         const isSaved = savedEvents.includes(eventId);
         container.innerHTML += createEventCardHTML(event, eventId, isSaved);
     });
+
+    if (window.TDUMotion) window.TDUMotion.revealCards(container);
 }
 
 function renderFeaturedEvents() {
@@ -814,6 +913,31 @@ function parseCoordinates(coords) {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
 
     return { lat: latitude, lng: longitude };
+}
+
+function getStageMapCheckpoints(event) {
+    if (!event || !Array.isArray(event.checkpoints)) return [];
+
+    return event.checkpoints
+        .map((checkpoint) => {
+            const coords = parseCoordinates(checkpoint && checkpoint.coords);
+            if (!coords) return null;
+            const passTimes = Array.isArray(checkpoint.pass_times) ? checkpoint.pass_times : [];
+            const firstPass = passTimes
+                .map((time) => timeToMinutes(time))
+                .filter((minutes) => minutes !== null)
+                .sort((a, b) => a - b)[0];
+            return {
+                name: String(checkpoint.name || 'Checkpoint'),
+                description: String(checkpoint.description || ''),
+                passTimes: passTimes.map(String),
+                firstPass: firstPass === undefined ? Number.POSITIVE_INFINITY : firstPass,
+                lat: coords.lat,
+                lng: coords.lng
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.firstPass - b.firstPass);
 }
 
 function getEventCoords(event) {
@@ -1410,6 +1534,8 @@ function createEventCardHTML(event, eventId, isSaved) {
                 ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start map' : 'Navigate'}</a>` : ''}
                 ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish map</a>` : ''}
                 ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
+                ${getStageMapCheckpoints(event).length ? `<button type="button" class="btn" onclick="openStageMap('${escapeHTML(eventId)}')"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> Stage map</button>` : ''}
+                <button type="button" class="btn" onclick="exportStageToCalendar('${escapeHTML(eventId)}')"><i class="far fa-calendar-plus" aria-hidden="true"></i> Add to calendar</button>
             </div>
         </div>
     `;
@@ -1510,6 +1636,7 @@ window.showView = function(viewName) {
     const shouldTrackView = !isSameView || !hasTrackedInitialView;
 
     if (!isSameView) {
+        if (window.TDUHaptics) window.TDUHaptics.navigation();
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         viewEl.classList.add('active');
@@ -1550,6 +1677,7 @@ window.setFilterType = function(type) {
 };
 
 window.applyDayFilter = function(day, btn) {
+    if (btn && day !== currentDayFilter && window.TDUHaptics) window.TDUHaptics.navigation();
     currentDayFilter = day;
     document.querySelectorAll('#day-filters .filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -1557,6 +1685,7 @@ window.applyDayFilter = function(day, btn) {
 };
 
 window.applyCategoryFilter = function(category, btn) {
+    if (btn && category !== currentCatFilter && window.TDUHaptics) window.TDUHaptics.navigation();
     currentCatFilter = category;
     document.querySelectorAll('#category-filters .filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
