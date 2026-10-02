@@ -923,6 +923,21 @@ function generateItineraryInsights(savedEvents) {
 
         timedEvents.forEach((current, index) => {
             timedEvents.slice(index + 1).forEach((next) => {
+                const isRaceStage = item => getEventType(item.event).toLowerCase() === 'race stage';
+                const isRide = item => !isRaceStage(item) && isRideEvent(item.event);
+                const ride = isRide(current) && isRaceStage(next) ? current
+                    : (isRide(next) && isRaceStage(current) ? next : null);
+                const stage = ride === current ? next : current;
+                if (ride && ride.start <= stage.start && stage.start < ride.end) {
+                    const rideEndLabel = `~${formatTime(ride.endTime)}${ride.isEstimatedEnd ? ' (estimated)' : ''}`;
+                    insights.push({
+                        type: 'warning',
+                        title: '⚠️ Schedule Conflict',
+                        text: `⚡ Stage ${stage.event.title || 'race stage'} starts at ${formatTime(stage.event.start_time)} while your ride is still in progress (ends ${rideEndLabel}). Use the spectator transfer tip below to intercept the peloton on course!`
+                    });
+                    return;
+                }
+
                 const gap = next.start - current.end;
                 if (gap >= 20) return;
                 const endLabel = `${formatTime(current.endTime)}${current.isEstimatedEnd ? ' (estimated)' : ''}`;
