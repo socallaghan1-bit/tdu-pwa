@@ -11,7 +11,8 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=1.9">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="style.css?v=2.0">
     <!-- Manual SPA pageviews are sent from app.js. If GA4 Enhanced Measurement browser-history pageviews are enabled, disable them to avoid duplicates. -->
     <script>
         window.TDU_GA_MEASUREMENT_ID = 'G-95K2T8ZYW4';
@@ -29,6 +30,13 @@
                 send_page_view: false
             });
         }
+
+        // Web Push (optional). Both values are public: the VAPID *public* key and your subscription backend URL.
+        // Never put the VAPID private key here. Leave blank to show "coming soon" instead of the alerts toggle.
+        window.TDU_PUSH_CONFIG = {
+            vapidPublicKey: '',
+            subscriptionUrl: ''
+        };
     </script>
 </head>
 <body>
@@ -111,6 +119,19 @@
 
                         <div id="recommendation-results" class="recommendation-results" aria-live="polite"></div>
                     </div>
+                </div>
+            </section>
+
+            <section class="home-section" aria-labelledby="push-title">
+                <div class="section-title" id="push-title">Race Alerts</div>
+                <div id="push-panel" class="guide-panel">
+                    <p class="guide-intro">Get stage updates and evening recaps on this device. No login needed.</p>
+                    <div id="push-topic-list" class="push-topic-list" role="group" aria-label="Alert topics"></div>
+                    <div class="push-actions">
+                        <button id="push-toggle-btn" class="btn btn-primary" type="button" onclick="togglePushAlerts()" aria-pressed="false" disabled>Enable alerts</button>
+                        <div id="push-success-animation" class="push-success-animation" aria-hidden="true" hidden></div>
+                    </div>
+                    <p id="push-status" class="push-status" aria-live="polite"></p>
                 </div>
             </section>
 
@@ -237,12 +258,31 @@
         </div>
     </div>
 
+    <div id="stage-map-modal" class="modal-overlay" onclick="closeStageMap(event)">
+        <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="stage-map-title" aria-describedby="stage-map-sub">
+            <div class="modal-header">
+                <h3 id="stage-map-title">Stage map</h3>
+                <button class="close-btn" type="button" onclick="closeStageMap(event)" aria-label="Close stage map">&times;</button>
+            </div>
+            <p id="stage-map-sub" class="modal-sub">Spectator checkpoints in the order the peloton first passes. The line is indicative, not the exact race route.</p>
+            <div id="stage-map" class="stage-map" role="region" aria-label="Stage checkpoint map"></div>
+            <p id="stage-map-status" class="stage-map-status" aria-live="polite"></p>
+            <div id="stage-elevation" class="stage-elevation" hidden>
+                <div class="stage-elevation-title">Checkpoint elevation (approx.)</div>
+                <div class="stage-elevation-chart"><canvas id="stage-elevation-chart" role="img" aria-label="Checkpoint elevation profile"></canvas></div>
+            </div>
+        </div>
+    </div>
+
     <nav class="bottom-nav" aria-label="Primary navigation">
         <button class="nav-item active" onclick="showView('home')" id="nav-home"><i class="fas fa-home" aria-hidden="true"></i>Home</button>
         <button class="nav-item" onclick="showView('schedule')" id="nav-schedule"><i class="fas fa-calendar-alt" aria-hidden="true"></i>Schedule</button>
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="app.js?v=2.0"></script>
+    <script src="cdn-libs.js?v=1.0"></script>
+    <script src="app.js?v=2.1"></script>
+    <script src="stage-map.js?v=1.0"></script>
+    <script src="push-notifications.js?v=1.0"></script>
 </body>
 </html>
