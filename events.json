@@ -38,7 +38,12 @@
     "tags": ["race", "hills", "barossa"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=2c7b0b44-b3fe-4843-856c-981fef389628",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-2-angaston-to-angaston",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Menglers Hill KOM (Cat 3)","type":"kom","coords":"-34.537,139.006","pass_times":["10:51","12:01","13:11"],"description":"3 passes of Menglers Hill (2.16 km @ 3.9%).","arrival_deadline":"10:20"},
+      {"name":"Tanunda Rotunda Sprint","type":"sprint","coords":"-34.525,138.961","pass_times":["11:09","12:20"],"description":"Intermediate sprint points in Tanunda main street.","arrival_deadline":"10:40"},
+      {"name":"Seppeltsfield Road Feed & Clean Zone","type":"feed_zone","coords":"-34.488,138.913","pass_times":["11:25","12:35","13:46"],"description":"Bidon hunter hotspot as peloton grabs musettes along palm-lined avenue.","arrival_deadline":"10:50"},
+      {"name":"Angaston Finish & Lap Hub","type":"finish_hub","coords":"-34.502,139.034","pass_times":["11:51","13:01","14:11"],"description":"Murray Street finish line and circuit lap transitions.","arrival_deadline":"11:15"}
+    ]
   },
   {
     "id": "2027-men-3",
@@ -59,7 +64,13 @@
     "tags": ["race", "climbing", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=0d7f7b45-198c-4521-b2b1-767aa552934a",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-3-lobethal-to-campbelltown",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Summertown Feed & Clean Zone","type":"feed_zone","coords":"-34.962,138.723","pass_times":["11:13","12:43"],"description":"Prime feed zone before Mount Lofty ascent.","arrival_deadline":"10:40"},
+      {"name":"Mount Lofty KOM (Cat 2)","type":"kom","coords":"-34.974,138.708","pass_times":["11:20","12:50"],"description":"4.4 km climb @ 4.0% with 14% maximum gradient.","arrival_deadline":"10:45"},
+      {"name":"Woodside Hotel Sprint","type":"sprint","coords":"-34.954,138.874","pass_times":["11:59","13:30"],"description":"Intermediate sprint points on Onkaparinga Valley Rd.","arrival_deadline":"11:20"},
+      {"name":"Corkscrew Road KOM (Cat 1)","type":"kom","coords":"-34.887,138.743","pass_times":["14:17","14:44"],"description":"Decisive 2.4 km climb @ 9.7% (16.2% max gradient). Peloton passes twice.","arrival_deadline":"13:35"},
+      {"name":"Foxfield Oval Campbelltown Finish","type":"finish_hub","coords":"-34.877,138.711","pass_times":["14:26","14:53"],"description":"Maryvale Road finish line hub.","arrival_deadline":"13:45"}
+    ]
   },
   {
     "id": "2027-men-4",
@@ -77,7 +88,14 @@
     "tags": ["race", "coastal", "hills"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Black Road Feed Zone (Flagstaff Hill)","type":"feed_zone","coords":"-35.029,138.598","pass_times":["11:08"],"description":"Early feed zone as peloton hits the hills.","arrival_deadline":"10:35"},
+      {"name":"Cherry Gardens Hill KOM (Cat 2)","type":"kom","coords":"-35.060,138.675","pass_times":["11:13"],"description":"2.97 km climb @ 5.9%.","arrival_deadline":"10:40"},
+      {"name":"Snapper Point Sprint (Aldinga Beach)","type":"sprint","coords":"-35.281,138.448","pass_times":["12:15"],"description":"Coastal sprint point on the Esplanade.","arrival_deadline":"11:40"},
+      {"name":"Sellicks Beach Feed Zone","type":"feed_zone","coords":"-35.334,138.452","pass_times":["12:26"],"description":"Coastal feed zone prior to Heatherdale Hill.","arrival_deadline":"11:50"},
+      {"name":"Nettle Hill KOM (Cat 1)","type":"kom","coords":"-35.485,138.583","pass_times":["13:52"],"description":"Brutal 1.9 km climb @ 8.1% (15.6% max gradient).","arrival_deadline":"13:10"},
+      {"name":"Victor Harbor Finish","type":"finish_hub","coords":"-35.558,138.623","pass_times":["14:24"],"description":"Coastal finish line outside Hotel Victor.","arrival_deadline":"13:40"}
+    ]
   },
   {
     "id": "2027-women-1",
@@ -95,7 +113,14 @@
     "tags": ["race", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Black Road Feed Zone (Flagstaff Hill)","type":"feed_zone","coords":"-35.029,138.598","pass_times":["12:44"],"description":"Early feed zone as peloton hits the hills.","arrival_deadline":"10:35"},
+      {"name":"Cherry Gardens Hill KOM (Cat 2)","type":"kom","coords":"-35.060,138.675","pass_times":["12:50"],"description":"2.97 km climb @ 5.9%.","arrival_deadline":"10:40"},
+      {"name":"Snapper Point Sprint (Aldinga Beach)","type":"sprint","coords":"-35.281,138.448","pass_times":["14:04"],"description":"Coastal sprint point on the Esplanade.","arrival_deadline":"11:40"},
+      {"name":"Sellicks Beach Feed Zone","type":"feed_zone","coords":"-35.334,138.452","pass_times":["14:18"],"description":"Coastal feed zone prior to Heatherdale Hill.","arrival_deadline":"11:50"},
+      {"name":"Nettle Hill KOM (Cat 1)","type":"kom","coords":"-35.485,138.583","pass_times":["16:02"],"description":"Brutal 1.9 km climb @ 8.1% (15.6% max gradient).","arrival_deadline":"13:10"},
+      {"name":"Victor Harbor Finish","type":"finish_hub","coords":"-35.558,138.623","pass_times":["16:40"],"description":"Coastal finish line outside Hotel Victor.","arrival_deadline":"13:40"}
+    ]
   },
   {
     "id": "2027-men-5",
@@ -117,7 +142,12 @@
     "tags": ["race", "climbing", "hills", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Coxs Hill KOM (Cat 2)","type":"kom","coords":"-35.086,138.629","pass_times":["11:10"],"description":"10.0 km rolling climb @ 3.0%.","arrival_deadline":"10:35"},
+      {"name":"McLaren Vale Primary Feed Zone","type":"feed_zone","coords":"-35.221,138.544","pass_times":["11:57"],"description":"Musette & bidon drop zone in town center.","arrival_deadline":"11:20"},
+      {"name":"Snapper Point Sprint (Aldinga)","type":"sprint","coords":"-35.281,138.448","pass_times":["12:19"],"description":"Coastal sprint point.","arrival_deadline":"11:45"},
+      {"name":"Willunga Hill KOM (Cat 1)","type":"kom","coords":"-35.280,138.580","pass_times":["13:01","13:40"],"description":"Iconic 3.0 km summit finish @ 7.4%. Peloton passes 2 times.","arrival_deadline":"12:15"}
+    ]
   },
   {
     "id": "2027-women-2",
@@ -138,7 +168,12 @@
     "tags": ["race", "climbing", "hills", "coastal"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Coxs Hill KOM (Cat 2)","type":"kom","coords":"-35.086,138.629","pass_times":["12:46"],"description":"10.0 km rolling climb @ 3.0%.","arrival_deadline":"10:35"},
+      {"name":"McLaren Vale Primary Feed Zone","type":"feed_zone","coords":"-35.221,138.544","pass_times":["13:43"],"description":"Musette & bidon drop zone in town center.","arrival_deadline":"11:20"},
+      {"name":"Snapper Point Sprint (Aldinga)","type":"sprint","coords":"-35.281,138.448","pass_times":["14:09"],"description":"Coastal sprint point.","arrival_deadline":"11:45"},
+      {"name":"Willunga Hill KOM (Cat 1)","type":"kom","coords":"-35.280,138.580","pass_times":["14:59","15:47"],"description":"Iconic 3.0 km summit finish @ 7.4%. Peloton passes 2 times.","arrival_deadline":"12:15"}
+    ]
   },
   {
     "id": "2027-men-6",
@@ -156,7 +191,12 @@
     "tags": ["race", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Ashton Feed Zone","type":"feed_zone","coords":"-34.931,138.726","pass_times":["11:02"],"description":"Early Hills feed zone.","arrival_deadline":"10:30"},
+      {"name":"Checker Hill KOM (Cat 1)","type":"kom","coords":"-34.821,138.835","pass_times":["11:51"],"description":"Steep 600m climb @ 14.2% (18.4% max).","arrival_deadline":"11:15"},
+      {"name":"Birdwood Motor Museum Sprint","type":"sprint","coords":"-34.819,138.956","pass_times":["12:09"],"description":"Intermediate sprint outside Motor Museum.","arrival_deadline":"11:35"},
+      {"name":"Stirling Climb & Finish Hub","type":"finish_hub","coords":"-35.012,138.722","pass_times":["13:38","14:09"],"description":"Stirling town circuit and final uphill run.","arrival_deadline":"12:50"}
+    ]
   },
   {
     "id": "2027-women-3",
@@ -174,7 +214,12 @@
     "tags": ["race", "hills", "city"],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
-    "checkpoints": []
+    "checkpoints": [
+      {"name":"Ashton Feed Zone","type":"feed_zone","coords":"-34.931,138.726","pass_times":["12:37"],"description":"Early Hills feed zone.","arrival_deadline":"10:30"},
+      {"name":"Checker Hill KOM (Cat 1)","type":"kom","coords":"-34.821,138.835","pass_times":["13:36"],"description":"Steep 600m climb @ 14.2% (18.4% max).","arrival_deadline":"11:15"},
+      {"name":"Birdwood Motor Museum Sprint","type":"sprint","coords":"-34.819,138.956","pass_times":["13:57"],"description":"Intermediate sprint outside Motor Museum.","arrival_deadline":"11:35"},
+      {"name":"Stirling Climb & Finish Hub","type":"finish_hub","coords":"-35.012,138.722","pass_times":["15:44","16:22"],"description":"Stirling town circuit and final uphill run.","arrival_deadline":"12:50"}
+    ]
   },
   {
     "id": "test-maap-ride",
