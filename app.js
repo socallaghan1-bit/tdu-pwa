@@ -370,21 +370,10 @@ function setAudioFeedbackEnabled(enabled) {
 }
 
 function updateSoundButtonUI(enabled) {
-    const btn = document.getElementById('header-sound-btn');
-    const icon = document.getElementById('sound-btn-icon');
-    if (!btn || !icon) return;
-
-    if (enabled) {
-        btn.classList.add('active');
-        btn.setAttribute('aria-label', 'Sound feedback enabled. Click to mute.');
-        btn.setAttribute('title', 'Sound feedback: On');
-        icon.className = 'fas fa-volume-up';
-    } else {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-label', 'Sound feedback muted. Click to enable.');
-        btn.setAttribute('title', 'Sound feedback: Off');
-        icon.className = 'fas fa-volume-mute';
-    }
+    const btn = document.getElementById('sound-toggle-btn');
+    if (!btn) return;
+    btn.setAttribute('aria-checked', String(enabled));
+    btn.textContent = enabled ? 'On' : 'Off';
 }
 
 function getAudioFeedbackContext() {
@@ -1630,9 +1619,9 @@ function updateSavedBadge() {
 window.showView = function(viewName) {
     const viewEl = document.getElementById('view-' + viewName);
     const navEl = document.getElementById('nav-' + viewName);
-    if (!viewEl || !navEl) return;
+    if (!viewEl || (!navEl && viewName !== 'settings')) return;
 
-    const isSameView = currentViewName === viewName && viewEl.classList.contains('active') && navEl.classList.contains('active');
+    const isSameView = currentViewName === viewName && viewEl.classList.contains('active') && (!navEl || navEl.classList.contains('active'));
     const shouldTrackView = !isSameView || !hasTrackedInitialView;
 
     if (!isSameView) {
@@ -1640,9 +1629,10 @@ window.showView = function(viewName) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         viewEl.classList.add('active');
-        navEl.classList.add('active');
+        if (navEl) navEl.classList.add('active');
         currentViewName = viewName;
     }
+    document.getElementById('header-settings-btn').classList.toggle('active', viewName === 'settings');
 
     if (viewName === 'schedule') {
         renderSchedule();

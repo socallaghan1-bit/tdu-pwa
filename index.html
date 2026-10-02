@@ -47,11 +47,8 @@
         </button>
 
         <div class="header-actions">
-            <button id="header-sound-btn" class="header-icon-btn" onclick="toggleAudioFeedback()" aria-label="Toggle sound feedback" title="Sound feedback">
-                <i id="sound-btn-icon" class="fas fa-volume-mute" aria-hidden="true"></i>
-            </button>
-            <button id="header-install-btn" class="header-install-btn" onclick="triggerInstall()" style="display: none;">
-                <i class="fas fa-mobile-alt" aria-hidden="true"></i> Get App
+            <button id="header-settings-btn" class="header-icon-btn" onclick="showView('settings')" aria-label="Settings" title="Settings">
+                <i class="fas fa-gear" aria-hidden="true"></i>
             </button>
         </div>
     </header>
@@ -122,19 +119,6 @@
                 </div>
             </section>
 
-            <section class="home-section" aria-labelledby="push-title">
-                <div class="section-title" id="push-title">Race Alerts</div>
-                <div id="push-panel" class="guide-panel">
-                    <p class="guide-intro">Get stage updates and evening recaps on this device. No login needed.</p>
-                    <div id="push-topic-list" class="push-topic-list" role="group" aria-label="Alert topics"></div>
-                    <div class="push-actions">
-                        <button id="push-toggle-btn" class="btn btn-primary" type="button" onclick="togglePushAlerts()" aria-pressed="false" disabled>Enable alerts</button>
-                        <div id="push-success-animation" class="push-success-animation" aria-hidden="true" hidden></div>
-                    </div>
-                    <p id="push-status" class="push-status" aria-live="polite"></p>
-                </div>
-            </section>
-
             <section class="home-section" aria-labelledby="featured-title">
                 <div class="section-title" id="featured-title">Featured Events</div>
                 <div id="featured-events" class="featured-events" aria-live="polite"></div>
@@ -159,6 +143,33 @@
             </section>
         </div>
     </main>
+
+    <section id="view-settings" class="view" aria-labelledby="settings-title">
+        <div class="home-container">
+            <h2 id="settings-title">Settings</h2>
+            <div id="push-panel" class="guide-panel">
+                <div class="settings-row">
+                    <span id="notifications-label">Notifications</span>
+                    <button id="push-toggle-btn" class="settings-switch" type="button" role="switch" aria-labelledby="notifications-label" aria-checked="false" onclick="togglePushAlerts()" disabled>Off</button>
+                </div>
+                <p class="guide-intro">Get stage updates and evening recaps on this device. No login needed.</p>
+                <div id="push-topic-list" class="push-topic-list" role="group" aria-label="Alert topics"></div>
+                <div class="push-actions">
+                    <div id="push-success-animation" class="push-success-animation" aria-hidden="true" hidden></div>
+                </div>
+                <p id="push-status" class="push-status" aria-live="polite"></p>
+            </div>
+            <div class="guide-panel settings-panel">
+                <div class="settings-row">
+                    <span id="sound-label">Sound</span>
+                    <button id="sound-toggle-btn" class="settings-switch" type="button" role="switch" aria-labelledby="sound-label" aria-checked="false" onclick="toggleAudioFeedback()">Off</button>
+                </div>
+            </div>
+            <div id="future-settings" class="guide-panel settings-panel" aria-label="Future settings">
+                <p class="helper-copy">More settings coming soon.</p>
+            </div>
+        </div>
+    </section>
 
     <section id="view-schedule" class="view" aria-label="Event schedule">
         <div class="filter-wrapper">

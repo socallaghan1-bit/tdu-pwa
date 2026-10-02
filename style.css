@@ -201,6 +201,76 @@ header {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
+.settings-panel {
+    margin-top: 16px;
+}
+
+.settings-panel .helper-copy {
+    margin: 0;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.settings-panel .settings-row {
+    margin-bottom: 0;
+}
+
+.settings-switch {
+    position: relative;
+    flex: none;
+    min-width: 88px;
+    height: 32px;
+    padding: 0 8px 0 48px;
+    border: 0;
+    background: transparent;
+    color: var(--text-dark);
+    cursor: pointer;
+    font: inherit;
+}
+
+.settings-switch::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--text-light);
+    margin-top: 4px;
+}
+
+.settings-switch::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 7px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+}
+
+.settings-switch[aria-checked="true"]::before {
+    background: var(--primary);
+}
+
+.settings-switch[aria-checked="true"]::after {
+    left: 23px;
+}
+
+.settings-switch:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .guide-intro,
 .helper-copy {
     margin: 0 0 14px 0;
