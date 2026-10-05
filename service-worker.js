@@ -187,3 +187,49 @@ self.addEventListener('notificationclick', (event) => {
     const safeTarget = safeUrl(targetUrl, { allowExternal: true }) || getAppEventUrl('');
     event.waitUntil(openOrFocus(safeTarget));
 });
+// Listen for incoming rich push notification payloads
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  const payload = event.data.json();
+
+  const options = {
+    body: payload.body,
+    icon: payload.icon || 'https://cdn-icons-png.flaticon.com/512/3082/3082349.png',
+    badge: payload.badge || '/icons/badge-monochrome.png',
+    image: payload.imageUrl || null, // Rich Image/GIF (Hero banner)
+    data: { url: payload.targetUrl || '/' }, // Deep link
+    actions: payload.actions || [            // Interactive buttons
+      { action: 'open', title: '🚴 Open Stage' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
+// Handle clicking the notification body or interactive buttons
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  // If a specific action button was clicked
+  let destination = event.notification.data.url;
+  if (event.action === 'watch') {
+    destination = `${destination}?tab=recap`;
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if open, otherwise open new tab
+      for (const client of clientList) {
+        if (client.url === destination && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(destination);
+      }
+    })
+  );
+});
