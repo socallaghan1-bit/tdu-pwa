@@ -31,11 +31,10 @@
             });
         }
 
-        // Web Push (optional). Both values are public: the VAPID *public* key and your subscription backend URL.
-        // Never put the VAPID private key here. Leave blank to show "coming soon" instead of the alerts toggle.
+        // Web Push Config
         window.TDU_PUSH_CONFIG = {
-            vapidPublicKey: '',
-            subscriptionUrl: ''
+            vapidPublicKey: 'BH3LyaH9Mmp3P5v2Aj8zsNks2gdPat467Py3-vCVW6Ftcm-G1V52Nr8B0gOdq9ZPKsr3PaxFYC1iHn3xDRe8W2I',
+            subscriptionUrl: 'https://tdu-push-backend.callas1894.workers.dev/subscribe'
         };
     </script>
 </head>
