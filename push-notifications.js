@@ -1,14 +1,6 @@
-// Anonymous Web Push subscriptions with topic tags. No login: the browser's push
+// Anonymous Web Push subscriptions. No login required: the browser's push
 // subscription itself is the only identifier sent to the configured backend.
 (function () {
-    const PUSH_TOPICS = [
-        { id: 'stage-updates', label: 'Stage updates' },
-        { id: 'evening-recaps', label: 'Evening recaps' },
-        { id: 'womens-tour', label: "Women's tour" },
-        { id: 'mens-tour', label: "Men's tour" }
-    ];
-    const VALID_TOPIC_IDS = PUSH_TOPICS.map((topic) => topic.id);
-    const TOPICS_KEY = 'tduPushTopics';
     const ENDPOINT_KEY = 'tduPushEndpoint';
     const REQUEST_TIMEOUT_MS = 10000;
 
@@ -35,7 +27,6 @@
         const config = window.TDU_PUSH_CONFIG || {};
         const vapidPublicKey = String(config.vapidPublicKey || '').trim();
         return {
-            // A P-256 public key is 65 bytes, i.e. 87 base64url characters (88 with padding).
             vapidPublicKey: /^[A-Za-z0-9_-]{86,88}={0,2}$/.test(vapidPublicKey) ? vapidPublicKey : '',
             subscriptionUrl: resolveBackendUrl(config.subscriptionUrl)
         };
@@ -64,25 +55,9 @@
         return currentBytes.length === expectedBytes.length && currentBytes.every((byte, index) => byte === expectedBytes[index]);
     }
 
-    function getStoredTopics() {
-        try {
-            const stored = JSON.parse(localStorage.getItem(TOPICS_KEY) || 'null');
-            if (Array.isArray(stored)) return stored.filter((topic) => VALID_TOPIC_IDS.includes(topic));
-        } catch (error) {
-            // Fall through to defaults.
-        }
-        return null;
-    }
-
-    function getSelectedTopics() {
-        return Array.from(document.querySelectorAll('#push-topic-list input[type="checkbox"]'))
-            .filter((input) => input.checked && VALID_TOPIC_IDS.includes(input.value))
-            .map((input) => input.value);
-    }
-
     function setStatus(message) {
         const status = getElement('push-status');
-        if (status) status.textContent = message;
+        if (status) status.textContent = message || '';
     }
 
     function updateControls({ disabled = false } = {}) {
@@ -92,25 +67,6 @@
             button.textContent = isSubscribed ? 'On' : 'Off';
             button.setAttribute('aria-checked', String(isSubscribed));
         }
-        document.querySelectorAll('#push-topic-list input').forEach((input) => {
-            input.disabled = disabled || isBusy;
-        });
-    }
-
-    function renderTopics() {
-        const list = getElement('push-topic-list');
-        if (!list) return;
-        const selected = getStoredTopics() || VALID_TOPIC_IDS;
-        list.innerHTML = PUSH_TOPICS.map((topic) => `
-            <label class="push-topic">
-                <input type="checkbox" value="${topic.id}" ${selected.includes(topic.id) ? 'checked' : ''} onchange="handlePushTopicChange()">
-                <span>${escapeHTML(topic.label)}</span>
-            </label>
-        `).join('');
-    }
-
-    function describeTopics(topics) {
-        return PUSH_TOPICS.filter((topic) => topics.includes(topic.id)).map((topic) => topic.label).join(', ');
     }
 
     async function fetchWithTimeout(url, options) {
@@ -123,16 +79,12 @@
         }
     }
 
-    async function sendSubscription(config, subscription, topics) {
+    async function sendSubscription(config, subscription) {
         const response = await fetchWithTimeout(config.subscriptionUrl, {
             method: 'POST',
             credentials: 'omit',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                subscription: subscription.toJSON(),
-                topics,
-                locale: navigator.language || ''
-            })
+            body: JSON.stringify(subscription.toJSON())
         });
         if (!response.ok) throw new Error(`Subscription backend responded ${response.status}`);
     }
@@ -161,7 +113,7 @@
         }
     }
 
-    async function subscribeAndRegister(config, topics) {
+    async function subscribeAndRegister(config) {
         const registration = await getRegistration();
         let subscription = await registration.pushManager.getSubscription();
 
@@ -179,37 +131,31 @@
         }
 
         try {
-            await sendSubscription(config, subscription, topics);
+            await sendSubscription(config, subscription);
         } catch (error) {
-            // Don't leave an orphaned browser subscription the backend never saw.
             if (isNew) await subscription.unsubscribe().catch(() => {});
             throw error;
         }
 
-        localStorage.setItem(TOPICS_KEY, JSON.stringify(topics));
         localStorage.setItem(ENDPOINT_KEY, subscription.endpoint);
         return subscription;
     }
 
     async function enableAlerts(config) {
-        const topics = getSelectedTopics();
-        if (!topics.length) {
-            setStatus('Pick at least one topic first.');
-            return;
-        }
-
         const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
         if (permission !== 'granted') {
             setStatus(permission === 'denied'
-                ? 'Notifications are blocked. Allow them in your browser settings to get race alerts.'
+                ? 'Notifications are blocked in your browser settings.'
                 : 'Alerts not enabled. You can turn them on any time.');
             return;
         }
 
-        await subscribeAndRegister(config, topics);
+        await subscribeAndRegister(config);
         isSubscribed = true;
-        setStatus(`Alerts on: ${describeTopics(topics)}.`);
-        trackAnalyticsEvent('enable_push_alerts', { topic_count: topics.length });
+        setStatus('Notifications active on this device.');
+        if (typeof trackAnalyticsEvent === 'function') {
+            trackAnalyticsEvent('enable_push_alerts');
+        }
 
         if (window.TDUCelebrate) {
             window.TDUCelebrate.success();
@@ -224,15 +170,16 @@
             try {
                 await removeSubscriptionFromBackend(config, subscription);
             } catch (error) {
-                // The push service rejects sends to an unsubscribed endpoint, so the backend can prune it later.
                 console.warn('Could not remove push subscription from backend:', error);
             }
             await subscription.unsubscribe();
         }
         localStorage.removeItem(ENDPOINT_KEY);
         isSubscribed = false;
-        setStatus('Alerts are off.');
-        trackAnalyticsEvent('disable_push_alerts');
+        setStatus('');
+        if (typeof trackAnalyticsEvent === 'function') {
+            trackAnalyticsEvent('disable_push_alerts');
+        }
     }
 
     window.togglePushAlerts = async function () {
@@ -257,41 +204,9 @@
         }
     };
 
-    let topicSyncTimer = null;
-    window.handlePushTopicChange = function () {
-        const topics = getSelectedTopics();
-        if (!isSubscribed) {
-            localStorage.setItem(TOPICS_KEY, JSON.stringify(topics));
-            return;
-        }
-        if (!topics.length) {
-            setStatus('Pick at least one topic, or turn off alerts.');
-            return;
-        }
-
-        clearTimeout(topicSyncTimer);
-        topicSyncTimer = setTimeout(async () => {
-            const config = getPushConfig();
-            if (isBusy || !isConfigured(config)) return;
-            isBusy = true;
-            updateControls();
-            try {
-                await subscribeAndRegister(config, topics);
-                setStatus(`Alerts on: ${describeTopics(topics)}.`);
-            } catch (error) {
-                console.error('Push topic update error:', error);
-                setStatus('Could not save your topics. Please try again.');
-            } finally {
-                isBusy = false;
-                updateControls();
-            }
-        }, 600);
-    };
-
     async function initPushAlerts() {
         const panel = getElement('push-panel');
         if (!panel) return;
-        renderTopics();
 
         const config = getPushConfig();
         if (!isPushSupported()) {
@@ -304,12 +219,12 @@
             return;
         }
         if (!isConfigured(config)) {
-            setStatus('Race alerts are coming soon.');
+            setStatus('');
             updateControls({ disabled: true });
             return;
         }
         if (Notification.permission === 'denied') {
-            setStatus('Notifications are blocked. Allow them in your browser settings to get race alerts.');
+            setStatus('Notifications are blocked in your browser settings.');
             updateControls({ disabled: true });
             return;
         }
@@ -318,20 +233,18 @@
         try {
             const registration = await getRegistration();
             let subscription = await registration.pushManager.getSubscription();
-            const storedTopics = getStoredTopics();
             const storedEndpoint = localStorage.getItem(ENDPOINT_KEY);
 
-            // Re-register if the push service rotated or expired the subscription since the last visit.
-            if (Notification.permission === 'granted' && storedTopics && storedTopics.length && storedEndpoint
+            if (Notification.permission === 'granted' && storedEndpoint
                 && (!subscription || subscription.endpoint !== storedEndpoint || !hasSameServerKey(subscription, config.vapidPublicKey))) {
-                subscription = await subscribeAndRegister(config, storedTopics);
+                subscription = await subscribeAndRegister(config);
             }
 
             isSubscribed = Boolean(subscription && localStorage.getItem(ENDPOINT_KEY) === subscription.endpoint);
-            setStatus(isSubscribed ? `Alerts on: ${describeTopics(storedTopics || [])}.` : 'Choose topics and enable alerts. No login needed.');
+            setStatus(isSubscribed ? 'Notifications active on this device.' : '');
         } catch (error) {
             console.warn('Push status check failed:', error);
-            setStatus('Choose topics and enable alerts. No login needed.');
+            setStatus('');
         }
         updateControls();
     }
