@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdu-pwa-v11';
+const CACHE_NAME = 'tdu-pwa-v12'; // Bumped version to force cache refresh
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
@@ -131,48 +131,65 @@ function parsePushPayload(event) {
 
 self.addEventListener('push', (event) => {
     const data = parsePushPayload(event);
+    
+    // Fallback variables matching both old and new payload structures
     const stageId = cleanText(data.stageId, 64).replace(/[^A-Za-z0-9_-]/g, '');
     const appUrl = getAppEventUrl(stageId);
-    const videoUrl = safeUrl(data.url, { allowExternal: true }) || appUrl;
+    
+    // Check both targetUrl (from new admin.html) and url (from original spec)
+    const rawTarget = data.targetUrl || data.url;
+    const videoUrl = safeUrl(rawTarget, { allowExternal: true }) || appUrl;
+    
     const replayUrl = safeUrl(data.replayUrl, { allowExternal: true }) || videoUrl;
     const standingsUrl = safeUrl(data.standingsUrl, { allowExternal: true }) || appUrl;
     const imageUrl = safeUrl(data.imageUrl, { allowExternal: 'any' });
-    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-update');
+    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-alert-' + Date.now());
+    const title = cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE;
 
     const options = {
         body: cleanText(data.body, 300),
-        icon: NOTIFICATION_ICON,
-        badge: NOTIFICATION_ICON,
+        icon: data.icon || NOTIFICATION_ICON,
+        badge: data.badge || NOTIFICATION_ICON, // Monochrome badge on Android
+        vibrate: [200, 100, 200, 100, 200], // Forces high-priority banner on Android
         tag,
-        renotify: true,
+        renotify: true, // Forces sound/vibration even if a previous alert is still sitting in the tray
         data: { url: videoUrl, replayUrl, standingsUrl },
-        actions: [
-            { action: 'watch-replay', title: 'Watch Replay' },
-            { action: 'view-standings', title: 'View Standings' }
+        actions: data.actions || [
+            { action: 'open', title: '🚴 Open Stage' }
         ]
     };
+
     if (imageUrl) options.image = imageUrl;
 
     event.waitUntil(
-        self.registration.showNotification(cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE, options)
+        self.registration.showNotification(title, options)
     );
 });
 
 async function openOrFocus(targetUrl) {
     const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const target = new URL(targetUrl);
+    const target = new URL(targetUrl, self.registration.scope);
 
     if (target.origin === self.location.origin) {
+        // Find exact match
         const exact = windowClients.find((client) => client.url === target.href);
-        if (exact) return exact.focus();
+        if (exact) {
+            exact.focus();
+            return;
+        }
 
+        // Find any open app instance and navigate it
         const appClient = windowClients.find((client) => new URL(client.url).origin === target.origin);
         if (appClient && 'navigate' in appClient) {
             const navigated = await appClient.navigate(target.href).catch(() => null);
-            if (navigated) return navigated.focus();
+            if (navigated) {
+                navigated.focus();
+                return;
+            }
         }
     }
 
+    // Fallback: open a new window
     return self.clients.openWindow(target.href);
 }
 
@@ -180,56 +197,12 @@ self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     const data = event.notification.data || {};
     let targetUrl = data.url;
+    
     if (event.action === 'watch-replay') targetUrl = data.replayUrl;
     if (event.action === 'view-standings') targetUrl = data.standingsUrl;
+    if (event.action === 'watch') targetUrl = `${data.url}?tab=recap`; // legacy action support
 
-    // Re-validate in case notification data came from an older worker version.
+    // Ensure we don't open 'undefined'
     const safeTarget = safeUrl(targetUrl, { allowExternal: true }) || getAppEventUrl('');
     event.waitUntil(openOrFocus(safeTarget));
-});
-// Listen for incoming rich push notification payloads
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  const payload = event.data.json();
-
-  const options = {
-    body: payload.body,
-    icon: payload.icon || 'https://cdn-icons-png.flaticon.com/512/3082/3082349.png',
-    badge: payload.badge || '/icons/badge-monochrome.png',
-    image: payload.imageUrl || null, // Rich Image/GIF (Hero banner)
-    data: { url: payload.targetUrl || '/' }, // Deep link
-    actions: payload.actions || [            // Interactive buttons
-      { action: 'open', title: '🚴 Open Stage' }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(payload.title, options)
-  );
-});
-
-// Handle clicking the notification body or interactive buttons
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  // If a specific action button was clicked
-  let destination = event.notification.data.url;
-  if (event.action === 'watch') {
-    destination = `${destination}?tab=recap`;
-  }
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if open, otherwise open new tab
-      for (const client of clientList) {
-        if (client.url === destination && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(destination);
-      }
-    })
-  );
 });
