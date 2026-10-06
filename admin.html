@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TDU Push Dispatcher</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f4f5f7; }
@@ -9,7 +10,7 @@
     .field { margin-bottom: 16px; }
     label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
     input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    button { background: #f26522; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+    button { background: #f26522; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
   </style>
 </head>
 <body>
@@ -30,11 +31,11 @@
       </div>
       <div class="field">
         <label>Rich Hero Image URL (JPG/PNG)</label>
-        <input type="url" id="imageUrl" placeholder="https://yourdomain.com/images/stage1-finish.jpg">
+        <input type="url" id="imageUrl" placeholder="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
       </div>
       <div class="field">
         <label>Target Deep-Link URL</label>
-        <input type="text" id="targetUrl" value="./index.html?event=stage-1">
+        <input type="text" id="targetUrl" value="./index.html">
       </div>
       <button type="submit">Broadcast to All Subscribers</button>
     </form>
@@ -49,20 +50,25 @@
         title: document.getElementById('title').value,
         body: document.getElementById('body').value,
         imageUrl: document.getElementById('imageUrl').value,
-        targetUrl: document.getElementById('targetUrl').value,
-        actions: [
-          { action: 'open', title: '🎬 Watch Highlights' }
-        ]
+        targetUrl: document.getElementById('targetUrl').value
       };
 
-      const res = await fetch('/api/broadcast-push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      try {
+        const res = await fetch('https://tdu-push-backend.callas1894.workers.dev/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (res.ok) alert('Notification dispatched successfully!');
-      else alert('Failed to send notification. Check Admin Key.');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`Success! Dispatched to ${data.count} active subscriber(s).`);
+        } else {
+          alert('Failed: ' + (data.error || 'Check Admin Secret Key'));
+        }
+      } catch (err) {
+        alert('Error connecting to worker: ' + err.message);
+      }
     });
   </script>
 </body>
