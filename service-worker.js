@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdu-pwa-v12'; // Bumped version to force cache refresh
+const CACHE_NAME = 'tdu-pwa-v13'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
@@ -145,14 +145,15 @@ self.addEventListener('push', (event) => {
     const imageUrl = safeUrl(data.imageUrl, { allowExternal: 'any' });
     const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-alert-' + Date.now());
     const title = cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE;
+    const bodyText = cleanText(data.body, 300);
 
     const options = {
-        body: cleanText(data.body, 300),
+        body: bodyText,
         icon: data.icon || NOTIFICATION_ICON,
-        badge: data.badge || NOTIFICATION_ICON, // Monochrome badge on Android
-        vibrate: [200, 100, 200, 100, 200], // Forces high-priority banner on Android
+        badge: data.badge || NOTIFICATION_ICON,
+        vibrate: [200, 100, 200, 100, 200],
         tag,
-        renotify: true, // Forces sound/vibration even if a previous alert is still sitting in the tray
+        renotify: true,
         data: { url: videoUrl, replayUrl, standingsUrl },
         actions: data.actions || [
             { action: 'open', title: '🚴 Open Stage' }
@@ -161,9 +162,24 @@ self.addEventListener('push', (event) => {
 
     if (imageUrl) options.image = imageUrl;
 
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-    );
+    event.waitUntil((async () => {
+        // 1. Show OS system notification
+        await self.registration.showNotification(title, options);
+
+        // 2. Broadcast to active app windows for in-app toast
+        const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const client of windowClients) {
+            client.postMessage({
+                type: 'PUSH_RECEIVED',
+                payload: {
+                    title,
+                    body: bodyText,
+                    imageUrl,
+                    targetUrl: videoUrl
+                }
+            });
+        }
+    })());
 });
 
 async function openOrFocus(targetUrl) {
