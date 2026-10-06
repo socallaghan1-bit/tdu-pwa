@@ -67,21 +67,21 @@
             <div class="section-title">Explore Schedule</div>
 
             <div class="home-grid">
-                <button class="action-card" onclick="showView('schedule'); setFilterType('day');">
+                <button class="action-card" onclick="showView('schedule');">
                     <i class="fas fa-calendar-day" aria-hidden="true"></i>
-                    <h3>Browse by Day</h3>
+                    <h3>Browse Schedule</h3>
                     <p>Jan 19 – Jan 24</p>
                 </button>
 
-                <button class="action-card" onclick="showView('schedule'); setFilterType('category');">
-                    <i class="fas fa-filter" aria-hidden="true"></i>
-                    <h3>Browse by Field</h3>
-                    <p>Men's & Women's Stages</p>
+                <button class="action-card" onclick="showView('schedule');">
+                    <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+                    <h3>Interactive Map</h3>
+                    <p>Stages, Rides &amp; Hubs</p>
                 </button>
 
                 <button class="action-card primary-card" onclick="showView('saved')">
                     <div>
-                        <h3>My TDU Itinerary</h3>
+                        <h3>My TDU Itinerary &amp; Passport</h3>
                         <p id="home-saved-count">0 events saved</p>
                     </div>
                     <i class="fas fa-heart" aria-hidden="true"></i>
@@ -170,37 +170,68 @@
     </section>
 
     <section id="view-schedule" class="view" aria-label="Event schedule">
-        <div class="filter-wrapper">
-            <div class="filter-label" id="filter-label-text">Filter by Date</div>
+        <div class="schedule-layout">
+            <div class="schedule-feed-col">
+                <div class="filter-wrapper sticky-filters">
+                    <!-- Lu.ma-Style Category Pills -->
+                    <div class="filter-label">Category</div>
+                    <div class="filters luma-pills" id="luma-category-filters" role="tablist" aria-label="Category filter">
+                        <button class="luma-pill active" onclick="applyLumaCategory('All', this)">🏁 All</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Race Stages', this)">🚴 Race Stages</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Group Rides', this)">☕ Group Rides</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Social', this)">🎉 Social</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Pop-ups', this)">🍻 Pop-ups</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Family', this)">👪 Family</button>
+                    </div>
 
-            <div class="filters" id="day-filters">
-                <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-19', this)">Tue 19 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-20', this)">Wed 20 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-21', this)">Thu 21 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-22', this)">Fri 22 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-23', this)">Sat 23 Jan</button>
-                <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
+                    <!-- Date Filter Pills -->
+                    <div class="filter-label" id="filter-label-text">Filter by Date</div>
+                    <div class="filters" id="day-filters">
+                        <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-19', this)">Tue 19 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-20', this)">Wed 20 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-21', this)">Thu 21 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-22', this)">Fri 22 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-23', this)">Sat 23 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
+                    </div>
+                </div>
+
+                <div id="events-container">
+                    <div id="loader"><i class="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i><br><br>Loading Events...</div>
+                </div>
             </div>
 
-            <div class="filters" id="category-filters" style="display:none;">
-                <button class="filter-btn active" onclick="applyCategoryFilter('All', this)">All Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Men's Stage&quot;, this)">Men's Stages</button>
-                <button class="filter-btn" onclick="applyCategoryFilter(&quot;Women's Stage&quot;, this)">Women's Stages</button>
+            <!-- Sticky Leaflet Map Column (Split layout on desktop, full view on mobile toggle) -->
+            <div class="schedule-map-col" id="schedule-map-col">
+                <div class="map-toolbar">
+                    <div class="map-toolbar-title"><i class="fas fa-map-location-dot" aria-hidden="true"></i> Adelaide &amp; Hills Event Map</div>
+                    <div class="map-toolbar-status" id="schedule-map-status"></div>
+                </div>
+                <div id="schedule-interactive-map" class="schedule-interactive-map" role="region" aria-label="Interactive TDU event map"></div>
+                <div class="map-legend">
+                    <span class="legend-item"><span class="legend-dot dot-race"></span> Race Stages</span>
+                    <span class="legend-item"><span class="legend-dot dot-ride"></span> Group Rides</span>
+                    <span class="legend-item"><span class="legend-dot dot-social"></span> Social</span>
+                    <span class="legend-item"><span class="legend-dot dot-popup"></span> Pop-ups</span>
+                    <span class="legend-item"><span class="legend-dot dot-family"></span> Family</span>
+                </div>
             </div>
         </div>
 
-        <div id="events-container">
-            <div id="loader"><i class="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i><br><br>Loading Events...</div>
-        </div>
+        <!-- Floating Mobile View Toggle Button -->
+        <button id="mobile-map-toggle-btn" class="floating-view-toggle" onclick="toggleMobileScheduleView()" aria-label="Toggle between map and list view">
+            <i class="fas fa-map" id="mobile-toggle-icon" aria-hidden="true"></i>
+            <span id="mobile-toggle-label">Map View</span>
+        </button>
     </section>
 
-    <section id="view-saved" class="view" aria-label="Saved TDU events">
+    <section id="view-saved" class="view" aria-label="Saved TDU events and Rider Passport">
         <div class="saved-heading">
             <h2>My TDU</h2>
             <button class="btn btn-primary export-btn" onclick="exportSavedEvents()">Export to Calendar</button>
         </div>
-        <p class="saved-sub">Your saved personal Tour Down Under schedule.</p>
+        <p class="saved-sub">Your personal Tour Down Under itinerary and local Rider Passport.</p>
         <div id="smart-assistant-bar" class="assistant-bar hidden" role="button" tabindex="0" onclick="toggleAssistantDrawer(true)" onkeydown="handleAssistantBarKeydown(event)">
             <span id="assistant-summary-text">⚡ Insights available</span>
             <button class="btn-sm" type="button">View Details →</button>
@@ -289,8 +320,8 @@
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="cdn-libs.js?v=1.0"></script>
-    <script src="app.js?v=2.1"></script>
+    <script src="cdn-libs.js?v=2.0"></script>
+    <script src="app.js?v=3.0"></script>
     <script src="stage-map.js?v=1.0"></script>
     <script src="push-notifications.js?v=1.0"></script>
 </body>
