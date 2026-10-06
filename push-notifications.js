@@ -204,6 +204,79 @@
         }
     };
 
+    // --- In-App Slide-out Toast Notification ---
+    function showInAppToast({ title, body, imageUrl, targetUrl }) {
+        const existing = document.getElementById('tdu-inapp-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'tdu-inapp-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            width: calc(100% - 32px);
+            max-width: 480px;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 5px solid #f26522;
+        `;
+
+        const imgHtml = imageUrl 
+            ? `<img src="${imageUrl}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;" />`
+            : `<div style="font-size: 1.6rem; line-height: 1;">🚴</div>`;
+
+        toast.innerHTML = `
+            ${imgHtml}
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</div>
+                <div style="font-size: 0.85rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${body}</div>
+            </div>
+            <div id="tdu-toast-close" style="font-size: 1.1rem; opacity: 0.6; padding: 4px; cursor: pointer;">✕</div>
+        `;
+
+        document.body.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+        });
+
+        toast.addEventListener('click', (e) => {
+            const isClose = e.target && e.target.id === 'tdu-toast-close';
+            toast.style.transform = 'translateX(-50%) translateY(-150%)';
+            setTimeout(() => toast.remove(), 400);
+
+            if (!isClose && targetUrl) {
+                window.location.href = targetUrl;
+            }
+        });
+
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                toast.style.transform = 'translateX(-50%) translateY(-150%)';
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 6000);
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'PUSH_RECEIVED') {
+                showInAppToast(event.data.payload);
+            }
+        });
+    }
+
     async function initPushAlerts() {
         const panel = getElement('push-panel');
         if (!panel) return;
