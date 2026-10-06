@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interactive Adelaide guide for Tour Down Under rides, stages, and events.">
+    <title>TDU 2027 Companion</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f26522">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3082/3082349.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="style.css?v=2.0">
+    <!-- Manual SPA pageviews are sent from app.js. If GA4 Enhanced Measurement browser-history pageviews are enabled, disable them to avoid duplicates. -->
+    <script>
+        window.TDU_GA_MEASUREMENT_ID = 'G-95K2T8ZYW4';
+
+        if (window.TDU_GA_MEASUREMENT_ID) {
+            const gaScript = document.createElement('script');
+            gaScript.async = true;
+            gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${window.TDU_GA_MEASUREMENT_ID}`;
+            document.head.appendChild(gaScript);
+
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function gtag(){ window.dataLayer.push(arguments); };
+            window.gtag('js', new Date());
+            window.gtag('config', window.TDU_GA_MEASUREMENT_ID, {
+                send_page_view: false
+            });
+        }
+
+        // Web Push Config
+        window.TDU_PUSH_CONFIG = {
+            vapidPublicKey: 'BH3LyaH9Mmp3P5v2Aj8zsNks2gdPat467Py3-vCVW6Ftcm-G1V52Nr8B0gOdq9ZPKsr3PaxFYC1iHn3xDRe8W2I',
+            subscriptionUrl: 'https://tdu-push-backend.callas1894.workers.dev/subscribe'
+        };
+    </script>
+</head>
+<body>
+    <header>
+        <button class="header-brand" onclick="showView('home')" aria-label="Go to TDU home">
+            <h1>TDU 2027</h1>
+            <div class="header-subtitle">Adelaide Companion</div>
+        </button>
+
+        <div class="header-actions">
+            <button id="header-settings-btn" class="header-icon-btn" onclick="showView('settings')" aria-label="Settings" title="Settings">
+                <i class="fas fa-gear" aria-hidden="true"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="view-home" class="view active">
+        <div class="hero">
+            <h2>Welcome to Tour Down Under 2027</h2>
+            <p>Your interactive Adelaide guide to the Santos Tour Down Under stages.</p>
+        </div>
+
+        <div class="home-container">
+            <div id="weather-widget" class="weather-widget" aria-live="polite">
+                <i class="fas fa-cloud-sun" aria-hidden="true"></i>
+                <span>Today in Adelaide: Checking weather…</span>
+            </div>
+
+            <div class="section-title">Explore Schedule</div>
+
+            <div class="home-grid">
+                <button class="action-card" onclick="showView('schedule');">
+                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                    <h3>Browse Schedule</h3>
+                    <p>Jan 19 – Jan 24</p>
+                </button>
+
+                <button class="action-card" onclick="showView('schedule');">
+                    <i class="fas fa-map-location-dot" aria-hidden="true"></i>
+                    <h3>Interactive Map</h3>
+                    <p>Stages, Rides &amp; Hubs</p>
+                </button>
+
+                <button class="action-card primary-card" onclick="showView('saved')">
+                    <div>
+                        <h3>My TDU Itinerary &amp; Passport</h3>
+                        <p id="home-saved-count">0 events saved</p>
+                    </div>
+                    <i class="fas fa-heart" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <section class="home-section" aria-labelledby="guide-title">
+                <div class="section-title" id="guide-title">What should I do?</div>
+                <div class="guide-panel">
+                    <p class="guide-intro">Choose what you're in the mood for and we'll suggest a few good next steps.</p>
+                    <button id="recommendation-launch-btn" class="guide-launch-btn" onclick="openRecommendationFlow()" aria-controls="recommendation-flow" aria-expanded="false">
+                        <i class="fas fa-compass" aria-hidden="true"></i>
+                        What should I do?
+                    </button>
+
+                    <div id="recommendation-flow" class="recommendation-flow" hidden>
+                        <div class="recommendation-step">
+                            <div class="recommendation-label">Step 1 · Pick an intent</div>
+                            <div id="recommendation-intent-buttons" class="choice-grid" role="group" aria-label="Choose your intent"></div>
+                        </div>
+
+                        <div id="recommendation-step-two" class="recommendation-step" hidden>
+                            <div class="recommendation-label">Step 2 · Narrow it down</div>
+                            <div id="recommendation-option-buttons" class="choice-grid" role="group" aria-label="Choose a recommendation type"></div>
+                        </div>
+
+                        <div class="recommendation-controls">
+                            <button id="recommendation-back-btn" class="text-btn" onclick="goBackRecommendation()" hidden>Back</button>
+                            <button class="text-btn" onclick="resetRecommendationFlow()">Reset</button>
+                        </div>
+
+                        <div id="recommendation-results" class="recommendation-results" aria-live="polite"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-section" aria-labelledby="featured-title">
+                <div class="section-title" id="featured-title">Featured Events</div>
+                <div id="featured-events" class="featured-events" aria-live="polite"></div>
+            </section>
+
+            <section class="home-section" aria-labelledby="support-title">
+                <div class="section-title" id="support-title">Support &amp; Feedback</div>
+                <div class="guide-panel">
+                    <p class="guide-intro">Want to back the app or suggest an improvement?</p>
+                    <div class="support-actions">
+                        <!-- TODO: Replace this placeholder button/modal with the real support link when support is ready. -->
+                        <button class="btn btn-disabled" type="button" onclick="openSupportModal()">
+                            <i class="fas fa-mug-hot" aria-hidden="true"></i>
+                            Support coming soon
+                        </button>
+                        <button class="btn btn-primary" type="button" onclick="openFeedbackModal()">
+                            <i class="far fa-comment-dots" aria-hidden="true"></i>
+                            Send feedback
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <section id="view-settings" class="view" aria-labelledby="settings-title">
+        <div class="home-container">
+            <h2 id="settings-title">Settings</h2>
+            <div id="push-panel" class="guide-panel">
+                <div class="settings-row">
+                    <span id="notifications-label">Notifications</span>
+                    <button id="push-toggle-btn" class="settings-switch" type="button" role="switch" aria-labelledby="notifications-label" aria-checked="false" onclick="togglePushAlerts()">Off</button>
+                </div>
+                <p class="guide-intro">Stay up to date with the TDU happenings. No login needed.</p>
+                <div class="push-actions">
+                    <div id="push-success-animation" class="push-success-animation" aria-hidden="true" hidden></div>
+                </div>
+                <p id="push-status" class="push-status" aria-live="polite"></p>
+            </div>
+            <div class="guide-panel settings-panel">
+                <div class="settings-row">
+                    <span id="sound-label">Sound</span>
+                    <button id="sound-toggle-btn" class="settings-switch" type="button" role="switch" aria-labelledby="sound-label" aria-checked="false" onclick="toggleAudioFeedback()">Off</button>
+                </div>
+            </div>
+            <div id="future-settings" class="guide-panel settings-panel" aria-label="Future settings">
+                <p class="helper-copy">More settings coming soon.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-schedule" class="view" aria-label="Event schedule">
+        <div class="schedule-layout">
+            <div class="schedule-feed-col">
+                <div class="filter-wrapper sticky-filters">
+                    <!-- Lu.ma-Style Category Pills -->
+                    <div class="filter-label">Category</div>
+                    <div class="filters luma-pills" id="luma-category-filters" role="tablist" aria-label="Category filter">
+                        <button class="luma-pill active" onclick="applyLumaCategory('All', this)">🏁 All</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Race Stages', this)">🚴 Race Stages</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Group Rides', this)">☕ Group Rides</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Social', this)">🎉 Social</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Pop-ups', this)">🍻 Pop-ups</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('Family', this)">👪 Family</button>
+                    </div>
+
+                    <!-- Date Filter Pills -->
+                    <div class="filter-label" id="filter-label-text">Filter by Date</div>
+                    <div class="filters" id="day-filters">
+                        <button class="filter-btn active" onclick="applyDayFilter('All', this)">All Days</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-19', this)">Tue 19 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-20', this)">Wed 20 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-21', this)">Thu 21 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-22', this)">Fri 22 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-23', this)">Sat 23 Jan</button>
+                        <button class="filter-btn" onclick="applyDayFilter('2027-01-24', this)">Sun 24 Jan</button>
+                    </div>
+                </div>
+
+                <div id="events-container">
+                    <div id="loader"><i class="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i><br><br>Loading Events...</div>
+                </div>
+            </div>
+
+            <!-- Sticky Leaflet Map Column (Split layout on desktop, full view on mobile toggle) -->
+            <div class="schedule-map-col" id="schedule-map-col">
+                <div class="map-toolbar">
+                    <div class="map-toolbar-title"><i class="fas fa-map-location-dot" aria-hidden="true"></i> Adelaide &amp; Hills Event Map</div>
+                    <div class="map-toolbar-status" id="schedule-map-status"></div>
+                </div>
+                <div id="schedule-interactive-map" class="schedule-interactive-map" role="region" aria-label="Interactive TDU event map"></div>
+                <div class="map-legend">
+                    <span class="legend-item"><span class="legend-dot dot-race"></span> Race Stages</span>
+                    <span class="legend-item"><span class="legend-dot dot-ride"></span> Group Rides</span>
+                    <span class="legend-item"><span class="legend-dot dot-social"></span> Social</span>
+                    <span class="legend-item"><span class="legend-dot dot-popup"></span> Pop-ups</span>
+                    <span class="legend-item"><span class="legend-dot dot-family"></span> Family</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Mobile View Toggle Button -->
+        <button id="mobile-map-toggle-btn" class="floating-view-toggle" onclick="toggleMobileScheduleView()" aria-label="Toggle between map and list view">
+            <i class="fas fa-map" id="mobile-toggle-icon" aria-hidden="true"></i>
+            <span id="mobile-toggle-label">Map View</span>
+        </button>
+    </section>
+
+    <section id="view-saved" class="view" aria-label="Saved TDU events and Rider Passport">
+        <div class="saved-heading">
+            <h2>My TDU</h2>
+            <button class="btn btn-primary export-btn" onclick="exportSavedEvents()">Export to Calendar</button>
+        </div>
+        <p class="saved-sub">Your personal Tour Down Under itinerary and local Rider Passport.</p>
+        <div id="smart-assistant-bar" class="assistant-bar hidden" role="button" tabindex="0" onclick="toggleAssistantDrawer(true)" onkeydown="handleAssistantBarKeydown(event)">
+            <span id="assistant-summary-text">⚡ Insights available</span>
+            <button class="btn-sm" type="button">View Details →</button>
+        </div>
+        <div id="saved-events-container"></div>
+    </section>
+
+    <div id="assistant-drawer-overlay" class="drawer-overlay" aria-hidden="true" onclick="toggleAssistantDrawer(false)">
+        <div class="drawer-content" role="dialog" aria-modal="true" aria-labelledby="assistant-drawer-title" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <h3 id="assistant-drawer-title">⚡ Smart Assistant Insights</h3>
+                <button class="close-btn" type="button" aria-label="Close smart assistant insights" onclick="toggleAssistantDrawer(false)">&times;</button>
+            </div>
+            <div id="drawer-insights-list"></div>
+        </div>
+    </div>
+
+    <div id="install-modal" class="modal-overlay" onclick="closeInstallModal(event)">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="install-title">
+            <div class="modal-header">
+                <h3 id="install-title">Install TDU 2027</h3>
+                <button class="close-btn" onclick="closeInstallModal()" aria-label="Close installation instructions">&times;</button>
+            </div>
+            <p class="modal-sub">Add this app to your phone's home screen for fast offline access:</p>
+
+            <div class="install-step"><div class="step-num">1</div><div>Tap the <strong>Share</strong> button in your browser bar.</div></div>
+            <div class="install-step"><div class="step-num">2</div><div>Select <strong>Add to Home Screen</strong>.</div></div>
+            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="closeInstallModal()">Got It</button>
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description" onclick="closeFeedbackModal(event)">
+        <div class="modal-card modal-card-wide">
+            <div class="modal-header">
+                <h3 id="feedback-title">Send feedback</h3>
+                <button class="close-btn" onclick="closeFeedbackModal()" aria-label="Close feedback form">&times;</button>
+            </div>
+            <p id="feedback-description" class="modal-sub">Share a quick idea, bug, or feature request directly below.</p>
+            <iframe
+                id="feedback-form-frame"
+                class="feedback-frame"
+                title="TDU feedback form"
+                loading="lazy"
+                src="about:blank"
+                data-form-src="https://docs.google.com/forms/d/e/1FAIpQLSeqT7n_K20AOT6cYhh2yM2VedXHFwGD9ByQ7wXvT9gmmK6NEg/viewform?embedded=true"
+                data-form-share-url="https://forms.gle/2UWyokw2GM65tKsW9"
+            ></iframe>
+            <p class="feedback-note">Having trouble viewing the embedded form? You can open it directly in a new tab.</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" type="button" onclick="openFeedbackForm()">Open in new tab</button>
+                <button class="btn modal-secondary-btn" type="button" onclick="closeFeedbackModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="support-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="support-modal-title" aria-describedby="support-description" onclick="closeSupportModal(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="support-modal-title">Support coming soon</h3>
+                <button class="close-btn" onclick="closeSupportModal()" aria-label="Close support placeholder">&times;</button>
+            </div>
+            <p id="support-description" class="modal-sub">Thanks for offering to help. This spot will link to the real support page once it is ready.</p>
+            <button class="btn btn-primary modal-action-btn" type="button" onclick="closeSupportModal()">Got it</button>
+        </div>
+    </div>
+
+    <div id="stage-map-modal" class="modal-overlay" onclick="closeStageMap(event)">
+        <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="stage-map-title" aria-describedby="stage-map-sub">
+            <div class="modal-header">
+                <h3 id="stage-map-title">Stage map</h3>
+                <button class="close-btn" type="button" onclick="closeStageMap(event)" aria-label="Close stage map">&times;</button>
+            </div>
+            <p id="stage-map-sub" class="modal-sub">Spectator checkpoints in the order the peloton first passes. The line is indicative, not the exact race route.</p>
+            <div id="stage-map" class="stage-map" role="region" aria-label="Stage checkpoint map"></div>
+            <p id="stage-map-status" class="stage-map-status" aria-live="polite"></p>
+            <div id="stage-elevation" class="stage-elevation" hidden>
+                <div class="stage-elevation-title">Checkpoint elevation (approx.)</div>
+                <div class="stage-elevation-chart"><canvas id="stage-elevation-chart" role="img" aria-label="Checkpoint elevation profile"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" aria-label="Primary navigation">
+        <button class="nav-item active" onclick="showView('home')" id="nav-home"><i class="fas fa-home" aria-hidden="true"></i>Home</button>
+        <button class="nav-item" onclick="showView('schedule')" id="nav-schedule"><i class="fas fa-calendar-alt" aria-hidden="true"></i>Schedule</button>
+        <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
+    </nav>
+
+    <script src="cdn-libs.js?v=2.0"></script>
+    <script src="app.js?v=3.0"></script>
+    <script src="stage-map.js?v=1.0"></script>
+    <script src="push-notifications.js?v=1.0"></script>
+</body>
+</html>
