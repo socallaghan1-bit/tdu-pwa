@@ -700,9 +700,75 @@ header {
 
 .dot-race { background: #f26522; }
 .dot-ride { background: #007aff; }
+.dot-coffee { background: #795548; }
 .dot-social { background: #af52de; }
 .dot-popup { background: #ff9500; }
 .dot-family { background: #34c759; }
+
+/* Real-Time Schedule Search Bar */
+.search-box-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-box-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(242, 101, 34, 0.18);
+}
+
+.search-icon {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-right: 8px;
+    pointer-events: none;
+}
+
+.schedule-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    outline: none;
+    font-family: inherit;
+    width: 100%;
+}
+
+.schedule-search-input::placeholder {
+    color: #9ca3af;
+    font-size: 0.86rem;
+}
+
+.search-clear-btn {
+    background: #e5e7eb;
+    border: none;
+    color: #6b7280;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.65rem;
+    padding: 0;
+    margin-left: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.search-clear-btn:hover {
+    background: #d1d5db;
+    color: #111827;
+}
 
 /* Mobile Map Toggle Button & States */
 .floating-view-toggle {
@@ -754,7 +820,7 @@ header {
     }
 }
 
-/* Custom Leaflet Map Markers & Popups */
+/* Custom Leaflet Map Markers & Popups (CartoDB Positron Pop-Out Aesthetic) */
 .custom-map-marker {
     background: transparent;
     border: none;
@@ -768,8 +834,8 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-    border: 2px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(242, 101, 34, 0.35);
+    border: 2.5px solid #ffffff;
     cursor: pointer;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -905,6 +971,7 @@ header {
 .event-badges {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     margin-bottom: 8px;
 }
@@ -914,96 +981,121 @@ header {
     color: #1f5ea8;
 }
 
-.card-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.card-actions .btn {
-    flex: 1 1 calc(50% - 4px);
-}
-
-.btn {
-    flex: 1;
-    text-align: center;
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    padding: 8px 10px;
-    border-radius: 8px;
-    text-decoration: none;
-    color: var(--text-dark);
-    font-size: 0.82rem;
-    font-weight: 600;
+/* Event Lifecycle Badges */
+.lifecycle-badge {
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    font-size: 0.68rem;
+    padding: 3px 8px;
+    border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    gap: 4px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
 }
 
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+.status-live {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #6ee7b7;
+    animation: livePulse 2s infinite ease-in-out;
 }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
+@keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
 }
 
-.btn-checkin {
-    background: #f0fdf4;
-    border-color: #86efac;
-    color: #166534;
-    font-weight: 700;
-}
-
-.btn-checkin i {
-    color: #16a34a;
-}
-
-.btn-checkin.checked-in {
-    background: #15803d;
-    border-color: #15803d;
-    color: #ffffff;
-}
-
-.btn-checkin.checked-in i {
-    color: #ffffff;
-}
-
-.btn-map-pin {
+.status-upcoming {
     background: #eff6ff;
-    border-color: #bfdbfe;
     color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.status-finished {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+/* Streamlined Card Actions (Main 2 Buttons) */
+.card-primary-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.card-primary-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    padding: 9px 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+/* Collapsible Card Details */
+.card-details-toggle {
+    margin-top: 10px;
+    border-top: 1px solid #f1f3f5;
+    padding-top: 6px;
+}
+
+.details-summary-btn {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    font-size: 0.78rem;
     font-weight: 600;
-}
-
-.btn-map-pin i {
-    color: #2563eb;
-}
-
-.fav-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 1.35rem;
-    color: #ccc;
+    color: #6b7280;
     cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    transition: color 0.2s, transform 0.15s;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
 }
 
-.fav-btn.saved {
-    color: #ff3b30;
+.details-summary-btn::-webkit-details-marker {
+    display: none;
 }
 
-.fav-btn:active {
-    transform: scale(1.2);
+.details-summary-btn:hover {
+    background: #f8fafc;
+    color: #374151;
+}
+
+.details-summary-btn .summary-arrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.card-details-toggle[open] .summary-arrow {
+    transform: rotate(180deg);
+}
+
+.secondary-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 6px;
+    padding: 8px 0 2px 0;
+}
+
+.btn-secondary-action {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-size: 0.76rem;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    justify-content: center;
+}
+
+.btn-secondary-action:hover {
+    background: #edf2f7;
+    color: #1e293b;
+    border-color: #cbd5e1;
 }
 
 /* ==========================================================================
@@ -1229,6 +1321,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 15px 15px 0 15px;
     max-width: 650px;
@@ -1240,8 +1333,15 @@ header {
     font-size: 1.3rem;
 }
 
+.saved-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .saved-sub {
-    margin: 0 0 15px 0;
+    margin: 4px 0 15px 0;
     padding: 0 15px;
     max-width: 650px;
     margin-left: auto;
@@ -1250,10 +1350,33 @@ header {
     color: var(--text-light);
 }
 
+.share-btn {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+    background: #fff5eb;
+}
+
 .export-btn {
     padding: 8px 14px;
     font-size: 0.78rem;
+    font-weight: 700;
     border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 #saved-events-container {

@@ -173,15 +173,39 @@
         <div class="schedule-layout">
             <div class="schedule-feed-col">
                 <div class="filter-wrapper sticky-filters">
+                    <!-- Real-Time Schedule Search -->
+                    <div class="search-box-wrapper" role="search">
+                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                        <input
+                            type="search"
+                            id="schedule-search-input"
+                            class="schedule-search-input"
+                            placeholder="Search rides, stages, locations, tags..."
+                            aria-label="Search schedule events"
+                            oninput="handleScheduleSearch(this.value)"
+                            autocomplete="off"
+                        >
+                        <button
+                            type="button"
+                            id="schedule-search-clear"
+                            class="search-clear-btn"
+                            onclick="clearScheduleSearch()"
+                            aria-label="Clear search"
+                            style="display: none;"
+                        >
+                            <i class="fas fa-times" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
                     <!-- Lu.ma-Style Category Pills -->
                     <div class="filter-label">Category</div>
                     <div class="filters luma-pills" id="luma-category-filters" role="tablist" aria-label="Category filter">
                         <button class="luma-pill active" onclick="applyLumaCategory('All', this)">🏁 All</button>
-                        <button class="luma-pill" onclick="applyLumaCategory('Race Stages', this)">🚴 Race Stages</button>
-                        <button class="luma-pill" onclick="applyLumaCategory('Group Rides', this)">☕ Group Rides</button>
-                        <button class="luma-pill" onclick="applyLumaCategory('Social', this)">🎉 Social</button>
-                        <button class="luma-pill" onclick="applyLumaCategory('Pop-ups', this)">🍻 Pop-ups</button>
-                        <button class="luma-pill" onclick="applyLumaCategory('Family', this)">👪 Family</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('☕ Coffee', this)">☕ Coffee</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('🍻 Beer/Social', this)">🍻 Beer/Social</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('👪 Family', this)">👪 Family</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('🚴 Group Rides', this)">🚴 Group Rides</button>
+                        <button class="luma-pill" onclick="applyLumaCategory('🏁 Race Stages', this)">🏁 Race Stages</button>
                     </div>
 
                     <!-- Date Filter Pills -->
@@ -212,8 +236,8 @@
                 <div class="map-legend">
                     <span class="legend-item"><span class="legend-dot dot-race"></span> Race Stages</span>
                     <span class="legend-item"><span class="legend-dot dot-ride"></span> Group Rides</span>
-                    <span class="legend-item"><span class="legend-dot dot-social"></span> Social</span>
-                    <span class="legend-item"><span class="legend-dot dot-popup"></span> Pop-ups</span>
+                    <span class="legend-item"><span class="legend-dot dot-coffee"></span> Coffee</span>
+                    <span class="legend-item"><span class="legend-dot dot-social"></span> Beer / Social</span>
                     <span class="legend-item"><span class="legend-dot dot-family"></span> Family</span>
                 </div>
             </div>
@@ -229,7 +253,10 @@
     <section id="view-saved" class="view" aria-label="Saved TDU events and Rider Passport">
         <div class="saved-heading">
             <h2>My TDU</h2>
-            <button class="btn btn-primary export-btn" onclick="exportSavedEvents()">Export to Calendar</button>
+            <div class="saved-header-actions">
+                <button class="btn btn-secondary share-btn" type="button" onclick="shareItinerary()" aria-label="Share itinerary deep link"><i class="fas fa-share-nodes" aria-hidden="true"></i> Share Itinerary</button>
+                <button class="btn btn-primary export-btn" type="button" onclick="exportSavedEvents()"><i class="far fa-calendar-plus" aria-hidden="true"></i> Export to Calendar</button>
+            </div>
         </div>
         <p class="saved-sub">Your personal Tour Down Under itinerary and local Rider Passport.</p>
         <div id="smart-assistant-bar" class="assistant-bar hidden" role="button" tabindex="0" onclick="toggleAssistantDrawer(true)" onkeydown="handleAssistantBarKeydown(event)">

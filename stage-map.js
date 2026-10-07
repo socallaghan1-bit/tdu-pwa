@@ -2,8 +2,8 @@
 // Libraries load from CDNJS only when a user opens a stage map.
 (function () {
     const ELEVATION_CACHE_KEY = 'tduCheckpointElevationV1';
-    const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+    const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
     const PATH_STYLE = { color: '#003865', weight: 4, opacity: 0.85 };
 
     let map = null;
@@ -78,15 +78,15 @@
 
         const latlngs = checkpoints.map((checkpoint) => [checkpoint.lat, checkpoint.lng]);
         map = L.map(container, { scrollWheelZoom: false });
-        L.tileLayer(TILE_URL, { maxZoom: 18, attribution: TILE_ATTRIBUTION }).addTo(map);
+        L.tileLayer(TILE_URL, { maxZoom: 19, subdomains: 'abcd', attribution: TILE_ATTRIBUTION }).addTo(map);
 
         checkpoints.forEach((checkpoint) => {
             L.circleMarker([checkpoint.lat, checkpoint.lng], {
-                radius: 7,
-                color: '#003865',
-                weight: 2,
-                fillColor: '#E35205',
-                fillOpacity: 0.9
+                radius: 8,
+                color: '#ffffff',
+                weight: 2.5,
+                fillColor: '#f26522',
+                fillOpacity: 1.0
             }).bindPopup(buildPopupHTML(checkpoint)).addTo(map);
         });
 

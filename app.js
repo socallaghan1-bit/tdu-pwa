@@ -1,6 +1,7 @@
 let allEvents = [];
 let currentDayFilter = 'All';
 let currentLumaFilter = 'All';
+let currentSearchQuery = '';
 let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const ADELAIDE_COORDS = { latitude: -34.9285, longitude: 138.6007 };
@@ -712,7 +713,7 @@ async function exportEventsToCalendar(events, fileName = 'tdu_events.ics') {
 window.exportSavedEvents = async function() {
     const savedIds = getSavedEvents();
     if (savedIds.length === 0) {
-        alert('You have no saved events to export.');
+        showToast('📍 You have no saved events to export.', { type: 'info' });
         return false;
     }
 
@@ -724,6 +725,54 @@ window.exportSavedEvents = async function() {
         });
     }
     return exported;
+};
+
+window.shareItinerary = async function() {
+    const savedIds = getSavedEvents();
+    if (savedIds.length === 0) {
+        showToast('📍 Save some events to your itinerary before sharing!', { type: 'info', duration: 3500 });
+        return false;
+    }
+
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.delete('event');
+    currentUrl.searchParams.set('plan', savedIds.join(','));
+    const shareUrl = currentUrl.toString();
+
+    const shareData = {
+        title: 'My TDU 2027 Itinerary',
+        text: `Check out my Tour Down Under 2027 itinerary (${savedIds.length} saved event${savedIds.length > 1 ? 's' : ''}):`,
+        url: shareUrl
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+            await navigator.share(shareData);
+            playAudioCue('export');
+            trackAnalyticsEvent('share_itinerary_native', { count: savedIds.length });
+            return true;
+        } catch (err) {
+            if (err.name === 'AbortError') return false;
+        }
+    }
+
+    // Fallback 1: Clipboard write
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            showToast('🔗 <strong>Itinerary link copied!</strong> Share it with your friends.', { duration: 4000 });
+            playAudioCue('export');
+            trackAnalyticsEvent('share_itinerary_clipboard', { count: savedIds.length });
+            return true;
+        } catch (copyErr) {
+            // Fall through to prompt
+        }
+    }
+
+    // Fallback 2: Prompt
+    window.prompt('Copy this link to share your TDU itinerary:', shareUrl);
+    trackAnalyticsEvent('share_itinerary_prompt', { count: savedIds.length });
+    return true;
 };
 
 async function exportStageToCalendar(eventId) {
@@ -923,6 +972,36 @@ function handleEventDeepLink() {
         return;
     }
 
+    const planParam = params.get('plan');
+    if (planParam) {
+        const sharedIds = planParam.split(',').map((s) => s.trim()).filter(Boolean);
+        const validEvents = allEvents.filter((event) => sharedIds.includes(String(event.id)));
+
+        if (validEvents.length > 0) {
+            let savedEvents = getSavedEvents();
+            let addedCount = 0;
+            validEvents.forEach((ev) => {
+                const idStr = String(ev.id);
+                if (!savedEvents.includes(idStr)) {
+                    savedEvents.push(idStr);
+                    addedCount++;
+                }
+            });
+            localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
+            updateSavedBadge();
+            showView('saved');
+            showToast(`🎉 <strong>Imported ${validEvents.length} event${validEvents.length > 1 ? 's' : ''}</strong> from shared itinerary!`, { duration: 4500 });
+            playAudioCue('export');
+        }
+
+        params.delete('plan');
+        const query = params.toString();
+        if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+        }
+        return;
+    }
+
     const eventId = params.get('event');
     if (!eventId) return;
 
@@ -937,35 +1016,91 @@ function handleEventDeepLink() {
     }
 }
 
+window.handleScheduleSearch = function(query) {
+    currentSearchQuery = (query || '').trim().toLowerCase();
+    const clearBtn = document.getElementById('schedule-search-clear');
+    if (clearBtn) {
+        clearBtn.style.display = currentSearchQuery ? 'inline-flex' : 'none';
+    }
+    renderSchedule();
+    updateScheduleMapMarkers();
+};
+
+window.clearScheduleSearch = function() {
+    currentSearchQuery = '';
+    const input = document.getElementById('schedule-search-input');
+    if (input) input.value = '';
+    const clearBtn = document.getElementById('schedule-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+    renderSchedule();
+    updateScheduleMapMarkers();
+};
+
+function matchesSearchQuery(event, query) {
+    if (!query) return true;
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+
+    const title = String(event.title || '').toLowerCase();
+    const desc = String(event.description || '').toLowerCase();
+    const loc = String(event.location || '').toLowerCase();
+    const finishLoc = String(event.finish_location || '').toLowerCase();
+    const cat = String(event.category || '').toLowerCase();
+    const type = String(event.type || '').toLowerCase();
+    const rating = getEventRatingLabel(event).toLowerCase();
+    const tags = Array.isArray(event.tags) ? event.tags.map((t) => String(t).toLowerCase()).join(' ') : '';
+    const checkpoints = Array.isArray(event.checkpoints) ? event.checkpoints.map((c) => String(c.name || '')).join(' ').toLowerCase() : '';
+
+    return title.includes(q)
+        || desc.includes(q)
+        || loc.includes(q)
+        || finishLoc.includes(q)
+        || cat.includes(q)
+        || type.includes(q)
+        || rating.includes(q)
+        || tags.includes(q)
+        || checkpoints.includes(q);
+}
+
+function matchesCategoryFilter(event, filter) {
+    if (!filter || filter === 'All' || filter === '🏁 All') return true;
+    const cat = String(event.category || '').toLowerCase();
+    const type = String(event.type || '').toLowerCase();
+    const tags = Array.isArray(event.tags) ? event.tags.map((t) => String(t).toLowerCase()) : [];
+    const text = `${cat} ${type} ${event.title || ''} ${event.description || ''} ${tags.join(' ')}`.toLowerCase();
+    const f = filter.toLowerCase();
+
+    if (f.includes('coffee')) {
+        return tags.includes('coffee') || text.includes('coffee') || text.includes('cafe') || text.includes('espresso');
+    }
+    if (f.includes('beer') || f.includes('social') || f.includes('pop-up') || f.includes('popups')) {
+        return cat.includes('social') || type.includes('social') || cat.includes('pop-up') || cat.includes('popup') || tags.includes('beer') || tags.includes('social') || tags.includes('wine') || text.includes('beer') || text.includes('brewery') || text.includes('party');
+    }
+    if (f.includes('family')) {
+        return cat.includes('family') || type.includes('family') || tags.includes('family') || tags.includes('kids');
+    }
+    if (f.includes('group rides') || f.includes('ride')) {
+        return cat.includes('ride') || type.includes('ride') || tags.includes('ride');
+    }
+    if (f.includes('race') || f.includes('stages') || f.includes('stage')) {
+        return cat.includes('stage') || type.includes('stage') || cat.includes('race') || tags.includes('race');
+    }
+    return text.includes(f);
+}
+
 function getFilteredScheduleEvents() {
     let displayEvents = allEvents.slice();
+
+    if (currentSearchQuery) {
+        displayEvents = displayEvents.filter((event) => matchesSearchQuery(event, currentSearchQuery));
+    }
 
     if (currentDayFilter !== 'All') {
         displayEvents = displayEvents.filter((event) => event.date === currentDayFilter);
     }
 
     if (currentLumaFilter !== 'All') {
-        displayEvents = displayEvents.filter((event) => {
-            const cat = String(event.category || '').toLowerCase();
-            const type = String(event.type || '').toLowerCase();
-            const luma = currentLumaFilter.toLowerCase();
-            if (luma === 'race stages') {
-                return cat.includes('stage') || type.includes('stage') || cat.includes('race');
-            }
-            if (luma === 'group rides') {
-                return cat.includes('ride') || type.includes('ride');
-            }
-            if (luma === 'social') {
-                return cat.includes('social') || type.includes('social');
-            }
-            if (luma === 'pop-ups' || luma === 'pop-up' || luma === 'popups') {
-                return cat.includes('pop-up') || cat.includes('popup') || type.includes('pop-up');
-            }
-            if (luma === 'family') {
-                return cat.includes('family') || type.includes('family');
-            }
-            return cat.includes(luma) || type.includes(luma);
-        });
+        displayEvents = displayEvents.filter((event) => matchesCategoryFilter(event, currentLumaFilter));
     }
 
     return displayEvents;
@@ -1645,6 +1780,12 @@ function getRecommendationResult(intent, optionId) {
 }
 
 function resetScheduleFilters() {
+    currentSearchQuery = '';
+    const input = document.getElementById('schedule-search-input');
+    if (input) input.value = '';
+    const clearBtn = document.getElementById('schedule-search-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+
     currentDayFilter = 'All';
     currentLumaFilter = 'All';
 
@@ -1672,8 +1813,39 @@ window.openEventInSchedule = function(eventId, source = 'schedule') {
 };
 
 /* ==========================================================================
-   Event Card HTML Generator
+   Event Card HTML Generator & Lifecycle Status
    ========================================================================== */
+
+function getEventLifecycleStatus(event) {
+    if (!event || !event.date) {
+        return { status: 'upcoming', label: '📅 UPCOMING', className: 'status-upcoming' };
+    }
+
+    const now = new Date();
+    const dateParts = String(event.date).trim().split('-');
+    if (dateParts.length !== 3) {
+        return { status: 'upcoming', label: '📅 UPCOMING', className: 'status-upcoming' };
+    }
+
+    const year = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[2], 10);
+
+    const startMinutes = timeToMinutes(event.start_time) ?? 0;
+    const calculatedEnd = calculateEventEndTime(event);
+    const endMinutes = timeToMinutes(event.end_time) ?? (calculatedEnd.minutes ?? (startMinutes + 240));
+
+    const startDate = new Date(year, month, day, Math.floor(startMinutes / 60), startMinutes % 60, 0);
+    const endDate = new Date(year, month, day, Math.floor(endMinutes / 60), endMinutes % 60, 0);
+
+    if (now < startDate) {
+        return { status: 'upcoming', label: '📅 UPCOMING', className: 'status-upcoming' };
+    } else if (now >= startDate && now <= endDate) {
+        return { status: 'live', label: '🟢 LIVE NOW', className: 'status-live' };
+    } else {
+        return { status: 'finished', label: '🏁 FINISHED', className: 'status-finished' };
+    }
+}
 
 function createEventCardHTML(event, eventId, isSaved) {
     const title = event.title || 'Untitled Event';
@@ -1710,7 +1882,8 @@ function createEventCardHTML(event, eventId, isSaved) {
     }
 
     const isCheckedIn = isEventCheckedIn(eventId);
-    const hasMapCoords = Boolean(parseCoordinates(event.coords) || (Array.isArray(event.checkpoints) && event.checkpoints.length));
+    const checkpoints = getStageMapCheckpoints(event);
+    const lifecycle = getEventLifecycleStatus(event);
 
     return `
         <div class="event-card" id="event-${eventId}">
@@ -1719,6 +1892,7 @@ function createEventCardHTML(event, eventId, isSaved) {
             </button>
 
             <div class="event-badges">
+                <span class="lifecycle-badge ${lifecycle.className}">${lifecycle.label}</span>
                 ${category ? `<span class="tag">${escapeHTML(category)}</span>` : ''}
                 ${rating ? `<span class="tag secondary-tag">${escapeHTML(rating)}</span>` : ''}
             </div>
@@ -1732,18 +1906,29 @@ function createEventCardHTML(event, eventId, isSaved) {
 
             ${description ? `<div class="event-desc">${escapeHTML(description)}</div>` : ''}
 
-            <div class="card-actions">
+            <div class="card-primary-actions">
                 <button type="button" class="btn btn-checkin ${isCheckedIn ? 'checked-in' : ''}" onclick="handleEventCheckIn('${escapeHTML(eventId)}', this)">
                     <i class="${isCheckedIn ? 'fas fa-check-circle' : 'fas fa-map-pin'}" aria-hidden="true"></i>
                     ${isCheckedIn ? 'Checked In' : 'Check In'}
                 </button>
-                ${hasMapCoords ? `<button type="button" class="btn btn-map-pin" onclick="panMapToEvent('${escapeHTML(eventId)}')"><i class="fas fa-map-location-dot" aria-hidden="true"></i> Show on Map</button>` : ''}
-                ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start map' : 'Directions'}</a>` : ''}
-                ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish map</a>` : ''}
-                ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-primary" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route</a>` : ''}
-                ${getStageMapCheckpoints(event).length ? `<button type="button" class="btn" onclick="openStageMap('${escapeHTML(eventId)}')"><i class="fas fa-chart-line" aria-hidden="true"></i> Checkpoints</button>` : ''}
-                <button type="button" class="btn" onclick="exportStageToCalendar('${escapeHTML(eventId)}')"><i class="far fa-calendar-plus" aria-hidden="true"></i> Add to cal</button>
+                <button type="button" class="btn btn-map-pin" onclick="panMapToEvent('${escapeHTML(eventId)}')">
+                    <i class="fas fa-map-location-dot" aria-hidden="true"></i> Show on Map
+                </button>
             </div>
+
+            <details class="card-details-toggle">
+                <summary class="details-summary-btn">
+                    <span><i class="fas fa-compass" aria-hidden="true"></i> Route &amp; Options</span>
+                    <i class="fas fa-chevron-down summary-arrow" aria-hidden="true"></i>
+                </summary>
+                <div class="secondary-actions-grid">
+                    ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start Directions' : 'Directions'}</a>` : ''}
+                    ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish Map</a>` : ''}
+                    ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route Details</a>` : ''}
+                    ${checkpoints.length ? `<button type="button" class="btn btn-secondary-action" onclick="openStageMap('${escapeHTML(eventId)}')"><i class="fas fa-chart-line" aria-hidden="true"></i> Checkpoints</button>` : ''}
+                    <button type="button" class="btn btn-secondary-action" onclick="exportStageToCalendar('${escapeHTML(eventId)}')"><i class="far fa-calendar-plus" aria-hidden="true"></i> Add to Calendar</button>
+                </div>
+            </details>
         </div>
     `;
 }
@@ -1906,11 +2091,24 @@ window.trackEventAction = function(action, eventId) {
 
 function getEventCategoryColor(event) {
     const cat = `${event.category || ''} ${event.type || ''}`.toLowerCase();
-    if (cat.includes('stage') || cat.includes('race')) return { bg: '#f26522', icon: 'fa-bicycle', label: 'Race Stage' };
-    if (cat.includes('ride')) return { bg: '#007aff', icon: 'fa-mug-hot', label: 'Group Ride' };
-    if (cat.includes('social')) return { bg: '#af52de', icon: 'fa-champagne-glasses', label: 'Social' };
-    if (cat.includes('pop-up') || cat.includes('popup')) return { bg: '#ff9500', icon: 'fa-beer-mug-empty', label: 'Pop-up' };
-    if (cat.includes('family')) return { bg: '#34c759', icon: 'fa-people-roof', label: 'Family' };
+    const tags = Array.isArray(event.tags) ? event.tags.map((t) => String(t).toLowerCase()) : [];
+    const text = `${cat} ${event.title || ''} ${tags.join(' ')}`.toLowerCase();
+
+    if (cat.includes('stage') || cat.includes('race') || tags.includes('race')) {
+        return { bg: '#f26522', icon: 'fa-bicycle', label: 'Race Stage' };
+    }
+    if (tags.includes('coffee') || text.includes('coffee') || text.includes('espresso') || text.includes('cafe')) {
+        return { bg: '#795548', icon: 'fa-mug-hot', label: 'Coffee' };
+    }
+    if (cat.includes('ride') || text.includes('ride') || tags.includes('ride')) {
+        return { bg: '#007aff', icon: 'fa-person-biking', label: 'Group Ride' };
+    }
+    if (cat.includes('social') || cat.includes('pop-up') || cat.includes('popup') || tags.includes('beer') || tags.includes('social')) {
+        return { bg: '#af52de', icon: 'fa-beer-mug-empty', label: 'Beer / Social' };
+    }
+    if (cat.includes('family') || tags.includes('family') || tags.includes('kids')) {
+        return { bg: '#34c759', icon: 'fa-people-roof', label: 'Family' };
+    }
     return { bg: '#f26522', icon: 'fa-location-dot', label: 'Event' };
 }
 
@@ -1944,9 +2142,10 @@ async function initScheduleMap() {
         scrollWheelZoom: false
     });
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'
     }).addTo(scheduleMap);
 
     scheduleMarkersLayer = L.layerGroup().addTo(scheduleMap);
@@ -2048,7 +2247,15 @@ window.panMapToEvent = function(eventId) {
     if (!coords && Array.isArray(event.checkpoints) && event.checkpoints.length) {
         coords = parseCoordinates(event.checkpoints[0].coords);
     }
-    if (!coords) return;
+    
+    if (!coords) {
+        const { start, finish } = getEventLocations(event);
+        const loc = start || finish;
+        if (loc) {
+            window.open(`https://maps.google.com/?q=${encodeURIComponent(loc)}`, '_blank', 'noopener');
+        }
+        return;
+    }
 
     if (window.innerWidth < 900 && !isMobileScheduleMapActive) {
         toggleMobileScheduleView();
