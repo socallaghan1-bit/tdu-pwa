@@ -836,11 +836,28 @@ window.handleEventCheckIn = function(eventId, btnEl) {
     let checkins = getPassportCheckins();
     const alreadyCheckedIn = checkins.some((c) => String(c.id) === strId);
 
+    // UNDO CHECK-IN PATH
     if (alreadyCheckedIn) {
-        showToast(`📍 Already checked in for <strong>${escapeHTML(event ? event.title : 'this event')}</strong>!`, { type: 'info' });
+        const confirmUndo = confirm(`Are you sure you want to remove your check-in for "${event ? event.title : 'this event'}"? Your Rider Passport progress will update.`);
+        if (confirmUndo) {
+            checkins = checkins.filter((c) => String(c.id) !== strId);
+            localStorage.setItem(PASSPORT_STORAGE_KEY, JSON.stringify(checkins));
+            
+            if (btnEl) {
+                btnEl.classList.remove('checked-in');
+                btnEl.innerHTML = '<i class="fas fa-map-pin" aria-hidden="true"></i> Check In';
+            }
+            showToast(`Removed check-in for <strong>${escapeHTML(event ? event.title : 'event')}</strong>.`, { type: 'info' });
+            
+            const activeView = document.querySelector('.view.active');
+            if (activeView && activeView.id === 'view-saved') {
+                renderSaved();
+            }
+        }
         return;
     }
 
+    // NEW CHECK-IN PATH
     const previousBadges = PASSPORT_BADGES.filter((b) => b.check(checkins, allEvents)).map((b) => b.id);
 
     const record = {
@@ -883,7 +900,6 @@ window.handleEventCheckIn = function(eventId, btnEl) {
         renderSaved();
     }
 };
-
 function renderRiderPassportWidget() {
     const checkins = getPassportCheckins();
     const unlockedBadges = PASSPORT_BADGES.filter((b) => b.check(checkins, allEvents));
