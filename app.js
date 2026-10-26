@@ -961,6 +961,12 @@ async function fetchEvents() {
         const response = await fetch('./events.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error('Could not load events.json');
         allEvents = await response.json();
+        allEvents.sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            if (dateA !== dateB) return dateA.localeCompare(dateB);
+            return (a.start_time || '').localeCompare(b.start_time || '');
+        });
         updateSavedBadge();
         renderFeaturedEvents();
         renderRecommendationFlow();
@@ -1903,14 +1909,13 @@ function createEventCardHTML(event, eventId, isSaved) {
 
     return `
         <div class="event-card" id="event-${eventId}">
-            <button class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)" aria-label="Save event">
-                <i class="${heartClass} fa-heart" aria-hidden="true"></i>
-            </button>
-
             <div class="event-badges">
                 <span class="lifecycle-badge ${lifecycle.className}">${lifecycle.label}</span>
                 ${category ? `<span class="tag">${escapeHTML(category)}</span>` : ''}
                 ${rating ? `<span class="tag secondary-tag">${escapeHTML(rating)}</span>` : ''}
+                <button type="button" class="fav-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${eventId}', this)" aria-label="Save event" aria-pressed="${isSaved ? 'true' : 'false'}">
+                    <i class="${heartClass} fa-heart" aria-hidden="true"></i>
+                </button>
             </div>
             <h3>${escapeHTML(title)}</h3>
 
@@ -1971,6 +1976,7 @@ window.toggleSave = function(id, btnElement) {
         trackAnalyticsEvent('save_event', getEventAnalyticsPayload(strId));
     }
 
+    if (btnElement) btnElement.setAttribute('aria-pressed', savedEvents.includes(strId) ? 'true' : 'false');
     localStorage.setItem('savedTDU', JSON.stringify(savedEvents));
     updateSavedBadge();
 

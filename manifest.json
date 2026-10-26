@@ -11,13 +11,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3082/3082349.png",
+      "src": "icons/tdu-badge.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3082/3082349.png",
+      "src": "icons/tdu-badge.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
