@@ -976,6 +976,38 @@ header {
     margin-bottom: 8px;
 }
 
+.fav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fav-btn i {
+    font-size: 1.15rem;
+    transition: color 0.2s ease;
+}
+
+.fav-btn:active {
+    transform: scale(0.85);
+}
+
+.fav-btn.saved i,
+.fav-btn i.saved {
+    color: #ff69b4 !important;
+}
+
+.fav-btn:focus-visible {
+    outline: 2px solid #1f5ea8;
+    outline-offset: 2px;
+}
+
 .secondary-tag {
     background: #eef5ff;
     color: #1f5ea8;
