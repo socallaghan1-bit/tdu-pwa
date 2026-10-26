@@ -2,8 +2,8 @@
 // Libraries load from CDNJS only when a user opens a stage map.
 (function () {
     const ELEVATION_CACHE_KEY = 'tduCheckpointElevationV1';
-    const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+    const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const TILE_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
     const PATH_STYLE = { color: '#003865', weight: 4, opacity: 0.85 };
 
     let map = null;

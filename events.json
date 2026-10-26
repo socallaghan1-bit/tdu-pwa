@@ -656,183 +656,64 @@
     ]
   },
   {
-    "id": "group-ride-maap-cbd",
-    "title": "MAAP Morning CBD Loop & Espresso",
-    "category": "Group Rides",
-    "type": "Group Ride",
-    "date": "2027-01-19",
-    "start_time": "07:00",
-    "end_time": "09:30",
-    "location": "Light Square, Adelaide CBD",
-    "coords": "-34.9260,138.5910",
-    "distance_km": 48,
-    "elevation_m": 220,
-    "description": "Kick off TDU week with a spirited 48 km social spin through the Adelaide parklands and river trail, wrapping up at the MAAP Pop-up for complimentary espresso and pastries.",
-    "tdu_rating": "Social",
+    "id": "2027-oceania-tt",
+    "title": "Oceania Road Championships: Time Trials",
+    "category": "Race Stages",
+    "type": "Race Stage",
+    "date": "2027-01-15",
+    "start_time": "09:00",
+    "location": "Adelaide",
+    "description": "Kicking off the Santos Festival of Cycling! Elite, U23, and U19 riders battle the clock for the Oceania Time Trial titles.",
     "tags": [
-      "ride",
-      "coffee",
-      "social",
-      "flat"
+      "race",
+      "tt",
+      "oceania"
     ]
   },
   {
-    "id": "group-ride-rapha-hills",
-    "title": "Rapha Norton Summit & Lofty Coffee Ride",
-    "category": "Group Rides",
-    "type": "Group Ride",
-    "date": "2027-01-21",
-    "start_time": "06:45",
-    "end_time": "09:45",
-    "location": "Victoria Square (Tour Village), Adelaide",
-    "coords": "-34.9286,138.6000",
-    "distance_km": 52,
-    "elevation_m": 850,
-    "description": "The quintessential Adelaide climbing route. Roll out from Tour Village up Norton Summit to Mount Lofty Summit cafe before dropping back into town ahead of Stage 3.",
-    "tdu_rating": "Carapaz",
+    "id": "2027-oceania-rr",
+    "title": "Oceania Road Championships: Road Races",
+    "category": "Race Stages",
+    "type": "Race Stage",
+    "date": "2027-01-16",
+    "start_time": "08:00",
+    "location": "Adelaide",
+    "description": "Riders from Australia, New Zealand, and across the Pacific converge on Adelaide to crown the continental road race champions.",
     "tags": [
-      "ride",
-      "climbing",
-      "hills",
-      "coffee"
+      "race",
+      "road",
+      "oceania"
     ]
   },
   {
-    "id": "group-ride-pedaler-coastal",
-    "title": "Sunset Coastal Cruise to Glenelg",
-    "category": "Group Rides",
-    "type": "Group Ride",
-    "date": "2027-01-22",
-    "start_time": "17:30",
-    "end_time": "19:30",
-    "location": "Jetty Road, Glenelg",
-    "coords": "-34.9805,138.5135",
-    "distance_km": 35,
-    "elevation_m": 80,
-    "description": "An easy-paced twilight recovery ride along the coastal bike path from Glenelg to Brighton and back. Cold drinks and sunset vibes at the beachside pavilion.",
-    "tdu_rating": "Social",
-    "tags": [
-      "ride",
-      "coastal",
-      "social",
-      "easy"
-    ]
-  },
-  {
-    "id": "social-tour-village-party",
-    "title": "City of Adelaide Tour Village Opening Night",
+    "id": "2027-opening-concert",
+    "title": "Tour Village Opening Concert: DJ Hot Dub Time Machine",
     "category": "Social",
     "type": "Social",
-    "featured": true,
-    "featured_priority": 1,
-    "featured_reason": "editorial",
-    "date": "2027-01-19",
-    "start_time": "17:00",
-    "end_time": "22:00",
+    "date": "2027-01-16",
+    "start_time": "18:00",
     "location": "Victoria Square / Tarntanyangga, Adelaide",
-    "coords": "-34.9286,138.6000",
-    "description": "Live DJ sets, South Australian food stalls, craft beer garden, team mechanic stages, and rider Q&A panels in the heart of Adelaide.",
-    "tdu_rating": "Vibes",
+    "description": "A free Saturday night opening concert in the City of Adelaide Tour Village headlined by DJ Hot Dub Time Machine to launch the festival week.",
     "tags": [
       "social",
-      "beer",
+      "music",
+      "party",
+      "city"
+    ]
+  },
+  {
+    "id": "2027-gumeracha-festival",
+    "title": "Stage 1 Finish Line Festival",
+    "category": "Family",
+    "type": "Festival",
+    "date": "2027-01-19",
+    "start_time": "11:00",
+    "end_time": "16:00",
+    "location": "Gumeracha",
+    "description": "The Santos Tour Down Under Festival Hits the Road! Enjoy local produce, hospitality, and entertainment right at the Stage 1 finish line.",
+    "tags": [
+      "family",
       "food",
-      "featured",
-      "city"
-    ]
-  },
-  {
-    "id": "social-hills-winery-chillout",
-    "title": "Adelaide Hills Post-Stage Winery Social",
-    "category": "Social",
-    "type": "Social",
-    "date": "2027-01-21",
-    "start_time": "15:30",
-    "end_time": "19:30",
-    "location": "Onkaparinga Valley Road, Woodside",
-    "coords": "-34.9540,138.8740",
-    "description": "Celebrate Stage 3 in the Hills! Relax under the gum trees with local Adelaide Hills cool-climate wines, wood-fired pizza, and live acoustic music.",
-    "tdu_rating": "Social",
-    "tags": [
-      "social",
-      "wine",
-      "hills",
-      "food"
-    ]
-  },
-  {
-    "id": "popup-bridge-road-brewery",
-    "title": "Bridge Road Brewers Craft Beer Pop-up",
-    "category": "Pop-ups",
-    "type": "Pop-up",
-    "date": "2027-01-20",
-    "start_time": "14:00",
-    "end_time": "23:00",
-    "location": "Gilbert Street, Adelaide CBD",
-    "coords": "-34.9330,138.5980",
-    "description": "Special batch TDU pale ales on tap, cycling film screenings, custom merchandise giveaways, and local food trucks right in the CBD.",
-    "tdu_rating": "Beer",
-    "tags": [
-      "pop-up",
-      "beer",
-      "social",
-      "city"
-    ]
-  },
-  {
-    "id": "popup-rapha-clubhouse",
-    "title": "Rapha Clubhouse & Espresso Pop-up",
-    "category": "Pop-ups",
-    "type": "Pop-up",
-    "date": "2027-01-23",
-    "start_time": "07:30",
-    "end_time": "18:00",
-    "location": "King William Street, Adelaide",
-    "coords": "-34.9255,138.5995",
-    "description": "Limited-edition TDU 2027 capsule collection, live race streaming on big screens, artisanal specialty coffee, and pre-ride bike checkups.",
-    "tdu_rating": "Vibes",
-    "tags": [
-      "pop-up",
-      "coffee",
-      "gear",
-      "city"
-    ]
-  },
-  {
-    "id": "family-santos-mini-tour",
-    "title": "Santos Family Tour & Strider Balance Bike Zone",
-    "category": "Family",
-    "type": "Family Event",
-    "date": "2027-01-23",
-    "start_time": "09:30",
-    "end_time": "13:00",
-    "location": "Victoria Square / Tarntanyangga, Adelaide",
-    "coords": "-34.9286,138.6000",
-    "description": "A fun-filled family day featuring free obstacle courses for kids on closed city streets, balance bike races, face painting, and giveaways from cycling stars.",
-    "tdu_rating": "Family",
-    "tags": [
-      "family",
-      "kids",
-      "easy",
-      "social"
-    ]
-  },
-  {
-    "id": "family-glenelg-beach-crit",
-    "title": "Glenelg Beachfront Kids Crit & Carnival",
-    "category": "Family",
-    "type": "Family Event",
-    "date": "2027-01-22",
-    "start_time": "10:00",
-    "end_time": "15:00",
-    "location": "Foreshore, Glenelg",
-    "coords": "-34.9805,138.5135",
-    "description": "Bring the whole family down to the beach! Supervised junior circuit laps, seaside ice cream stalls, sandcastle competitions, and front-row stage watching.",
-    "tdu_rating": "Family",
-    "tags": [
-      "family",
-      "coastal",
-      "kids",
       "social"
     ]
   }
