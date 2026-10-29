@@ -21,6 +21,7 @@ const BROUTER_MAP_CENTRE = '12/-34.85/138.80/standard';
 
 let scheduleMap = null;
 let scheduleMarkersLayer = null;
+let scheduleRouteLayer = null;
 let isMobileScheduleMapActive = false;
 
 const VIEW_ANALYTICS_CONFIG = {
@@ -2068,7 +2069,10 @@ window.showView = function(viewName) {
         renderSchedule();
         initScheduleMap();
         setTimeout(() => {
-            if (scheduleMap) scheduleMap.invalidateSize();
+            if (scheduleMap) {
+                scheduleMap.invalidateSize();
+                updateScheduleMapMarkers();
+            }
         }, 200);
     } else if (viewName === 'saved') {
         renderSaved();
@@ -2140,10 +2144,8 @@ async function initScheduleMap() {
     if (!container) return;
 
     if (scheduleMap) {
+        scheduleMap.invalidateSize();
         updateScheduleMapMarkers();
-        setTimeout(() => {
-            if (scheduleMap) scheduleMap.invalidateSize();
-        }, 150);
         return;
     }
 
@@ -2165,77 +2167,137 @@ async function initScheduleMap() {
     });
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-}).addTo(scheduleMap);
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+    }).addTo(scheduleMap);
+    scheduleRouteLayer = L.layerGroup().addTo(scheduleMap);
     scheduleMarkersLayer = L.layerGroup().addTo(scheduleMap);
     if (statusEl) statusEl.textContent = '';
+    scheduleMap.invalidateSize();
     updateScheduleMapMarkers();
+}
+
+function fitScheduleMapToBounds(points) {
+    if (!scheduleMap || !window.L) return;
+    if (Array.isArray(points) && points.length > 0) {
+        scheduleMap.fitBounds(window.L.latLngBounds(points), { padding: [35, 35], maxZoom: 13 });
+        return;
+    }
+    scheduleMap.setView([-34.9285, 138.6007], 9);
+}
+
+function buildSchedulePopup(event, meta, eventId) {
+    const startTime = event.start_time ? formatTime(event.start_time) : '';
+    const loc = event.location || event.finish_location || 'Adelaide';
+    return `
+        <div class="map-popup-card">
+            <div class="popup-tag" style="background:${meta.bg}20; color:${meta.bg};">${escapeHTML(meta.label)}</div>
+            <h4 class="popup-title">${escapeHTML(event.title || 'Event')}</h4>
+            <div class="popup-meta">
+                ${event.date ? `<span><i class="far fa-calendar"></i> ${formatDate(event.date)}</span>` : ''}
+                ${startTime ? `<span><i class="far fa-clock"></i> ${startTime}</span>` : ''}
+                <span><i class="fas fa-location-dot"></i> ${escapeHTML(loc)}</span>
+            </div>
+            <button type="button" class="btn btn-primary popup-action-btn" onclick="focusEventFromMap('${escapeHTML(eventId)}')">
+                <i class="fas fa-arrow-down"></i> View in List
+            </button>
+        </div>
+    `;
 }
 
 function updateScheduleMapMarkers() {
     if (!scheduleMap || !scheduleMarkersLayer || !window.L) return;
     scheduleMarkersLayer.clearLayers();
+    if (scheduleRouteLayer) scheduleRouteLayer.clearLayers();
 
     const events = getFilteredScheduleEvents();
     const bounds = [];
+    const isMacroView = currentDayFilter === 'All';
 
     events.forEach((event, idx) => {
         const eventId = String(event.id || idx + 1);
-        let coords = parseCoordinates(event.coords);
-        if (!coords && Array.isArray(event.checkpoints) && event.checkpoints.length) {
-            coords = parseCoordinates(event.checkpoints[0].coords);
-        }
-        if (!coords) return;
-
-        bounds.push([coords.lat, coords.lng]);
+        const checkpoints = Array.isArray(event.checkpoints) ? event.checkpoints : [];
+        const coords = parseCoordinates(event.coords) || (checkpoints.length ? parseCoordinates(checkpoints[0].coords) : null);
+        const isStage = `${event.category || ''} ${event.type || ''}`.toLowerCase().includes('stage');
+        const routePoints = [];
         const meta = getEventCategoryColor(event);
 
-        const customIcon = window.L.divIcon({
-            className: 'custom-map-marker',
-            html: `<div class="marker-pin" style="background-color: ${meta.bg};" data-event-id="${escapeHTML(eventId)}">
-                      <i class="fas ${meta.icon}"></i>
-                   </div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -30]
+        if (coords) {
+            const point = [coords.lat, coords.lng];
+            bounds.push(point);
+            if (isStage) routePoints.push(point);
+            const customIcon = window.L.divIcon({
+                className: 'custom-map-marker',
+                html: `<div class="marker-pin" style="background-color: ${meta.bg};" data-event-id="${escapeHTML(eventId)}">
+                          <i class="fas ${meta.icon}"></i>
+                       </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -30]
+            });
+            const marker = window.L.marker(point, { icon: customIcon });
+            marker.eventId = eventId;
+            marker.bindPopup(buildSchedulePopup(event, meta, eventId));
+            marker.on('click', () => highlightEventCard(eventId));
+            scheduleMarkersLayer.addLayer(marker);
+        }
+
+        if (isMacroView || !isStage) return;
+
+        checkpoints.forEach((cp, cpIdx) => {
+            const cpCoords = parseCoordinates(cp.coords);
+            if (!cpCoords) return;
+            const point = [cpCoords.lat, cpCoords.lng];
+            bounds.push(point);
+            routePoints.push(point);
+
+            const name = cp.name || '';
+            const isFinish = cpIdx === checkpoints.length - 1 || cp.type === 'finish_hub' || /finish/i.test(name);
+            let pinClass = 'pin-checkpoint';
+            let iconClass = 'fa-location-dot';
+            if (isFinish) {
+                pinClass = 'pin-finish';
+                iconClass = 'fa-flag-checkered';
+            } else if (cp.type === 'kom' || /\bkom\b/i.test(name)) {
+                pinClass = 'pin-kom';
+                iconClass = 'fa-mountain';
+            } else if (cp.type === 'sprint' || /sprint/i.test(name)) {
+                pinClass = 'pin-sprint';
+                iconClass = 'fa-bolt';
+            } else if (cp.type === 'feed_zone' || /feed/i.test(name)) {
+                pinClass = 'pin-feed';
+                iconClass = 'fa-apple-whole';
+            }
+
+            const size = pinClass === 'pin-checkpoint' ? 24 : 32;
+            const cpIcon = window.L.divIcon({
+                className: 'custom-map-marker',
+                html: `<div class="marker-pin ${pinClass}" style="background-color: #f26522;">
+                          <i class="fas ${iconClass}"></i>
+                       </div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size],
+                popupAnchor: [0, -25]
+            });
+            const cpMarker = window.L.marker(point, { icon: cpIcon });
+            const passText = Array.isArray(cp.pass_times) && cp.pass_times.length ? `<br>Passes: ${escapeHTML(cp.pass_times.join(', '))}` : '';
+            const descText = cp.description ? `<br>${escapeHTML(cp.description)}` : '';
+            cpMarker.bindPopup(`<strong>${escapeHTML(name)}</strong>${passText}${descText}`);
+            cpMarker.on('click', () => highlightEventCard(eventId));
+            scheduleMarkersLayer.addLayer(cpMarker);
         });
 
-        const marker = window.L.marker([coords.lat, coords.lng], { icon: customIcon });
-        marker.eventId = eventId;
-
-        const startTime = event.start_time ? formatTime(event.start_time) : '';
-        const loc = event.location || event.finish_location || 'Adelaide';
-
-        const popupHtml = `
-            <div class="map-popup-card">
-                <div class="popup-tag" style="background:${meta.bg}20; color:${meta.bg};">${escapeHTML(meta.label)}</div>
-                <h4 class="popup-title">${escapeHTML(event.title || 'Event')}</h4>
-                <div class="popup-meta">
-                    ${event.date ? `<span><i class="far fa-calendar"></i> ${formatDate(event.date)}</span>` : ''}
-                    ${startTime ? `<span><i class="far fa-clock"></i> ${startTime}</span>` : ''}
-                    <span><i class="fas fa-location-dot"></i> ${escapeHTML(loc)}</span>
-                </div>
-                <button type="button" class="btn btn-primary popup-action-btn" onclick="focusEventFromMap('${escapeHTML(eventId)}')">
-                    <i class="fas fa-arrow-down"></i> View in List
-                </button>
-            </div>
-        `;
-
-        marker.bindPopup(popupHtml);
-
-        marker.on('click', () => {
-            highlightEventCard(eventId);
-        });
-
-        scheduleMarkersLayer.addLayer(marker);
+        if (routePoints.length > 1 && scheduleRouteLayer) {
+            window.L.polyline(routePoints, {
+                color: '#f26522',
+                weight: 4,
+                opacity: 0.85,
+                dashArray: '8, 12'
+            }).addTo(scheduleRouteLayer);
+        }
     });
 
-    if (bounds.length > 1) {
-        scheduleMap.fitBounds(window.L.latLngBounds(bounds), { padding: [30, 30], maxZoom: 14 });
-    } else if (bounds.length === 1) {
-        scheduleMap.setView(bounds[0], 13);
-    }
+    fitScheduleMapToBounds(bounds);
 }
 
 function highlightEventCard(eventId) {
@@ -2259,7 +2321,7 @@ window.focusEventFromMap = function(eventId) {
     highlightEventCard(eventId);
 };
 
-window.panMapToEvent = function(eventId) {
+window.panMapToEvent = async function(eventId) {
     const event = allEvents.find((e) => String(e.id) === String(eventId));
     if (!event) return;
 
@@ -2277,11 +2339,28 @@ window.panMapToEvent = function(eventId) {
         return;
     }
 
+    if (!matchesSearchQuery(event, currentSearchQuery) || !matchesCategoryFilter(event, currentLumaFilter)) {
+        resetScheduleFilters();
+    }
+    if (event.date && currentDayFilter !== event.date) {
+        currentDayFilter = event.date;
+        document.querySelectorAll('#day-filters .filter-btn').forEach((button) => {
+            button.classList.toggle('active', button.getAttribute('onclick').includes(`'${event.date}'`));
+        });
+        renderSchedule();
+        updateScheduleMapMarkers();
+    }
+    if (currentViewName !== 'schedule') showView('schedule');
     if (window.innerWidth < 900 && !isMobileScheduleMapActive) {
         toggleMobileScheduleView();
     }
 
+    await initScheduleMap();
+    // Let navigation and mobile layout corrections finish before focusing the event.
+    await new Promise((resolve) => setTimeout(resolve, 220));
     if (scheduleMap) {
+        scheduleMap.invalidateSize();
+        updateScheduleMapMarkers();
         scheduleMap.flyTo([coords.lat, coords.lng], 14, { duration: 0.8 });
         if (scheduleMarkersLayer) {
             scheduleMarkersLayer.eachLayer((layer) => {
@@ -2309,8 +2388,11 @@ window.toggleMobileScheduleView = function() {
 
     if (isMobileScheduleMapActive) {
         setTimeout(() => {
-            if (scheduleMap) scheduleMap.invalidateSize();
-        }, 150);
+            if (scheduleMap) {
+                scheduleMap.invalidateSize();
+                updateScheduleMapMarkers();
+            }
+        }, 200);
     }
 
     if (window.TDUHaptics) window.TDUHaptics.navigation();

@@ -1,6 +1,12 @@
 # tdu-pwa
 Your interactive Adelaide Tour Down Under companion. Explore every street party, pop-up group ride, and race stage in one fast, mobile-first PWA. Easily build a custom 'My TDU' itinerary, sync events to your phone calendar in one tap, check live Adelaide weather overlays, and access Strava route files—offline-ready with zero logins required!
 
+## Schedule maps
+- The 2027 schedule contains the nine official race stages and four festival announcements, without placeholder community events.
+- All Days shows start hubs only. Selecting a day reveals race checkpoints and dashed connections between them (not turn-by-turn road routes), with distinct finish, KOM, sprint, and feed-zone pins.
+- Show on Map selects the event's day. Maps refit after becoming visible on desktop or mobile and use keyless OpenStreetMap tiles with attribution.
+- Run the data, filtering, and map-layer regressions with `node --test tests/schedule-map.test.cjs`.
+
 ## Backlog additions
 - [x] Add optional sound or audio feedback for key in-app actions (synthesized via Web Audio API, with Settings toggle).
 - [x] Add opt-in push notifications for important event reminders and updates (see Web Push setup below).
