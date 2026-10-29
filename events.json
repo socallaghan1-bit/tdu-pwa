@@ -662,7 +662,8 @@
     "type": "Race Stage",
     "date": "2027-01-15",
     "start_time": "09:00",
-    "location": "Adelaide",
+    "location": "Victoria Square / Tarntanyangga, Adelaide",
+    "coords": "-34.9286,138.6000",
     "description": "Kicking off the Santos Festival of Cycling! Elite, U23, and U19 riders battle the clock for the Oceania Time Trial titles.",
     "tags": [
       "race",
@@ -677,7 +678,8 @@
     "type": "Race Stage",
     "date": "2027-01-16",
     "start_time": "08:00",
-    "location": "Adelaide",
+    "location": "Victoria Square / Tarntanyangga, Adelaide",
+    "coords": "-34.9286,138.6000",
     "description": "Riders from Australia, New Zealand, and across the Pacific converge on Adelaide to crown the continental road race champions.",
     "tags": [
       "race",
@@ -693,6 +695,7 @@
     "date": "2027-01-16",
     "start_time": "18:00",
     "location": "Victoria Square / Tarntanyangga, Adelaide",
+    "coords": "-34.9286,138.6000",
     "description": "A free Saturday night opening concert in the City of Adelaide Tour Village headlined by DJ Hot Dub Time Machine to launch the festival week.",
     "tags": [
       "social",
@@ -709,7 +712,8 @@
     "date": "2027-01-19",
     "start_time": "11:00",
     "end_time": "16:00",
-    "location": "Gumeracha",
+    "location": "Albert Street, Gumeracha",
+    "coords": "-34.8210,138.8840",
     "description": "The Santos Tour Down Under Festival Hits the Road! Enjoy local produce, hospitality, and entertainment right at the Stage 1 finish line.",
     "tags": [
       "family",

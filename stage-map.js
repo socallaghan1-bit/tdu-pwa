@@ -3,7 +3,7 @@
 (function () {
     const ELEVATION_CACHE_KEY = 'tduCheckpointElevationV1';
     const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const TILE_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
     const PATH_STYLE = { color: '#003865', weight: 4, opacity: 0.85 };
 
     let map = null;
@@ -78,7 +78,7 @@
 
         const latlngs = checkpoints.map((checkpoint) => [checkpoint.lat, checkpoint.lng]);
         map = L.map(container, { scrollWheelZoom: false });
-        L.tileLayer(TILE_URL, { maxZoom: 19, subdomains: 'abcd', attribution: TILE_ATTRIBUTION }).addTo(map);
+        L.tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION }).addTo(map);
 
         checkpoints.forEach((checkpoint) => {
             L.circleMarker([checkpoint.lat, checkpoint.lng], {
