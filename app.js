@@ -1142,11 +1142,38 @@ function renderSchedule() {
     }
 
     const savedEvents = getSavedEvents();
+    const hasSponsoredEvent = allEvents.some((ev) => ev && ev.is_sponsored === true);
+    let stageCount = 0;
+    let fallbackInjected = false;
+
+    const sponsorFallbackHTML = `
+        <div class="card event-card sponsor-showcase-card">
+            <div class="event-badges">
+                <span class="tag sponsor-tag"><i class="fas fa-bullhorn"></i> PARTNER SPOTLIGHT</span>
+            </div>
+            <h3 class="event-title">Spotlight Your Cycling Brand</h3>
+            <p class="event-desc">Put your brand, cafe, or club ride in front of thousands of spectators and riders during TDU week.</p>
+            <div class="card-actions">
+                <a href="mailto:contact@mytdu.app?subject=My%20TDU%20Partner%20Inquiry" class="btn btn-outline-primary">
+                    <i class="far fa-envelope"></i> Inquire for Placements
+                </a>
+            </div>
+        </div>
+    `;
 
     displayEvents.forEach((event, index) => {
         const eventId = String(event.id || index + 1);
         const isSaved = savedEvents.includes(eventId);
         container.innerHTML += createEventCardHTML(event, eventId, isSaved);
+
+        const isStage = event.category === 'Race Stages' || event.type === 'Race Stage';
+        if (isStage) {
+            stageCount++;
+            if (!hasSponsoredEvent && !fallbackInjected && stageCount === 2) {
+                container.innerHTML += sponsorFallbackHTML;
+                fallbackInjected = true;
+            }
+        }
     });
 
     if (window.TDUMotion) window.TDUMotion.revealCards(container);
@@ -1281,6 +1308,7 @@ function getStageMapCheckpoints(event) {
             return {
                 name: String(checkpoint.name || 'Checkpoint'),
                 description: String(checkpoint.description || ''),
+                address: checkpoint.address ? String(checkpoint.address) : '',
                 passTimes: passTimes.map(String),
                 firstPass: firstPass === undefined ? Number.POSITIVE_INFINITY : firstPass,
                 lat: coords.lat,
@@ -1907,10 +1935,13 @@ function createEventCardHTML(event, eventId, isSaved) {
     const isCheckedIn = isEventCheckedIn(eventId);
     const checkpoints = getStageMapCheckpoints(event);
     const lifecycle = getEventLifecycleStatus(event);
+    const isSponsored = event.is_sponsored === true;
+    const sponsorName = getSponsorName(event);
 
     return `
-        <div class="event-card" id="event-${eventId}">
+        <div class="card event-card ${isSponsored ? 'sponsored-card' : ''}" id="event-${eventId}">
             <div class="event-badges">
+                ${isSponsored ? `<span class="tag sponsor-tag"><i class="fas fa-bullhorn"></i> ${escapeHTML(sponsorName || 'SPONSORED')}</span>` : ''}
                 <span class="lifecycle-badge ${lifecycle.className}">${lifecycle.label}</span>
                 ${category ? `<span class="tag">${escapeHTML(category)}</span>` : ''}
                 ${rating ? `<span class="tag secondary-tag">${escapeHTML(rating)}</span>` : ''}
@@ -1918,7 +1949,7 @@ function createEventCardHTML(event, eventId, isSaved) {
                     <i class="${heartClass} fa-heart" aria-hidden="true"></i>
                 </button>
             </div>
-            <h3>${escapeHTML(title)}</h3>
+            <h3 class="event-title">${escapeHTML(title)}</h3>
 
             <div class="event-meta">
                 ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
@@ -2280,9 +2311,20 @@ function updateScheduleMapMarkers() {
                 popupAnchor: [0, -25]
             });
             const cpMarker = window.L.marker(point, { icon: cpIcon });
+            const address = cp.address || name;
+            const addressText = address ? `<br><span class="popup-cp-address"><i class="fas fa-location-dot"></i> ${escapeHTML(address)}</span>` : '';
             const passText = Array.isArray(cp.pass_times) && cp.pass_times.length ? `<br>Passes: ${escapeHTML(cp.pass_times.join(', '))}` : '';
             const descText = cp.description ? `<br>${escapeHTML(cp.description)}` : '';
-            cpMarker.bindPopup(`<strong>${escapeHTML(name)}</strong>${passText}${descText}`);
+            const popupContent = `
+                <div class="map-popup-card cp-popup-card">
+                    <strong>${escapeHTML(name)}</strong>${addressText}${passText}${descText}
+                    <div class="popup-actions-row">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${cpCoords.lat},${cpCoords.lng}" target="_blank" rel="noopener" class="popup-btn popup-btn-nav"><i class="fas fa-location-arrow"></i> Navigate</a>
+                        <button type="button" class="popup-btn popup-btn-copy" onclick="copyGpsCoordinates(${cpCoords.lat}, ${cpCoords.lng}, this)"><i class="far fa-copy"></i> Copy GPS</button>
+                    </div>
+                </div>
+            `.trim();
+            cpMarker.bindPopup(popupContent);
             cpMarker.on('click', () => highlightEventCard(eventId));
             scheduleMarkersLayer.addLayer(cpMarker);
         });
@@ -2298,6 +2340,53 @@ function updateScheduleMapMarkers() {
     });
 
     fitScheduleMapToBounds(bounds);
+}
+
+window.copyGpsCoordinates = function(lat, lng, btnElement) {
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+    const formatted = `${latNum.toFixed(5)}, ${lngNum.toFixed(5)}`;
+    const originalHTML = btnElement ? btnElement.innerHTML : '';
+
+    const showCopied = () => {
+        if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                btnElement.innerHTML = originalHTML;
+            }, 1800);
+        }
+        if (typeof showToast === 'function') {
+            showToast('GPS coordinates copied to clipboard');
+        }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(formatted).then(() => {
+            showCopied();
+        }).catch(() => {
+            fallbackCopyGps(formatted);
+            showCopied();
+        });
+    } else {
+        fallbackCopyGps(formatted);
+        showCopied();
+    }
+};
+
+function fallbackCopyGps(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+    } catch (e) {}
+    document.body.removeChild(textArea);
 }
 
 function highlightEventCard(eventId) {

@@ -11,7 +11,7 @@
     "location": "Seaview Road, Henley Beach",
     "finish_location": "Gumeracha",
     "coords": "-34.9220,138.4930",
-    "description": "Men's Stage 1 \u2022 164.9 km. Coastal start at Henley Beach before heading through Port Adelaide and the Adelaide Hills to Gumeracha. The route includes three ascents of Checker Hill, plus sprints in Williamstown and Lobethal.",
+    "description": "Men's Stage 1 • 164.9 km. Coastal start at Henley Beach before heading through Port Adelaide and the Adelaide Hills to Gumeracha. The route includes three ascents of Checker Hill, plus sprints in Williamstown and Lobethal.",
     "tdu_rating": "Hindley",
     "tags": [
       "race",
@@ -30,7 +30,8 @@
           "14:38"
         ],
         "description": "Cat 1 climb (18.4% max gradient). Peloton passes 3 times.",
-        "arrival_deadline": "12:20"
+        "arrival_deadline": "12:20",
+        "address": "Checker Hill Rd, Kersbrook SA 5231"
       },
       {
         "name": "Gorge Rd / Cudlee Creek",
@@ -40,7 +41,8 @@
           "14:25"
         ],
         "description": "Scenic gorge roadside viewing. Peloton passes 2 times.",
-        "arrival_deadline": "13:00"
+        "arrival_deadline": "13:00",
+        "address": "Gorge Rd, Cudlee Creek SA 5232"
       },
       {
         "name": "Lobethal Hotel (Sprint 2)",
@@ -50,7 +52,8 @@
           "14:11"
         ],
         "description": "Intermediate sprint point in town.",
-        "arrival_deadline": "12:45"
+        "arrival_deadline": "12:45",
+        "address": "Main St, Lobethal SA 5241"
       },
       {
         "name": "Gumeracha Finish Line",
@@ -61,7 +64,8 @@
           "14:47"
         ],
         "description": "Stage 1 finish hub and lap transitions.",
-        "arrival_deadline": "12:30"
+        "arrival_deadline": "12:30",
+        "address": "Albert St, Gumeracha SA 5233"
       }
     ]
   },
@@ -77,7 +81,7 @@
     "location": "Murray Street, Angaston",
     "finish_location": "Angaston",
     "coords": "-34.5020,139.0340",
-    "description": "Men's Stage 2 \u2022 145.6 km. A Barossa loop from Angaston with sprint points in Tanunda, three passes of Menglers Hill, and a gradual uphill run to the finish.",
+    "description": "Men's Stage 2 • 145.6 km. A Barossa loop from Angaston with sprint points in Tanunda, three passes of Menglers Hill, and a gradual uphill run to the finish.",
     "tdu_rating": "Carapaz",
     "tags": [
       "race",
@@ -97,7 +101,8 @@
           "13:11"
         ],
         "description": "3 passes of Menglers Hill (2.16 km @ 3.9%).",
-        "arrival_deadline": "10:20"
+        "arrival_deadline": "10:20",
+        "address": "Menglers Hill Rd, Angaston SA 5353"
       },
       {
         "name": "Tanunda Rotunda Sprint",
@@ -108,7 +113,8 @@
           "12:20"
         ],
         "description": "Intermediate sprint points in Tanunda main street.",
-        "arrival_deadline": "10:40"
+        "arrival_deadline": "10:40",
+        "address": "Murray St, Tanunda SA 5352"
       },
       {
         "name": "Seppeltsfield Road Feed & Clean Zone",
@@ -120,7 +126,8 @@
           "13:46"
         ],
         "description": "Bidon hunter hotspot as peloton grabs musettes along palm-lined avenue.",
-        "arrival_deadline": "10:50"
+        "arrival_deadline": "10:50",
+        "address": "Seppeltsfield Rd, Seppeltsfield SA 5355"
       },
       {
         "name": "Angaston Finish & Lap Hub",
@@ -132,7 +139,8 @@
           "14:11"
         ],
         "description": "Murray Street finish line and circuit lap transitions.",
-        "arrival_deadline": "11:15"
+        "arrival_deadline": "11:15",
+        "address": "Murray St, Angaston SA 5353"
       }
     ]
   },
@@ -151,7 +159,7 @@
     "location": "Main Street, Lobethal",
     "finish_location": "Campbelltown",
     "coords": "-34.9030,138.8740",
-    "description": "Men's Stage 3 \u2022 166.2 km. A decisive Adelaide Hills day with two climbs of Mount Lofty and two ascents of Corkscrew Road before the Campbelltown finish.",
+    "description": "Men's Stage 3 • 166.2 km. A decisive Adelaide Hills day with two climbs of Mount Lofty and two ascents of Corkscrew Road before the Campbelltown finish.",
     "tdu_rating": "Carapaz",
     "tags": [
       "race",
@@ -171,7 +179,8 @@
           "12:43"
         ],
         "description": "Prime feed zone before Mount Lofty ascent.",
-        "arrival_deadline": "10:40"
+        "arrival_deadline": "10:40",
+        "address": "Greenhill Rd, Summertown SA 5141"
       },
       {
         "name": "Mount Lofty KOM (Cat 2)",
@@ -182,7 +191,8 @@
           "12:50"
         ],
         "description": "4.4 km climb @ 4.0% with 14% maximum gradient.",
-        "arrival_deadline": "10:45"
+        "arrival_deadline": "10:45",
+        "address": "Mount Lofty Summit Rd, Crafers SA 5152"
       },
       {
         "name": "Woodside Hotel Sprint",
@@ -193,7 +203,8 @@
           "13:30"
         ],
         "description": "Intermediate sprint points on Onkaparinga Valley Rd.",
-        "arrival_deadline": "11:20"
+        "arrival_deadline": "11:20",
+        "address": "Onkaparinga Valley Rd, Woodside SA 5244"
       },
       {
         "name": "Corkscrew Road KOM (Cat 1)",
@@ -204,7 +215,8 @@
           "14:44"
         ],
         "description": "Decisive 2.4 km climb @ 9.7% (16.2% max gradient). Peloton passes twice.",
-        "arrival_deadline": "13:35"
+        "arrival_deadline": "13:35",
+        "address": "Corkscrew Rd, Montacute SA 5134"
       },
       {
         "name": "Foxfield Oval Campbelltown Finish",
@@ -215,13 +227,14 @@
           "14:53"
         ],
         "description": "Maryvale Road finish line hub.",
-        "arrival_deadline": "13:45"
+        "arrival_deadline": "13:45",
+        "address": "Maryvale Rd, Athelstone SA 5076"
       }
     ]
   },
   {
     "id": "2027-men-4",
-    "title": "Ziptrak\u00ae Race Day 4: Glenelg to Victor Harbor",
+    "title": "Ziptrak® Race Day 4: Glenelg to Victor Harbor",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-22",
@@ -231,7 +244,7 @@
     "location": "Colley Terrace, Glenelg",
     "finish_location": "Victor Harbor",
     "coords": "-34.9805,138.5135",
-    "description": "Men's Stage 4 \u2022 144.7 km. The men race from Glenelg to Victor Harbor via Chandlers Hill, Coromandel Valley, Aldinga, Yankalilla, Myponga Reservoir and Nettle Hill.",
+    "description": "Men's Stage 4 • 144.7 km. The men race from Glenelg to Victor Harbor via Chandlers Hill, Coromandel Valley, Aldinga, Yankalilla, Myponga Reservoir and Nettle Hill.",
     "tdu_rating": "WVA",
     "tags": [
       "race",
@@ -249,7 +262,8 @@
           "11:08"
         ],
         "description": "Early feed zone as peloton hits the hills.",
-        "arrival_deadline": "10:35"
+        "arrival_deadline": "10:35",
+        "address": "Black Rd, Flagstaff Hill SA 5159"
       },
       {
         "name": "Cherry Gardens Hill KOM (Cat 2)",
@@ -259,7 +273,8 @@
           "11:13"
         ],
         "description": "2.97 km climb @ 5.9%.",
-        "arrival_deadline": "10:40"
+        "arrival_deadline": "10:40",
+        "address": "Cherry Gardens Rd, Cherry Gardens SA 5157"
       },
       {
         "name": "Snapper Point Sprint (Aldinga Beach)",
@@ -269,7 +284,8 @@
           "12:15"
         ],
         "description": "Coastal sprint point on the Esplanade.",
-        "arrival_deadline": "11:40"
+        "arrival_deadline": "11:40",
+        "address": "Esplanade, Aldinga Beach SA 5173"
       },
       {
         "name": "Sellicks Beach Feed Zone",
@@ -279,7 +295,8 @@
           "12:26"
         ],
         "description": "Coastal feed zone prior to Heatherdale Hill.",
-        "arrival_deadline": "11:50"
+        "arrival_deadline": "11:50",
+        "address": "Esplanade, Sellicks Beach SA 5174"
       },
       {
         "name": "Nettle Hill KOM (Cat 1)",
@@ -289,7 +306,8 @@
           "13:52"
         ],
         "description": "Brutal 1.9 km climb @ 8.1% (15.6% max gradient).",
-        "arrival_deadline": "13:10"
+        "arrival_deadline": "13:10",
+        "address": "Nettle Hill Rd, Hindmarsh Valley SA 5211"
       },
       {
         "name": "Victor Harbor Finish",
@@ -299,13 +317,14 @@
           "14:24"
         ],
         "description": "Coastal finish line outside Hotel Victor.",
-        "arrival_deadline": "13:40"
+        "arrival_deadline": "13:40",
+        "address": "Esplanade, Victor Harbor SA 5211"
       }
     ]
   },
   {
     "id": "2027-women-1",
-    "title": "Ziptrak\u00ae Race Day 4: Glenelg to Victor Harbor (Women)",
+    "title": "Ziptrak® Race Day 4: Glenelg to Victor Harbor (Women)",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-22",
@@ -315,7 +334,7 @@
     "location": "Colley Terrace, Glenelg",
     "finish_location": "Victor Harbor",
     "coords": "-34.9805,138.5135",
-    "description": "Women's Stage 1 \u2022 144.7 km. A history-making shared course with the men's Stage 4, from Glenelg to Victor Harbor via the Fleurieu Peninsula.",
+    "description": "Women's Stage 1 • 144.7 km. A history-making shared course with the men's Stage 4, from Glenelg to Victor Harbor via the Fleurieu Peninsula.",
     "tdu_rating": "Plouffe",
     "tags": [
       "race",
@@ -332,7 +351,8 @@
           "12:44"
         ],
         "description": "Early feed zone as peloton hits the hills.",
-        "arrival_deadline": "10:35"
+        "arrival_deadline": "10:35",
+        "address": "Black Rd, Flagstaff Hill SA 5159"
       },
       {
         "name": "Cherry Gardens Hill KOM (Cat 2)",
@@ -342,7 +362,8 @@
           "12:50"
         ],
         "description": "2.97 km climb @ 5.9%.",
-        "arrival_deadline": "10:40"
+        "arrival_deadline": "10:40",
+        "address": "Cherry Gardens Rd, Cherry Gardens SA 5157"
       },
       {
         "name": "Snapper Point Sprint (Aldinga Beach)",
@@ -352,7 +373,8 @@
           "14:04"
         ],
         "description": "Coastal sprint point on the Esplanade.",
-        "arrival_deadline": "11:40"
+        "arrival_deadline": "11:40",
+        "address": "Esplanade, Aldinga Beach SA 5173"
       },
       {
         "name": "Sellicks Beach Feed Zone",
@@ -362,7 +384,8 @@
           "14:18"
         ],
         "description": "Coastal feed zone prior to Heatherdale Hill.",
-        "arrival_deadline": "11:50"
+        "arrival_deadline": "11:50",
+        "address": "Esplanade, Sellicks Beach SA 5174"
       },
       {
         "name": "Nettle Hill KOM (Cat 1)",
@@ -372,7 +395,8 @@
           "16:02"
         ],
         "description": "Brutal 1.9 km climb @ 8.1% (15.6% max gradient).",
-        "arrival_deadline": "13:10"
+        "arrival_deadline": "13:10",
+        "address": "Nettle Hill Rd, Hindmarsh Valley SA 5211"
       },
       {
         "name": "Victor Harbor Finish",
@@ -382,7 +406,8 @@
           "16:40"
         ],
         "description": "Coastal finish line outside Hotel Victor.",
-        "arrival_deadline": "13:40"
+        "arrival_deadline": "13:40",
+        "address": "Esplanade, Victor Harbor SA 5211"
       }
     ]
   },
@@ -402,7 +427,7 @@
     "location": "Esplanade, Christies Beach",
     "finish_location": "Willunga Hill",
     "coords": "-35.1380,138.4720",
-    "description": "Men's Stage 5 \u2022 116.4 km. Beachside start before Coxs Hill, McLaren Vale and a new approach to two ascents of Willunga Hill for the summit finish.",
+    "description": "Men's Stage 5 • 116.4 km. Beachside start before Coxs Hill, McLaren Vale and a new approach to two ascents of Willunga Hill for the summit finish.",
     "tdu_rating": "Pogi",
     "tags": [
       "race",
@@ -421,7 +446,8 @@
           "11:10"
         ],
         "description": "10.0 km rolling climb @ 3.0%.",
-        "arrival_deadline": "10:35"
+        "arrival_deadline": "10:35",
+        "address": "Coxs Hill Rd, Clarendon SA 5157"
       },
       {
         "name": "McLaren Vale Primary Feed Zone",
@@ -431,7 +457,8 @@
           "11:57"
         ],
         "description": "Musette & bidon drop zone in town center.",
-        "arrival_deadline": "11:20"
+        "arrival_deadline": "11:20",
+        "address": "Main Rd, McLaren Vale SA 5171"
       },
       {
         "name": "Snapper Point Sprint (Aldinga)",
@@ -441,7 +468,8 @@
           "12:19"
         ],
         "description": "Coastal sprint point.",
-        "arrival_deadline": "11:45"
+        "arrival_deadline": "11:45",
+        "address": "Esplanade, Aldinga Beach SA 5173"
       },
       {
         "name": "Willunga Hill KOM (Cat 1)",
@@ -452,7 +480,8 @@
           "13:40"
         ],
         "description": "Iconic 3.0 km summit finish @ 7.4%. Peloton passes 2 times.",
-        "arrival_deadline": "12:15"
+        "arrival_deadline": "12:15",
+        "address": "Brookman Rd, Willunga Hill SA 5172"
       }
     ]
   },
@@ -471,7 +500,7 @@
     "location": "Esplanade, Christies Beach",
     "finish_location": "Willunga Hill",
     "coords": "-35.1380,138.4720",
-    "description": "Women's Stage 2 \u2022 116.4 km. The same route as the men's Stage 5, featuring Coxs Hill, McLaren Vale and two climbs of Willunga Hill.",
+    "description": "Women's Stage 2 • 116.4 km. The same route as the men's Stage 5, featuring Coxs Hill, McLaren Vale and two climbs of Willunga Hill.",
     "tdu_rating": "Plouffe",
     "tags": [
       "race",
@@ -490,7 +519,8 @@
           "12:46"
         ],
         "description": "10.0 km rolling climb @ 3.0%.",
-        "arrival_deadline": "10:35"
+        "arrival_deadline": "10:35",
+        "address": "Coxs Hill Rd, Clarendon SA 5157"
       },
       {
         "name": "McLaren Vale Primary Feed Zone",
@@ -500,7 +530,8 @@
           "13:43"
         ],
         "description": "Musette & bidon drop zone in town center.",
-        "arrival_deadline": "11:20"
+        "arrival_deadline": "11:20",
+        "address": "Main Rd, McLaren Vale SA 5171"
       },
       {
         "name": "Snapper Point Sprint (Aldinga)",
@@ -510,7 +541,8 @@
           "14:09"
         ],
         "description": "Coastal sprint point.",
-        "arrival_deadline": "11:45"
+        "arrival_deadline": "11:45",
+        "address": "Esplanade, Aldinga Beach SA 5173"
       },
       {
         "name": "Willunga Hill KOM (Cat 1)",
@@ -521,7 +553,8 @@
           "15:47"
         ],
         "description": "Iconic 3.0 km summit finish @ 7.4%. Peloton passes 2 times.",
-        "arrival_deadline": "12:15"
+        "arrival_deadline": "12:15",
+        "address": "Brookman Rd, Willunga Hill SA 5172"
       }
     ]
   },
@@ -537,7 +570,7 @@
     "location": "The Parade, Norwood",
     "finish_location": "Stirling",
     "coords": "-34.9215,138.6360",
-    "description": "Men's Stage 6 \u2022 136.2 km. The final stage begins in Norwood and crosses the Adelaide Hills via Norton Summit, Checker Hill, Birdwood, Lobethal, Woodside, Hahndorf and Mylor before Stirling.",
+    "description": "Men's Stage 6 • 136.2 km. The final stage begins in Norwood and crosses the Adelaide Hills via Norton Summit, Checker Hill, Birdwood, Lobethal, Woodside, Hahndorf and Mylor before Stirling.",
     "tdu_rating": "Hindley",
     "tags": [
       "race",
@@ -555,7 +588,8 @@
           "11:02"
         ],
         "description": "Early Hills feed zone.",
-        "arrival_deadline": "10:30"
+        "arrival_deadline": "10:30",
+        "address": "Lobethal Rd, Ashton SA 5137"
       },
       {
         "name": "Checker Hill KOM (Cat 1)",
@@ -565,7 +599,8 @@
           "11:51"
         ],
         "description": "Steep 600m climb @ 14.2% (18.4% max).",
-        "arrival_deadline": "11:15"
+        "arrival_deadline": "11:15",
+        "address": "Checker Hill Rd, Kersbrook SA 5231"
       },
       {
         "name": "Birdwood Motor Museum Sprint",
@@ -575,7 +610,8 @@
           "12:09"
         ],
         "description": "Intermediate sprint outside Motor Museum.",
-        "arrival_deadline": "11:35"
+        "arrival_deadline": "11:35",
+        "address": "Shannon St, Birdwood SA 5234"
       },
       {
         "name": "Stirling Climb & Finish Hub",
@@ -586,7 +622,8 @@
           "14:09"
         ],
         "description": "Stirling town circuit and final uphill run.",
-        "arrival_deadline": "12:50"
+        "arrival_deadline": "12:50",
+        "address": "Mount Barker Rd, Stirling SA 5152"
       }
     ]
   },
@@ -602,7 +639,7 @@
     "location": "The Parade, Norwood",
     "finish_location": "Stirling",
     "coords": "-34.9215,138.6360",
-    "description": "Women's Stage 3 \u2022 136.2 km. The women's final stage follows the Norwood-to-Stirling route across the Adelaide Hills, including Norton Summit and Checker Hill.",
+    "description": "Women's Stage 3 • 136.2 km. The women's final stage follows the Norwood-to-Stirling route across the Adelaide Hills, including Norton Summit and Checker Hill.",
     "tdu_rating": "Plouffe",
     "tags": [
       "race",
@@ -620,7 +657,8 @@
           "12:37"
         ],
         "description": "Early Hills feed zone.",
-        "arrival_deadline": "10:30"
+        "arrival_deadline": "10:30",
+        "address": "Lobethal Rd, Ashton SA 5137"
       },
       {
         "name": "Checker Hill KOM (Cat 1)",
@@ -630,7 +668,8 @@
           "13:36"
         ],
         "description": "Steep 600m climb @ 14.2% (18.4% max).",
-        "arrival_deadline": "11:15"
+        "arrival_deadline": "11:15",
+        "address": "Checker Hill Rd, Kersbrook SA 5231"
       },
       {
         "name": "Birdwood Motor Museum Sprint",
@@ -640,7 +679,8 @@
           "13:57"
         ],
         "description": "Intermediate sprint outside Motor Museum.",
-        "arrival_deadline": "11:35"
+        "arrival_deadline": "11:35",
+        "address": "Shannon St, Birdwood SA 5234"
       },
       {
         "name": "Stirling Climb & Finish Hub",
@@ -651,7 +691,8 @@
           "16:22"
         ],
         "description": "Stirling town circuit and final uphill run.",
-        "arrival_deadline": "12:50"
+        "arrival_deadline": "12:50",
+        "address": "Mount Barker Rd, Stirling SA 5152"
       }
     ]
   },

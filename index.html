@@ -128,10 +128,9 @@
                 <div class="guide-panel">
                     <p class="guide-intro">Want to back the app or suggest an improvement?</p>
                     <div class="support-actions">
-                        <!-- TODO: Replace this placeholder button/modal with the real support link when support is ready. -->
-                        <button class="btn btn-disabled" type="button" onclick="openSupportModal()">
-                            <i class="fas fa-mug-hot" aria-hidden="true"></i>
-                            Support coming soon
+                        <button class="btn btn-secondary" type="button" onclick="openSupportModal()">
+                            <i class="fas fa-bottle-water" aria-hidden="true"></i>
+                            Buy Me a Bidon
                         </button>
                         <button class="btn btn-primary" type="button" onclick="openFeedbackModal()">
                             <i class="far fa-comment-dots" aria-hidden="true"></i>
@@ -163,8 +162,19 @@
                     <button id="sound-toggle-btn" class="settings-switch" type="button" role="switch" aria-labelledby="sound-label" aria-checked="false" onclick="toggleAudioFeedback()">Off</button>
                 </div>
             </div>
-            <div id="future-settings" class="guide-panel settings-panel" aria-label="Future settings">
-                <p class="helper-copy">More settings coming soon.</p>
+            <div id="settings-support-panel" class="guide-panel settings-panel" aria-label="Support TDU Companion">
+                <div class="support-bidon-card">
+                    <div class="bidon-icon-wrap">
+                        <i class="fas fa-bottle-water"></i>
+                    </div>
+                    <div class="bidon-text">
+                        <h4>Buy Me a Bidon</h4>
+                        <p>Fuel ongoing server costs and real-time stage updates for Adelaide 2027.</p>
+                    </div>
+                    <a href="https://buymeacoffee.com/mytdu" target="_blank" rel="noopener" class="btn btn-bidon">
+                        <i class="fas fa-heart"></i> Buy a Bidon ($4)
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -316,14 +326,24 @@
         </div>
     </div>
 
-    <div id="support-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="support-modal-title" aria-describedby="support-description" onclick="closeSupportModal(event)">
+    <div id="support-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="support-modal-title" onclick="closeSupportModal(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="support-modal-title">Support coming soon</h3>
-                <button class="close-btn" onclick="closeSupportModal()" aria-label="Close support placeholder">&times;</button>
+                <h3 id="support-modal-title">Support TDU 2027</h3>
+                <button class="close-btn" onclick="closeSupportModal()" aria-label="Close support modal">&times;</button>
             </div>
-            <p id="support-description" class="modal-sub">Thanks for offering to help. This spot will link to the real support page once it is ready.</p>
-            <button class="btn btn-primary modal-action-btn" type="button" onclick="closeSupportModal()">Got it</button>
+            <div class="support-bidon-card">
+                <div class="bidon-icon-wrap">
+                    <i class="fas fa-bottle-water"></i>
+                </div>
+                <div class="bidon-text">
+                    <h4>Buy Me a Bidon</h4>
+                    <p>Fuel ongoing server costs and real-time stage updates for Adelaide 2027.</p>
+                </div>
+                <a href="https://buymeacoffee.com/mytdu" target="_blank" rel="noopener" class="btn btn-bidon">
+                    <i class="fas fa-heart"></i> Buy a Bidon ($4)
+                </a>
+            </div>
         </div>
     </div>
 
