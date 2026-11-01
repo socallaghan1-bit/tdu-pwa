@@ -109,7 +109,13 @@
     });
     async function handleSponsorSubmit(e) {
     e.preventDefault();
-    const secret = document.getElementById('secret-key')?.value.trim() || '';
+    const secret = (
+    document.getElementById('secret-key')?.value ||
+    document.getElementById('secret')?.value ||
+    document.getElementById('admin-secret')?.value ||
+    document.querySelector('input[type="password"]')?.value ||
+    ''
+).trim();
     const statusEl = document.getElementById('sponsor-status');
     const btn = document.getElementById('save-sponsor-btn');
 
@@ -157,7 +163,13 @@
 }
 
 async function clearSponsorCard() {
-    const secret = document.getElementById('secret-key')?.value.trim() || '';
+  const secret = (
+    document.getElementById('secret-key')?.value ||
+    document.getElementById('secret')?.value ||
+    document.getElementById('admin-secret')?.value ||
+    document.querySelector('input[type="password"]')?.value ||
+    ''
+).trim();
     const statusEl = document.getElementById('sponsor-status');
 
     if (!secret) {
