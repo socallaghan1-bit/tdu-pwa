@@ -2615,9 +2615,62 @@ if (document.readyState === 'complete') {
     window.addEventListener('load', trackStandaloneLaunchIfNeeded, { once: true });
 }
 
+const SPONSOR_API_URL = 'https://tdu-push-backend.mytdu-push.workers.dev/sponsor';
+
+function getSafeSponsorLink(link) {
+    try {
+        const url = new URL(String(link || ''), window.location.href);
+        return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '#';
+    } catch (error) {
+        return '#';
+    }
+}
+
+function buildSponsorShowcaseInnerHTML(sponsor) {
+    return `
+        <div style="font-size: 0.75rem; font-weight: 800; color: #f26522; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem;">
+            <i class="fas fa-star"></i> OFFICIAL PARTNER SPOTLIGHT
+        </div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem; color: #111;">${escapeHTML(sponsor.title)}</h3>
+        <p style="margin: 0 0 1rem 0; font-size: 0.95rem; color: #444; line-height: 1.4;">${escapeHTML(sponsor.description || '')}</p>
+        <a href="${escapeHTML(getSafeSponsorLink(sponsor.link))}" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-block; width: 100%; text-align: center; text-decoration: none; padding: 0.75rem 1rem;">
+            <i class="fas fa-arrow-up-right-from-square"></i> ${escapeHTML(sponsor.cta || 'Visit Partner')}
+        </a>
+    `;
+}
+
+async function loadDynamicSponsor() {
+    try {
+        const response = await fetch(SPONSOR_API_URL, { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        const sponsor = data && data.sponsor && typeof data.sponsor === 'object' ? data.sponsor : data;
+        if (!sponsor || typeof sponsor.title !== 'string' || !sponsor.title.trim()) return;
+
+        const innerHTML = buildSponsorShowcaseInnerHTML(sponsor);
+        const existingCard = document.querySelector('#view-home .sponsor-showcase-card');
+        if (existingCard) {
+            existingCard.innerHTML = innerHTML;
+            return;
+        }
+
+        const featuredSection = document.getElementById('featured-events')?.closest('.home-section');
+        if (!featuredSection) return;
+
+        const card = document.createElement('div');
+        card.className = 'card sponsor-showcase-card';
+        card.style.cssText = 'border: 2px dashed #f26522; padding: 1.25rem; margin: 1rem 0; border-radius: 12px; background: #fff8f5;';
+        card.innerHTML = innerHTML;
+        featuredSection.insertAdjacentElement('afterend', card);
+    } catch (error) {
+        console.warn('Failed to load dynamic sponsor:', error);
+    }
+}
+
 checkPWAStatus();
 updateSoundButtonUI(isAudioFeedbackEnabled());
 updateWeatherWidget();
 renderRecommendationFlow();
 showView(currentViewName);
 fetchEvents();
+loadDynamicSponsor();
