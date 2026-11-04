@@ -418,8 +418,6 @@
     "type": "Race Stage",
     "featured": true,
     "featured_priority": 2,
-    "featured_reason": "sponsored",
-    "sponsor_name": "",
     "date": "2027-01-23",
     "start_time": "10:40",
     "end_time": "13:32",
