@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - Race Day 5: Christies Beach to Willunga Hill</name>
+    <desc>Men's Stage 5 • 116.4 km. Beachside start before Coxs Hill, McLaren Vale and a new approach to two ascents of Willunga Hill for the summit finish. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill"><text>Official stage details</text></link>
+    <time>2027-01-23T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-35.138000" lon="138.472000"><name>Start: Esplanade, Christies Beach</name><type>start</type></wpt>
+  <wpt lat="-35.086000" lon="138.629000"><name>Coxs Hill KOM (Cat 2)</name><desc>10.0 km rolling climb @ 3.0%. Pass times: 11:10.</desc><type>kom</type></wpt>
+  <wpt lat="-35.221000" lon="138.544000"><name>McLaren Vale Primary Feed Zone</name><desc>Musette &amp; bidon drop zone in town center. Pass times: 11:57.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-35.281000" lon="138.448000"><name>Snapper Point Sprint (Aldinga)</name><desc>Coastal sprint point. Pass times: 12:19.</desc><type>sprint</type></wpt>
+  <wpt lat="-35.280000" lon="138.580000"><name>Willunga Hill KOM (Cat 1)</name><desc>Iconic 3.0 km summit finish @ 7.4%. Peloton passes 2 times. Pass times: 13:01, 13:40.</desc><type>kom</type></wpt>
+  <trk>
+    <name>TDU 2027 - Race Day 5: Christies Beach to Willunga Hill</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-35.138000" lon="138.472000"><name>Esplanade, Christies Beach</name></trkpt>
+      <trkpt lat="-35.086000" lon="138.629000"><name>Coxs Hill KOM (Cat 2)</name></trkpt>
+      <trkpt lat="-35.221000" lon="138.544000"><name>McLaren Vale Primary Feed Zone</name></trkpt>
+      <trkpt lat="-35.281000" lon="138.448000"><name>Snapper Point Sprint (Aldinga)</name></trkpt>
+      <trkpt lat="-35.280000" lon="138.580000"><name>Willunga Hill KOM (Cat 1)</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

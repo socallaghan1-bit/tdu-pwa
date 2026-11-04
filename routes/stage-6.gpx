@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - Race Day 6: Norwood to Stirling</name>
+    <desc>Men's Stage 6 • 136.2 km. The final stage begins in Norwood and crosses the Adelaide Hills via Norton Summit, Checker Hill, Birdwood, Lobethal, Woodside, Hahndorf and Mylor before Stirling. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling"><text>Official stage details</text></link>
+    <time>2027-01-24T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-34.921500" lon="138.636000"><name>Start: The Parade, Norwood</name><type>start</type></wpt>
+  <wpt lat="-34.931000" lon="138.726000"><name>Ashton Feed Zone</name><desc>Early Hills feed zone. Pass times: 11:02.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-34.821000" lon="138.835000"><name>Checker Hill KOM (Cat 1)</name><desc>Steep 600m climb @ 14.2% (18.4% max). Pass times: 11:51.</desc><type>kom</type></wpt>
+  <wpt lat="-34.819000" lon="138.956000"><name>Birdwood Motor Museum Sprint</name><desc>Intermediate sprint outside Motor Museum. Pass times: 12:09.</desc><type>sprint</type></wpt>
+  <wpt lat="-35.012000" lon="138.722000"><name>Stirling Climb &amp; Finish Hub</name><desc>Stirling town circuit and final uphill run. Pass times: 13:38, 14:09.</desc><type>finish_hub</type></wpt>
+  <trk>
+    <name>TDU 2027 - Race Day 6: Norwood to Stirling</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-34.921500" lon="138.636000"><name>The Parade, Norwood</name></trkpt>
+      <trkpt lat="-34.931000" lon="138.726000"><name>Ashton Feed Zone</name></trkpt>
+      <trkpt lat="-34.821000" lon="138.835000"><name>Checker Hill KOM (Cat 1)</name></trkpt>
+      <trkpt lat="-34.819000" lon="138.956000"><name>Birdwood Motor Museum Sprint</name></trkpt>
+      <trkpt lat="-35.012000" lon="138.722000"><name>Stirling Climb &amp; Finish Hub</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -1609,6 +1609,35 @@ header {
     border-color: #a96c1d;
 }
 
+/* Stage route downloads use the subtle secondary look rather than the filled transfer-GPX pill. */
+.btn-gpx.btn-secondary-action {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 6px 8px;
+    justify-content: center;
+}
+
+.btn-gpx.btn-secondary-action:hover,
+.btn-gpx.btn-secondary-action:focus-visible {
+    background: #edf2f7;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.stage-map-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.stage-map-actions[hidden] {
+    display: none;
+}
+
 .btn-brouter {
     background: transparent;
     border: 1px solid #c8842a;

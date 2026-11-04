@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - Race Day 2: Angaston to Angaston</name>
+    <desc>Men's Stage 2 • 145.6 km. A Barossa loop from Angaston with sprint points in Tanunda, three passes of Menglers Hill, and a gradual uphill run to the finish. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=2c7b0b44-b3fe-4843-856c-981fef389628</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-2-angaston-to-angaston"><text>Official stage details</text></link>
+    <time>2027-01-20T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-34.502000" lon="139.034000"><name>Start: Murray Street, Angaston</name><type>start</type></wpt>
+  <wpt lat="-34.537000" lon="139.006000"><name>Menglers Hill KOM (Cat 3)</name><desc>3 passes of Menglers Hill (2.16 km @ 3.9%). Pass times: 10:51, 12:01, 13:11.</desc><type>kom</type></wpt>
+  <wpt lat="-34.525000" lon="138.961000"><name>Tanunda Rotunda Sprint</name><desc>Intermediate sprint points in Tanunda main street. Pass times: 11:09, 12:20.</desc><type>sprint</type></wpt>
+  <wpt lat="-34.488000" lon="138.913000"><name>Seppeltsfield Road Feed &amp; Clean Zone</name><desc>Bidon hunter hotspot as peloton grabs musettes along palm-lined avenue. Pass times: 11:25, 12:35, 13:46.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-34.502000" lon="139.034000"><name>Angaston Finish &amp; Lap Hub</name><desc>Murray Street finish line and circuit lap transitions. Pass times: 11:51, 13:01, 14:11.</desc><type>finish_hub</type></wpt>
+  <trk>
+    <name>TDU 2027 - Race Day 2: Angaston to Angaston</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-34.502000" lon="139.034000"><name>Murray Street, Angaston</name></trkpt>
+      <trkpt lat="-34.537000" lon="139.006000"><name>Menglers Hill KOM (Cat 3)</name></trkpt>
+      <trkpt lat="-34.525000" lon="138.961000"><name>Tanunda Rotunda Sprint</name></trkpt>
+      <trkpt lat="-34.488000" lon="138.913000"><name>Seppeltsfield Road Feed &amp; Clean Zone</name></trkpt>
+      <trkpt lat="-34.502000" lon="139.034000"><name>Angaston Finish &amp; Lap Hub</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -8,6 +8,11 @@ Your interactive Adelaide Tour Down Under companion. Explore every street party,
 - Run the data, filtering, and map-layer regressions with `node --test tests/`.
 - Water & Toilets: drinking fountains and public toilets at key spectator hubs live in `facilities.json` (`id`, `name`, `type` = `water` | `toilet`, `lat`, `lng`, `notes`). The schedule map shows 💧 Water / 🚻 Toilets toggles (top-right, both off by default). Data is precached by the service worker (network first) and mirrored to localStorage for offline use. Coordinates are approximate—verify against council data before each Tour and bump `CACHE_NAME` when editing.
 
+## GPX route downloads
+- Race stages set `gpx_url` (e.g. `./routes/stage-1.gpx`) in `events.json`. Women's stages share the matching men's route file. Stage cards (Route & Options) and the checkpoint map modal show **⬇️ Download GPX (Garmin / Wahoo)** using the HTML5 `download` attribute (filename `TDU-2027-<stage-title>.gpx`).
+- Only same-origin `./routes/<name>.gpx` URLs are rendered. The bundled files are indicative spectator traces (start → checkpoints in first-pass order → finish, plus checkpoint waypoints); replace them with full official traces when available, keeping the filenames.
+- GPX files are precached (`GPX_ROUTES` in `service-worker.js`) for offline roadside use and fetched network-first so updated traces arrive. Add new files to `GPX_ROUTES` and bump `CACHE_NAME`.
+
 ## Backlog additions
 - [x] Add optional sound or audio feedback for key in-app actions (synthesized via Web Audio API, with Settings toggle).
 - [x] Add opt-in push notifications for important event reminders and updates (see Web Push setup below).
@@ -43,5 +48,6 @@ Your interactive Adelaide Tour Down Under companion. Explore every street party,
      "standingsUrl": "https://tourdownunder.com.au/..."
    }
    ```
-   Notifications use `icons/tdu-badge.png` as icon and badge and show **Watch Replay** / **View Standings** actions. Links must be on the app origin or `tourdownunder.com.au` (edit `ALLOWED_LINK_HOSTS` in `service-worker.js` to add hosts); anything else falls back to the in-app stage card (`index.html?event=<stageId>`). Images must be HTTPS.
+   Optional `icon` and `tag` fields are also accepted (default tag `tdu-race-alert`, default title "Santos Tour Down Under Alert"); `targetUrl` is accepted as an alias for `url`. Notifications vibrate `[200, 100, 200, 100, 200]`, re-alert on the same tag, and show **🗺️ View Map** (focuses an open app window and navigates it to `url`, or opens a new one) / **Dismiss** actions. Pushes without a payload are ignored. The bundled `icons/tdu-badge.png` is used as icon and badge until `icons/icon-192x192.png` / `icons/badge-72x72.png` are added. Links must be on the app origin or `tourdownunder.com.au` (edit `ALLOWED_LINK_HOSTS` in `service-worker.js` to add hosts); anything else falls back to the in-app stage card (`index.html?event=<stageId>`). Images must be HTTPS.
 - iPhone/iPad support Web Push only after the app is added to the Home Screen (iOS 16.4+).
+- `admin.html` is phone-friendly (44px touch targets) with **1-Tap Roadside Broadcast Presets** (Extreme Heat Delay, Caravan Merch Alert, Willunga / Breakaway Attack, Stage Finish Imminent) that fill Title, Body, and Target URL; edit `PUSH_PRESETS` to change them.

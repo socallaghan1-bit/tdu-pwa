@@ -1323,6 +1323,27 @@ function getStageMapCheckpoints(event) {
         .sort((a, b) => a.firstPass - b.firstPass);
 }
 
+// Only bundled same-origin route files are linked so the download attribute works and data can't inject URLs.
+function getStageGpxUrl(event) {
+    const url = event && typeof event.gpx_url === 'string' ? event.gpx_url.trim() : '';
+    return /^\.\/routes\/[A-Za-z0-9_-]+\.gpx$/.test(url) ? url : '';
+}
+
+function getGpxDownloadName(event) {
+    const name = String((event && (event.name || event.title)) || 'Stage')
+        .replace(/[^A-Za-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    return `TDU-2027-${name || 'Stage'}.gpx`;
+}
+
+function renderStageGpxLink(event, eventId, extraClass = '') {
+    const gpxUrl = getStageGpxUrl(event);
+    if (!gpxUrl) return '';
+    return `<a href="${escapeHTML(gpxUrl)}" download="${escapeHTML(getGpxDownloadName(event))}" class="btn btn-secondary-action btn-gpx ${extraClass}" onclick="trackEventAction('download_gpx', '${escapeHTML(eventId)}')">⬇️ Download GPX (Garmin / Wahoo)</a>`;
+}
+
 function getEventCoords(event) {
     if (!event || typeof event !== 'object') return null;
     return parseCoordinates(event.coords || event.start_coords || event.location_coords);
@@ -1982,6 +2003,7 @@ function createEventCardHTML(event, eventId, isSaved) {
                     ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start Directions' : 'Directions'}</a>` : ''}
                     ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish Map</a>` : ''}
                     ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route Details</a>` : ''}
+                    ${renderStageGpxLink(event, eventId)}
                     ${checkpoints.length ? `<button type="button" class="btn btn-secondary-action" onclick="openStageMap('${escapeHTML(eventId)}')"><i class="fas fa-chart-line" aria-hidden="true"></i> Checkpoints</button>` : ''}
                     <button type="button" class="btn btn-secondary-action" onclick="exportStageToCalendar('${escapeHTML(eventId)}')"><i class="far fa-calendar-plus" aria-hidden="true"></i> Add to Calendar</button>
                 </div>

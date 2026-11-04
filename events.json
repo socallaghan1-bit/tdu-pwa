@@ -19,6 +19,7 @@
       "hills"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=1968b897-f546-4042-8fde-d80edf8593b7",
+    "gpx_url": "./routes/stage-1.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-1-henley-beach-to-gumeracha",
     "checkpoints": [
       {
@@ -89,6 +90,7 @@
       "barossa"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=2c7b0b44-b3fe-4843-856c-981fef389628",
+    "gpx_url": "./routes/stage-2.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-2-angaston-to-angaston",
     "checkpoints": [
       {
@@ -168,6 +170,7 @@
       "city"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=0d7f7b45-198c-4521-b2b1-767aa552934a",
+    "gpx_url": "./routes/stage-3.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-3-lobethal-to-campbelltown",
     "checkpoints": [
       {
@@ -252,6 +255,7 @@
       "hills"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
+    "gpx_url": "./routes/stage-4.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
     "checkpoints": [
       {
@@ -341,6 +345,7 @@
       "coastal"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732",
+    "gpx_url": "./routes/stage-4.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor",
     "checkpoints": [
       {
@@ -434,6 +439,7 @@
       "coastal"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
+    "gpx_url": "./routes/stage-5.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
     "checkpoints": [
       {
@@ -507,6 +513,7 @@
       "coastal"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=35159e4f-5d44-44dd-b543-7000711c3638",
+    "gpx_url": "./routes/stage-5.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-5-christies-beach-to-willunga-hill",
     "checkpoints": [
       {
@@ -576,6 +583,7 @@
       "city"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
+    "gpx_url": "./routes/stage-6.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
     "checkpoints": [
       {
@@ -645,6 +653,7 @@
       "city"
     ],
     "route_url": "https://tourdownunder.com.au/file-download/?key=8957c608-bfda-4dab-9b26-f46bbb7beddc",
+    "gpx_url": "./routes/stage-6.gpx",
     "details_url": "https://tourdownunder.com.au/race/stages/race-day-6-norwood-to-stirling",
     "checkpoints": [
       {
