@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tdu-pwa-v18'; // Bumped cache version to ensure immediate update
+const CACHE_NAME = 'tdu-pwa-v19'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
@@ -96,7 +96,9 @@ self.addEventListener('fetch', (event) => {
 
 // ---- Web Push ----
 
+// Spec'd assets (icons/icon-192x192.png, icons/badge-72x72.png) fall back to the bundled badge until they're added.
 const NOTIFICATION_ICON = new URL('icons/tdu-badge.png', self.registration.scope).href;
+const NOTIFICATION_BADGE = NOTIFICATION_ICON;
 const DEFAULT_NOTIFICATION_TITLE = 'TDU 2027';
 // Deep links must stay on this app or the official TDU site so a push payload can't open arbitrary pages.
 const ALLOWED_LINK_HOSTS = ['tourdownunder.com.au'];
@@ -137,94 +139,68 @@ function parsePushPayload(event) {
 
 self.addEventListener('push', (event) => {
     const data = parsePushPayload(event);
-    
-    // Fallback variables matching both old and new payload structures
+
     const stageId = cleanText(data.stageId, 64).replace(/[^A-Za-z0-9_-]/g, '');
-    const appUrl = getAppEventUrl(stageId);
-    
-    // Check both targetUrl (from new admin.html) and url (from original spec)
-    const rawTarget = data.targetUrl || data.url;
-    const videoUrl = safeUrl(rawTarget, { allowExternal: true }) || appUrl;
-    
-    const replayUrl = safeUrl(data.replayUrl, { allowExternal: true }) || videoUrl;
-    const standingsUrl = safeUrl(data.standingsUrl, { allowExternal: true }) || appUrl;
-    const imageUrl = safeUrl(data.imageUrl, { allowExternal: 'any' });
-    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-alert-' + Date.now());
+    // Accept both `url` and legacy `targetUrl` (sent by admin.html).
+    const url = safeUrl(data.url || data.targetUrl, { allowExternal: true }) || safeUrl('./index.html', { allowExternal: false });
+    const image = safeUrl(data.image || data.imageUrl, { allowExternal: 'any' }) || undefined;
+    const icon = safeUrl(data.icon, { allowExternal: 'any' }) || NOTIFICATION_ICON;
+    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-alert');
     const title = cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE;
-    const bodyText = cleanText(data.body, 300);
+    const body = cleanText(data.body, 300);
 
     const options = {
-        body: bodyText,
-        icon: data.icon || NOTIFICATION_ICON,
-        badge: data.badge || NOTIFICATION_ICON,
-        vibrate: [200, 100, 200, 100, 200],
+        body,
+        icon,
+        badge: NOTIFICATION_BADGE,
+        image, // Rich hero banner
+        vibrate: [200, 100, 200, 100, 200], // Distinctive alert vibration
         tag,
         renotify: true,
-        data: { url: videoUrl, replayUrl, standingsUrl },
-        actions: data.actions || [
-            { action: 'open', title: '🚴 Open Stage' }
+        data: { url },
+        actions: [
+            { action: 'open', title: '🗺️ View Map' },
+            { action: 'dismiss', title: 'Dismiss' }
         ]
     };
 
-    if (imageUrl) options.image = imageUrl;
-
     event.waitUntil((async () => {
-        // 1. Show OS system notification
         await self.registration.showNotification(title, options);
 
-        // 2. Broadcast to active app windows for in-app toast
+        // Broadcast to active app windows for in-app toast
         const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         for (const client of windowClients) {
             client.postMessage({
                 type: 'PUSH_RECEIVED',
-                payload: {
-                    title,
-                    body: bodyText,
-                    imageUrl,
-                    targetUrl: videoUrl
-                }
+                payload: { title, body, imageUrl: image || '', targetUrl: url }
             });
         }
     })());
 });
 
-async function openOrFocus(targetUrl) {
+async function focusOrOpen(targetUrl) {
     const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const target = new URL(targetUrl, self.registration.scope);
+    const client = target.origin === self.location.origin
+        ? windowClients.find((c) => new URL(c.url).origin === target.origin)
+        : null;
 
-    if (target.origin === self.location.origin) {
-        // Find exact match
-        const exact = windowClients.find((client) => client.url === target.href);
-        if (exact) {
-            exact.focus();
-            return;
+    if (client) {
+        const focused = await client.focus().catch(() => client);
+        if (client.url !== target.href && 'navigate' in focused) {
+            await focused.navigate(target.href).catch(() => null);
         }
-
-        // Find any open app instance and navigate it
-        const appClient = windowClients.find((client) => new URL(client.url).origin === target.origin);
-        if (appClient && 'navigate' in appClient) {
-            const navigated = await appClient.navigate(target.href).catch(() => null);
-            if (navigated) {
-                navigated.focus();
-                return;
-            }
-        }
+        return;
     }
-
-    // Fallback: open a new window
     return self.clients.openWindow(target.href);
 }
 
 self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    const data = event.notification.data || {};
-    let targetUrl = data.url;
-    
-    if (event.action === 'watch-replay') targetUrl = data.replayUrl;
-    if (event.action === 'view-standings') targetUrl = data.standingsUrl;
-    if (event.action === 'watch') targetUrl = `${data.url}?tab=recap`; // legacy action support
+    const { notification } = event;
+    notification.close();
+    if (event.action === 'dismiss') return;
 
-    // Ensure we don't open 'undefined'
-    const safeTarget = safeUrl(targetUrl, { allowExternal: true }) || getAppEventUrl('');
-    event.waitUntil(openOrFocus(safeTarget));
+    const data = notification.data || {};
+    const targetUrl = safeUrl(data.url, { allowExternal: true }) || getAppEventUrl('');
+    event.waitUntil(focusOrOpen(targetUrl));
 });

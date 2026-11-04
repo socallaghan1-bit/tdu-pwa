@@ -761,5 +761,29 @@
       "food",
       "social"
     ]
+  },
+  {
+    "id": "hub-the-road-pedla-2027",
+    "title": "THE ROAD: Pedla x Colnago x QUOC Clubhouse",
+    "name": "THE ROAD: Pedla x Colnago x QUOC Clubhouse",
+    "category": "Festival",
+    "type": "Festival",
+    "date": "2027-01-19",
+    "end_date": "2027-01-24",
+    "time": "Mornings (Rides & Coffee) | 2:00 PM - Late (Race Stream & Social)",
+    "location": "Adelaide CBD (Check link for venue)",
+    "coords": "-34.9285,138.6007",
+    "rating": "Essential TDU Social Hub",
+    "tdu_rating": "Essential TDU Social Hub",
+    "description": "Daily morning rides with MOOD Racing, 2Gether coffee, Styrkr hydration. From 2PM: Live race coverage, guest speakers, Finestro wine, beers & DJs.",
+    "external_link": "https://thepedla.com/blogs/pedla-news/the-road-adl-2027",
+    "details_url": "https://thepedla.com/blogs/pedla-news/the-road-adl-2027",
+    "tags": [
+      "social",
+      "pop-up",
+      "drinks",
+      "live-stream",
+      "group-rides"
+    ]
   }
 ]
