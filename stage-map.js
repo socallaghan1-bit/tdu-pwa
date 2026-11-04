@@ -233,6 +233,13 @@
         if (title) title.textContent = event.title || 'Stage map';
         setStatus('Loading map…');
 
+        const actions = getElement('stage-map-actions');
+        if (actions) {
+            const gpxLink = typeof renderStageGpxLink === 'function' ? renderStageGpxLink(event, strId) : '';
+            actions.innerHTML = gpxLink;
+            actions.hidden = !gpxLink;
+        }
+
         modal.classList.add('active');
         const closeButton = modal.querySelector('.close-btn');
         if (closeButton) closeButton.focus();

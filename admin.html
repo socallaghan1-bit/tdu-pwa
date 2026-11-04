@@ -9,22 +9,29 @@
     .card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .field { margin-bottom: 16px; }
     label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
-    input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-    .presets h3 { width: 100%; margin: 0 0 4px; font-size: 0.95rem; }
-    .presets button { flex: 1 1 30%; background: #1f2937; padding: 14px 10px; font-size: 0.95rem; }
+    input, textarea { width: 100%; min-height: 44px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+    .presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
+    .presets h3 { grid-column: 1 / -1; margin: 0; font-size: 0.95rem; }
+    .presets p { grid-column: 1 / -1; margin: 0 0 4px; color: #666; font-size: 0.85rem; }
+    .presets button { background: #1f2937; padding: 12px 10px; font-size: 0.95rem; line-height: 1.25; }
     .presets button.active { background: #16a34a; }
-    button { background: #f26522; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
+    button { min-height: 44px; background: #f26522; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; touch-action: manipulation; }
+    @media (max-width: 480px) {
+      body { margin: 0 auto; padding: 10px; }
+      .card { padding: 16px; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>📣 Broadcast Rich Push Notification</h2>
-    <div class="presets" id="push-presets" role="group" aria-label="Quick Race-Day Templates">
-      <h3>⚡ Quick Race-Day Templates</h3>
-      <button type="button" data-preset="heat">🔥 Extreme Heat Delay</button>
-      <button type="button" data-preset="caravan">🚗 Caravan Merch Alert</button>
-      <button type="button" data-preset="willunga">🚴 Attack on Willunga</button>
+    <div class="presets" id="push-presets" role="group" aria-label="1-Tap Roadside Broadcast Presets">
+      <h3>⚡ 1-Tap Roadside Broadcast Presets</h3>
+      <p>Tap a preset to fill the form, then hit Broadcast Alert or tweak the text first.</p>
+      <button type="button" data-preset="heat">⚠️ Extreme Heat Delay</button>
+      <button type="button" data-preset="caravan">🎁 Caravan Merch Alert</button>
+      <button type="button" data-preset="attack">⚡ Willunga / Breakaway Attack</button>
+      <button type="button" data-preset="finish">🏁 Stage Finish Imminent</button>
     </div>
     <form id="push-form">
       <div class="field">
@@ -47,7 +54,7 @@
         <label>Target Deep-Link URL</label>
         <input type="text" id="targetUrl" value="./index.html">
       </div>
-      <button type="submit">Broadcast to All Subscribers</button>
+      <button type="submit">📣 Broadcast Alert</button>
     </form>
     <!-- SPONSOR SPOTLIGHT CONTROLLER -->
     <div class="card" style="margin-top: 2rem;">
@@ -91,19 +98,24 @@
   <script>
     const PUSH_PRESETS = {
       heat: {
-        title: '⚠️ Heat Protocol Invoked',
-        body: "Today's stage start delayed by 45 mins due to 39°C forecast. Revised timetable live in app.",
+        title: '⚠️ Race Delayed: Heat Protocol',
+        body: 'Stage start delayed by 45 mins due to high Adelaide Hills temperatures. Check revised schedule.',
         url: './index.html#schedule'
       },
       caravan: {
-        title: '🎁 Publicity Caravan Approaching!',
-        body: 'Caravan is 15 minutes ahead of the peloton throwing caps & bidons. Head to the roadside!',
+        title: '🚗 Publicity Caravan Approaching!',
+        body: 'The caravan is 15 mins ahead of the peloton throwing caps & bidons. Head to the roadside!',
         url: './index.html#map'
       },
-      willunga: {
-        title: '⚡ Peloton Hits the Final Climb!',
-        body: 'The lead group has hit the base of Willunga. Pass window estimated in 7-10 minutes.',
+      attack: {
+        title: '🚴 Attack on the Climb!',
+        body: 'Peloton has reached the base of the final climb. Expect pass in 5-8 minutes!',
         url: './index.html#map'
+      },
+      finish: {
+        title: '🏁 Final Sprint Approaching!',
+        body: 'Peloton is under 5km from the finish line. Find a vantage point now.',
+        url: './index.html#schedule'
       }
     };
 

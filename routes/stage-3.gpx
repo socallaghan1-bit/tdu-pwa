@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - efex Race Day 3: Lobethal to Campbelltown</name>
+    <desc>Men's Stage 3 • 166.2 km. A decisive Adelaide Hills day with two climbs of Mount Lofty and two ascents of Corkscrew Road before the Campbelltown finish. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=0d7f7b45-198c-4521-b2b1-767aa552934a</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-3-lobethal-to-campbelltown"><text>Official stage details</text></link>
+    <time>2027-01-21T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-34.903000" lon="138.874000"><name>Start: Main Street, Lobethal</name><type>start</type></wpt>
+  <wpt lat="-34.962000" lon="138.723000"><name>Summertown Feed &amp; Clean Zone</name><desc>Prime feed zone before Mount Lofty ascent. Pass times: 11:13, 12:43.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-34.974000" lon="138.708000"><name>Mount Lofty KOM (Cat 2)</name><desc>4.4 km climb @ 4.0% with 14% maximum gradient. Pass times: 11:20, 12:50.</desc><type>kom</type></wpt>
+  <wpt lat="-34.954000" lon="138.874000"><name>Woodside Hotel Sprint</name><desc>Intermediate sprint points on Onkaparinga Valley Rd. Pass times: 11:59, 13:30.</desc><type>sprint</type></wpt>
+  <wpt lat="-34.887000" lon="138.743000"><name>Corkscrew Road KOM (Cat 1)</name><desc>Decisive 2.4 km climb @ 9.7% (16.2% max gradient). Peloton passes twice. Pass times: 14:17, 14:44.</desc><type>kom</type></wpt>
+  <wpt lat="-34.877000" lon="138.711000"><name>Foxfield Oval Campbelltown Finish</name><desc>Maryvale Road finish line hub. Pass times: 14:26, 14:53.</desc><type>finish_hub</type></wpt>
+  <trk>
+    <name>TDU 2027 - efex Race Day 3: Lobethal to Campbelltown</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-34.903000" lon="138.874000"><name>Main Street, Lobethal</name></trkpt>
+      <trkpt lat="-34.962000" lon="138.723000"><name>Summertown Feed &amp; Clean Zone</name></trkpt>
+      <trkpt lat="-34.974000" lon="138.708000"><name>Mount Lofty KOM (Cat 2)</name></trkpt>
+      <trkpt lat="-34.954000" lon="138.874000"><name>Woodside Hotel Sprint</name></trkpt>
+      <trkpt lat="-34.887000" lon="138.743000"><name>Corkscrew Road KOM (Cat 1)</name></trkpt>
+      <trkpt lat="-34.877000" lon="138.711000"><name>Foxfield Oval Campbelltown Finish</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

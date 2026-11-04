@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - THINK! Road Safety Race Day 1: Henley Beach to Gumeracha</name>
+    <desc>Men's Stage 1 • 164.9 km. Coastal start at Henley Beach before heading through Port Adelaide and the Adelaide Hills to Gumeracha. The route includes three ascents of Checker Hill, plus sprints in Williamstown and Lobethal. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=1968b897-f546-4042-8fde-d80edf8593b7</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-1-henley-beach-to-gumeracha"><text>Official stage details</text></link>
+    <time>2027-01-19T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-34.922000" lon="138.493000"><name>Start: Seaview Road, Henley Beach</name><type>start</type></wpt>
+  <wpt lat="-34.825000" lon="138.871000"><name>Checker Hill KOM</name><desc>Cat 1 climb (18.4% max gradient). Peloton passes 3 times. Pass times: 12:55, 13:47, 14:38.</desc><type>checkpoint</type></wpt>
+  <wpt lat="-34.821000" lon="138.884000"><name>Gumeracha Finish Line</name><desc>Stage 1 finish hub and lap transitions. Pass times: 13:04, 13:55, 14:47.</desc><type>checkpoint</type></wpt>
+  <wpt lat="-34.912000" lon="138.870000"><name>Lobethal Hotel (Sprint 2)</name><desc>Intermediate sprint point in town. Pass times: 13:20, 14:11.</desc><type>checkpoint</type></wpt>
+  <wpt lat="-34.832000" lon="138.831000"><name>Gorge Rd / Cudlee Creek</name><desc>Scenic gorge roadside viewing. Peloton passes 2 times. Pass times: 13:34, 14:25.</desc><type>checkpoint</type></wpt>
+  <trk>
+    <name>TDU 2027 - THINK! Road Safety Race Day 1: Henley Beach to Gumeracha</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-34.922000" lon="138.493000"><name>Seaview Road, Henley Beach</name></trkpt>
+      <trkpt lat="-34.825000" lon="138.871000"><name>Checker Hill KOM</name></trkpt>
+      <trkpt lat="-34.821000" lon="138.884000"><name>Gumeracha Finish Line</name></trkpt>
+      <trkpt lat="-34.912000" lon="138.870000"><name>Lobethal Hotel (Sprint 2)</name></trkpt>
+      <trkpt lat="-34.832000" lon="138.831000"><name>Gorge Rd / Cudlee Creek</name></trkpt>
+      <trkpt lat="-34.821000" lon="138.884000"><name>Gumeracha Finish Line</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

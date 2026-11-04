@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mytdu.app" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>TDU 2027 - Ziptrak® Race Day 4: Glenelg to Victor Harbor</name>
+    <desc>Men's Stage 4 • 144.7 km. The men race from Glenelg to Victor Harbor via Chandlers Hill, Coromandel Valley, Aldinga, Yankalilla, Myponga Reservoir and Nettle Hill. Indicative spectator route linking the start and official checkpoints in the order the peloton first passes; not the exact race course. Full turn-by-turn trace: https://tourdownunder.com.au/file-download/?key=24dd0334-9332-487e-98a8-ff4314476732</desc>
+    <link href="https://tourdownunder.com.au/race/stages/race-day-4-glenelg-to-victor-harbor"><text>Official stage details</text></link>
+    <time>2027-01-22T00:00:00Z</time>
+    <keywords>Santos Tour Down Under, TDU 2027, cycling, spectator route</keywords>
+  </metadata>
+  <wpt lat="-34.980500" lon="138.513500"><name>Start: Colley Terrace, Glenelg</name><type>start</type></wpt>
+  <wpt lat="-35.029000" lon="138.598000"><name>Black Road Feed Zone (Flagstaff Hill)</name><desc>Early feed zone as peloton hits the hills. Pass times: 11:08.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-35.060000" lon="138.675000"><name>Cherry Gardens Hill KOM (Cat 2)</name><desc>2.97 km climb @ 5.9%. Pass times: 11:13.</desc><type>kom</type></wpt>
+  <wpt lat="-35.281000" lon="138.448000"><name>Snapper Point Sprint (Aldinga Beach)</name><desc>Coastal sprint point on the Esplanade. Pass times: 12:15.</desc><type>sprint</type></wpt>
+  <wpt lat="-35.334000" lon="138.452000"><name>Sellicks Beach Feed Zone</name><desc>Coastal feed zone prior to Heatherdale Hill. Pass times: 12:26.</desc><type>feed_zone</type></wpt>
+  <wpt lat="-35.485000" lon="138.583000"><name>Nettle Hill KOM (Cat 1)</name><desc>Brutal 1.9 km climb @ 8.1% (15.6% max gradient). Pass times: 13:52.</desc><type>kom</type></wpt>
+  <wpt lat="-35.558000" lon="138.623000"><name>Victor Harbor Finish</name><desc>Coastal finish line outside Hotel Victor. Pass times: 14:24.</desc><type>finish_hub</type></wpt>
+  <trk>
+    <name>TDU 2027 - Ziptrak® Race Day 4: Glenelg to Victor Harbor</name>
+    <type>cycling</type>
+    <trkseg>
+      <trkpt lat="-34.980500" lon="138.513500"><name>Colley Terrace, Glenelg</name></trkpt>
+      <trkpt lat="-35.029000" lon="138.598000"><name>Black Road Feed Zone (Flagstaff Hill)</name></trkpt>
+      <trkpt lat="-35.060000" lon="138.675000"><name>Cherry Gardens Hill KOM (Cat 2)</name></trkpt>
+      <trkpt lat="-35.281000" lon="138.448000"><name>Snapper Point Sprint (Aldinga Beach)</name></trkpt>
+      <trkpt lat="-35.334000" lon="138.452000"><name>Sellicks Beach Feed Zone</name></trkpt>
+      <trkpt lat="-35.485000" lon="138.583000"><name>Nettle Hill KOM (Cat 1)</name></trkpt>
+      <trkpt lat="-35.558000" lon="138.623000"><name>Victor Harbor Finish</name></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

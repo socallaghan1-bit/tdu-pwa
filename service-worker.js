@@ -1,10 +1,12 @@
-const CACHE_NAME = 'tdu-pwa-v19'; // Bumped cache version to ensure immediate update
+const CACHE_NAME = 'mytdu-cache-v20'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
 const CDNJS_ORIGIN = 'https://cdnjs.cloudflare.com';
 const KEEP_CACHES = [CACHE_NAME, CDN_CACHE_NAME];
 const NETWORK_FIRST_DATA = ['./events.json', './facilities.json'];
+// Stage GPX files are precached for roadside offline downloads but refreshed network-first when traces are updated.
+const GPX_ROUTES = ['./routes/stage-1.gpx', './routes/stage-2.gpx', './routes/stage-3.gpx', './routes/stage-4.gpx', './routes/stage-5.gpx', './routes/stage-6.gpx'];
 const ASSETS = [
     './',
     './index.html',
@@ -18,6 +20,7 @@ const ASSETS = [
     './manifest.json',
     './icons/tdu-badge.png',
     './animations/success-check.json',
+    ...GPX_ROUTES,
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
@@ -71,8 +74,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Network First for frequently updated data files, falling back to the offline copy.
-    const dataFile = NETWORK_FIRST_DATA.find((file) => requestUrl.pathname.endsWith(file.slice(1)));
+    // Network First for frequently updated data files and GPX routes, falling back to the offline copy.
+    const isSameOrigin = requestUrl.origin === self.location.origin;
+    const isGpxRoute = isSameOrigin && /\/routes\/[A-Za-z0-9_-]+\.gpx$/.test(requestUrl.pathname);
+    const dataFile = isGpxRoute
+        ? `.${requestUrl.pathname.slice(requestUrl.pathname.lastIndexOf('/routes/'))}`
+        : NETWORK_FIRST_DATA.find((file) => requestUrl.pathname.endsWith(file.slice(1)));
     if (dataFile) {
         event.respondWith(
             fetch(event.request)
@@ -99,7 +106,7 @@ self.addEventListener('fetch', (event) => {
 // Spec'd assets (icons/icon-192x192.png, icons/badge-72x72.png) fall back to the bundled badge until they're added.
 const NOTIFICATION_ICON = new URL('icons/tdu-badge.png', self.registration.scope).href;
 const NOTIFICATION_BADGE = NOTIFICATION_ICON;
-const DEFAULT_NOTIFICATION_TITLE = 'TDU 2027';
+const DEFAULT_NOTIFICATION_TITLE = 'Santos Tour Down Under Alert';
 // Deep links must stay on this app or the official TDU site so a push payload can't open arbitrary pages.
 const ALLOWED_LINK_HOSTS = ['tourdownunder.com.au'];
 
@@ -138,6 +145,7 @@ function parsePushPayload(event) {
 }
 
 self.addEventListener('push', (event) => {
+    if (!event.data) return;
     const data = parsePushPayload(event);
 
     const stageId = cleanText(data.stageId, 64).replace(/[^A-Za-z0-9_-]/g, '');
@@ -145,7 +153,7 @@ self.addEventListener('push', (event) => {
     const url = safeUrl(data.url || data.targetUrl, { allowExternal: true }) || safeUrl('./index.html', { allowExternal: false });
     const image = safeUrl(data.image || data.imageUrl, { allowExternal: 'any' }) || undefined;
     const icon = safeUrl(data.icon, { allowExternal: 'any' }) || NOTIFICATION_ICON;
-    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-alert');
+    const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-race-alert');
     const title = cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE;
     const body = cleanText(data.body, 300);
 
@@ -159,7 +167,7 @@ self.addEventListener('push', (event) => {
         renotify: true,
         data: { url },
         actions: [
-            { action: 'open', title: '🗺️ View Map' },
+            { action: 'open_map', title: '🗺️ View Map' },
             { action: 'dismiss', title: 'Dismiss' }
         ]
     };
