@@ -5,7 +5,8 @@ Your interactive Adelaide Tour Down Under companion. Explore every street party,
 - The 2027 schedule contains the nine official race stages and four festival announcements, without placeholder community events.
 - All Days shows start hubs only. Selecting a day reveals race checkpoints and dashed connections between them (not turn-by-turn road routes), with distinct finish, KOM, sprint, and feed-zone pins.
 - Show on Map selects the event's day. Maps refit after becoming visible on desktop or mobile and use keyless OpenStreetMap tiles with attribution.
-- Run the data, filtering, and map-layer regressions with `node --test tests/schedule-map.test.cjs`.
+- Run the data, filtering, and map-layer regressions with `node --test tests/`.
+- Water & Toilets: drinking fountains and public toilets at key spectator hubs live in `facilities.json` (`id`, `name`, `type` = `water` | `toilet`, `lat`, `lng`, `notes`). The schedule map shows 💧 Water / 🚻 Toilets toggles (top-right, both off by default). Data is precached by the service worker (network first) and mirrored to localStorage for offline use. Coordinates are approximate—verify against council data before each Tour and bump `CACHE_NAME` when editing.
 
 ## Backlog additions
 - [x] Add optional sound or audio feedback for key in-app actions (synthesized via Web Audio API, with Settings toggle).

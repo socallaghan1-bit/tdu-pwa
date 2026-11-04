@@ -1,9 +1,10 @@
-const CACHE_NAME = 'tdu-pwa-v17'; // Bumped cache version to ensure immediate update
+const CACHE_NAME = 'tdu-pwa-v18'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
 const CDNJS_ORIGIN = 'https://cdnjs.cloudflare.com';
 const KEEP_CACHES = [CACHE_NAME, CDN_CACHE_NAME];
+const NETWORK_FIRST_DATA = ['./events.json', './facilities.json'];
 const ASSETS = [
     './',
     './index.html',
@@ -13,6 +14,7 @@ const ASSETS = [
     './stage-map.js',
     './push-notifications.js',
     './events.json',
+    './facilities.json',
     './manifest.json',
     './icons/tdu-badge.png',
     './animations/success-check.json',
@@ -69,15 +71,19 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (requestUrl.pathname.endsWith('/events.json')) {
+    // Network First for frequently updated data files, falling back to the offline copy.
+    const dataFile = NETWORK_FIRST_DATA.find((file) => requestUrl.pathname.endsWith(file.slice(1)));
+    if (dataFile) {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    const copy = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put('./events.json', copy));
+                    if (response.ok) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(dataFile, copy));
+                    }
                     return response;
                 })
-                .catch(() => caches.match('./events.json'))
+                .catch(() => caches.match(dataFile))
         );
         return;
     }
