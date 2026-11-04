@@ -10,12 +10,22 @@
     .field { margin-bottom: 16px; }
     label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
     input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .presets h3 { width: 100%; margin: 0 0 4px; font-size: 0.95rem; }
+    .presets button { flex: 1 1 30%; background: #1f2937; padding: 14px 10px; font-size: 0.95rem; }
+    .presets button.active { background: #16a34a; }
     button { background: #f26522; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2>📣 Broadcast Rich Push Notification</h2>
+    <div class="presets" id="push-presets" role="group" aria-label="Quick Race-Day Templates">
+      <h3>⚡ Quick Race-Day Templates</h3>
+      <button type="button" data-preset="heat">🔥 Extreme Heat Delay</button>
+      <button type="button" data-preset="caravan">🚗 Caravan Merch Alert</button>
+      <button type="button" data-preset="willunga">🚴 Attack on Willunga</button>
+    </div>
     <form id="push-form">
       <div class="field">
         <label>Admin Secret Key</label>
@@ -79,6 +89,36 @@
   </div>
 
   <script>
+    const PUSH_PRESETS = {
+      heat: {
+        title: '⚠️ Heat Protocol Invoked',
+        body: "Today's stage start delayed by 45 mins due to 39°C forecast. Revised timetable live in app.",
+        url: './index.html#schedule'
+      },
+      caravan: {
+        title: '🎁 Publicity Caravan Approaching!',
+        body: 'Caravan is 15 minutes ahead of the peloton throwing caps & bidons. Head to the roadside!',
+        url: './index.html#map'
+      },
+      willunga: {
+        title: '⚡ Peloton Hits the Final Climb!',
+        body: 'The lead group has hit the base of Willunga. Pass window estimated in 7-10 minutes.',
+        url: './index.html#map'
+      }
+    };
+
+    document.getElementById('push-presets').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-preset]');
+      const preset = btn && PUSH_PRESETS[btn.dataset.preset];
+      if (!preset) return;
+      document.getElementById('title').value = preset.title;
+      document.getElementById('body').value = preset.body;
+      document.getElementById('targetUrl').value = preset.url;
+      document.querySelectorAll('#push-presets button').forEach((b) => b.classList.toggle('active', b === btn));
+      const key = document.getElementById('adminKey');
+      (key.value ? document.querySelector('#push-form button[type="submit"]') : key).focus();
+    });
+
     document.getElementById('push-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       

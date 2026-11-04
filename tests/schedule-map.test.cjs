@@ -72,7 +72,8 @@ test('schedule contains exactly nine retained stages and four located announceme
     const expected = [
         ...Array.from({ length: 6 }, (_, i) => `2027-men-${i + 1}`),
         ...Array.from({ length: 3 }, (_, i) => `2027-women-${i + 1}`),
-        '2027-oceania-tt', '2027-oceania-rr', '2027-opening-concert', '2027-gumeracha-festival'
+        '2027-oceania-tt', '2027-oceania-rr', '2027-opening-concert', '2027-gumeracha-festival',
+        'hub-the-road-pedla-2027'
     ];
     assert.deepEqual(events.map((event) => event.id).sort(), expected.sort());
     const { context } = setup();
@@ -87,7 +88,7 @@ test('All Days shows only hubs and clears focused routes', () => {
     assert.equal(routes.layers.length, 1);
     context.currentDayFilter = 'All';
     context.updateScheduleMapMarkers();
-    assert.equal(markers.layers.length, 13);
+    assert.equal(markers.layers.length, 14);
     assert.equal(routes.layers.length, 0);
     assert.equal(map.options.maxZoom, 13);
     assert.deepEqual(Array.from(map.options.padding), [35, 35]);

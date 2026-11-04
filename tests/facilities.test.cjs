@@ -78,5 +78,5 @@ test('invalid facilities are dropped and text is escaped', () => {
 test('service worker precaches facilities.json', () => {
     const sw = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
     assert.match(sw, /'\.\/facilities\.json'/);
-    assert.match(sw, /CACHE_NAME = 'tdu-pwa-v18'/);
+    assert.match(sw, /CACHE_NAME = 'tdu-pwa-v19'/);
 });
