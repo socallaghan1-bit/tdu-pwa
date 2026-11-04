@@ -22,6 +22,10 @@ const BROUTER_MAP_CENTRE = '12/-34.85/138.80/standard';
 let scheduleMap = null;
 let scheduleMarkersLayer = null;
 let scheduleRouteLayer = null;
+let waterLayer = null;
+let toiletLayer = null;
+let facilitiesData = null;
+let facilitiesLoadPromise = null;
 let isMobileScheduleMapActive = false;
 
 const VIEW_ANALYTICS_CONFIG = {
@@ -2203,6 +2207,11 @@ async function initScheduleMap() {
     }).addTo(scheduleMap);
     scheduleRouteLayer = L.layerGroup().addTo(scheduleMap);
     scheduleMarkersLayer = L.layerGroup().addTo(scheduleMap);
+    // Facility layers stay off the map until toggled so the race route stays uncluttered.
+    waterLayer = L.layerGroup();
+    toiletLayer = L.layerGroup();
+    addFacilityToggleControl(L);
+    loadFacilities().then(renderFacilityLayers);
     if (statusEl) statusEl.textContent = '';
     scheduleMap.invalidateSize();
     updateScheduleMapMarkers();
@@ -2340,6 +2349,146 @@ function updateScheduleMapMarkers() {
     });
 
     fitScheduleMapToBounds(bounds);
+}
+
+/* ==========================================================================
+   Water & Toilets Facility Layers
+   ========================================================================== */
+
+const FACILITIES_CACHE_KEY = 'tdu-facilities-cache-v1';
+const FACILITY_TYPES = {
+    water: { label: 'Water', emoji: '💧', icon: 'fa-droplet', className: 'facility-pin-water' },
+    toilet: { label: 'Toilets', emoji: '🚻', icon: 'fa-restroom', className: 'facility-pin-toilet' }
+};
+
+function normalizeFacilities(data) {
+    if (!Array.isArray(data)) return [];
+    return data.filter((item) => item
+        && Object.prototype.hasOwnProperty.call(FACILITY_TYPES, item.type)
+        && Number.isFinite(Number(item.lat)) && Math.abs(Number(item.lat)) <= 90
+        && Number.isFinite(Number(item.lng)) && Math.abs(Number(item.lng)) <= 180)
+        .map((item) => ({
+            id: String(item.id || ''),
+            name: String(item.name || (item.type === 'water' ? 'Drinking water' : 'Public toilet')),
+            type: item.type,
+            lat: Number(item.lat),
+            lng: Number(item.lng),
+            notes: item.notes ? String(item.notes) : ''
+        }));
+}
+
+function readCachedFacilities() {
+    try {
+        return normalizeFacilities(JSON.parse(localStorage.getItem(FACILITIES_CACHE_KEY) || 'null'));
+    } catch (error) {
+        return [];
+    }
+}
+
+function loadFacilities() {
+    if (facilitiesLoadPromise) return facilitiesLoadPromise;
+    facilitiesLoadPromise = (async () => {
+        try {
+            const response = await fetch('./facilities.json');
+            if (!response.ok) throw new Error('Could not load facilities.json');
+            const data = await response.json();
+            facilitiesData = normalizeFacilities(data);
+            try {
+                localStorage.setItem(FACILITIES_CACHE_KEY, JSON.stringify(data));
+            } catch (storageError) { /* storage full or disabled */ }
+        } catch (error) {
+            facilitiesData = readCachedFacilities();
+            // Allow a retry next time if nothing usable was found.
+            if (!facilitiesData.length) facilitiesLoadPromise = null;
+        }
+        return facilitiesData;
+    })();
+    return facilitiesLoadPromise;
+}
+
+function buildFacilityPopup(facility) {
+    const meta = FACILITY_TYPES[facility.type];
+    const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${Number(facility.lat)},${Number(facility.lng)}`;
+    return `
+        <div class="map-popup-card facility-popup-card">
+            <div class="popup-tag facility-tag facility-tag-${facility.type}"><i class="fas ${meta.icon}" aria-hidden="true"></i> ${escapeHTML(meta.label)}</div>
+            <h4 class="popup-title">${escapeHTML(facility.name)}</h4>
+            ${facility.notes ? `<p class="facility-notes">${escapeHTML(facility.notes)}</p>` : ''}
+            <div class="popup-actions-row">
+                <a href="${directionsUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-nav"><i class="fas fa-location-arrow"></i> Get Directions</a>
+            </div>
+        </div>
+    `.trim();
+}
+
+function renderFacilityLayers(facilities) {
+    if (!waterLayer || !toiletLayer || !window.L) return;
+    waterLayer.clearLayers();
+    toiletLayer.clearLayers();
+    (facilities || facilitiesData || []).forEach((facility) => {
+        const meta = FACILITY_TYPES[facility.type];
+        if (!meta) return;
+        const icon = window.L.divIcon({
+            className: 'custom-map-marker facility-marker',
+            html: `<div class="facility-pin ${meta.className}" aria-label="${escapeHTML(meta.label)}"><i class="fas ${meta.icon}" aria-hidden="true"></i></div>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+            popupAnchor: [0, -13]
+        });
+        const marker = window.L.marker([facility.lat, facility.lng], { icon, title: facility.name });
+        marker.bindPopup(buildFacilityPopup(facility));
+        (facility.type === 'water' ? waterLayer : toiletLayer).addLayer(marker);
+    });
+}
+
+async function setFacilityLayerVisible(type, visible, button) {
+    const layer = type === 'water' ? waterLayer : toiletLayer;
+    if (!scheduleMap || !layer) return;
+    if (button) {
+        button.setAttribute('aria-pressed', String(visible));
+        button.classList.toggle('is-active', visible);
+        const state = button.querySelector('.facility-toggle-state');
+        if (state) state.textContent = visible ? 'On' : 'Off';
+    }
+    if (!visible) {
+        scheduleMap.removeLayer(layer);
+        return;
+    }
+    if (!facilitiesData || !facilitiesData.length) {
+        const facilities = await loadFacilities();
+        renderFacilityLayers(facilities);
+        if (!facilities || !facilities.length) {
+            if (typeof showToast === 'function') showToast('Water & toilet locations are unavailable offline right now');
+        }
+    }
+    if (button && button.getAttribute('aria-pressed') !== 'true') return;
+    layer.addTo(scheduleMap);
+}
+
+function addFacilityToggleControl(L) {
+    if (!scheduleMap || !L || !L.Control) return;
+    const FacilityToggle = L.Control.extend({
+        options: { position: 'topright' },
+        onAdd() {
+            const bar = L.DomUtil.create('div', 'facility-toggle-bar');
+            bar.setAttribute('role', 'group');
+            bar.setAttribute('aria-label', 'Show water and toilet locations');
+            Object.entries(FACILITY_TYPES).forEach(([type, meta]) => {
+                const btn = L.DomUtil.create('button', `facility-toggle-btn facility-toggle-${type}`, bar);
+                btn.type = 'button';
+                btn.setAttribute('aria-pressed', 'false');
+                btn.innerHTML = `<span aria-hidden="true">${meta.emoji}</span> ${escapeHTML(meta.label)} <span class="facility-toggle-state">Off</span>`;
+                L.DomEvent.on(btn, 'click', (event) => {
+                    L.DomEvent.stop(event);
+                    setFacilityLayerVisible(type, btn.getAttribute('aria-pressed') !== 'true', btn);
+                });
+            });
+            L.DomEvent.disableClickPropagation(bar);
+            L.DomEvent.disableScrollPropagation(bar);
+            return bar;
+        }
+    });
+    new FacilityToggle().addTo(scheduleMap);
 }
 
 window.copyGpsCoordinates = function(lat, lng, btnElement) {

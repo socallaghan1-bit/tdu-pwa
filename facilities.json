@@ -1,0 +1,130 @@
+[
+  {
+    "id": "fac-norton-summit-tap-1",
+    "name": "Norton Summit Scenic Lookout Water Tap",
+    "type": "water",
+    "lat": -34.9229,
+    "lng": 138.7148,
+    "notes": "Drinking tap near the lookout car park. Bring a bottle; limited supply on race day."
+  },
+  {
+    "id": "fac-norton-summit-toilet-1",
+    "name": "Norton Summit Public Toilets",
+    "type": "toilet",
+    "lat": -34.9214,
+    "lng": 138.7226,
+    "notes": "Public toilets in the Norton Summit village near the Scenic Hotel. Expect queues before the peloton passes."
+  },
+  {
+    "id": "fac-uraidla-tap-1",
+    "name": "Uraidla Oval Drinking Fountain",
+    "type": "water",
+    "lat": -34.9575,
+    "lng": 138.7441,
+    "notes": "Drinking fountain beside the oval clubrooms. Close to the stage finish festival area."
+  },
+  {
+    "id": "fac-uraidla-toilet-1",
+    "name": "Uraidla Oval Public Toilets",
+    "type": "toilet",
+    "lat": -34.9579,
+    "lng": 138.7436,
+    "notes": "Clubroom toilets plus extra portable units on race day. Accessible toilet available."
+  },
+  {
+    "id": "fac-lobethal-tap-1",
+    "name": "Lobethal Main St Water Fountain",
+    "type": "water",
+    "lat": -34.9041,
+    "lng": 138.8725,
+    "notes": "Public water fountain and bottle refill on Main Street near the sprint line."
+  },
+  {
+    "id": "fac-lobethal-toilet-1",
+    "name": "Lobethal Main St Public Toilets",
+    "type": "toilet",
+    "lat": -34.9036,
+    "lng": 138.8734,
+    "notes": "Public toilets off Main Street, a short walk from the town centre viewing area."
+  },
+  {
+    "id": "fac-tanunda-tap-1",
+    "name": "Tanunda Oval Drinking Fountain",
+    "type": "water",
+    "lat": -34.5248,
+    "lng": 138.9566,
+    "notes": "Drinking fountain at the recreation park near the oval entrance."
+  },
+  {
+    "id": "fac-tanunda-toilet-1",
+    "name": "Tanunda Oval Public Toilets",
+    "type": "toilet",
+    "lat": -34.5243,
+    "lng": 138.9572,
+    "notes": "Public toilets at the oval and recreation park. Accessible toilet available."
+  },
+  {
+    "id": "fac-willunga-tap-1",
+    "name": "Willunga Rose Garden Water Tap",
+    "type": "water",
+    "lat": -35.2755,
+    "lng": 138.5612,
+    "notes": "Public water fountain & bottle refill station"
+  },
+  {
+    "id": "fac-willunga-toilet-1",
+    "name": "Willunga Town Square Public Toilets",
+    "type": "toilet",
+    "lat": -35.2724,
+    "lng": 138.5531,
+    "notes": "Public toilets near the town square on High Street. Busy before and after the Willunga Hill stage."
+  },
+  {
+    "id": "fac-willunga-hill-tap-1",
+    "name": "Willunga Hill Summit Water Station",
+    "type": "water",
+    "lat": -35.2698,
+    "lng": 138.5862,
+    "notes": "Race-day water refill point near the summit spectator zone. No permanent tap; carry water up the climb."
+  },
+  {
+    "id": "fac-willunga-hill-toilet-1",
+    "name": "Willunga Hill Summit Portable Toilets",
+    "type": "toilet",
+    "lat": -35.2702,
+    "lng": 138.5868,
+    "notes": "Temporary race-day portable toilets at the summit spectator zone. Not available outside event days."
+  },
+  {
+    "id": "fac-campbelltown-tap-1",
+    "name": "Campbelltown Finish Drinking Fountain",
+    "type": "water",
+    "lat": -34.8858,
+    "lng": 138.6618,
+    "notes": "Drinking fountain and bottle refill near the finish line precinct."
+  },
+  {
+    "id": "fac-campbelltown-toilet-1",
+    "name": "Campbelltown Memorial Oval Toilets",
+    "type": "toilet",
+    "lat": -34.8862,
+    "lng": 138.6626,
+    "notes": "Public toilets at the oval, a short walk from the finish straight. Accessible toilet available."
+  },
+  {
+    "id": "fac-glenelg-tap-1",
+    "name": "Glenelg Foreshore Water Fountain",
+    "type": "water",
+    "lat": -34.9806,
+    "lng": 138.5112,
+    "notes": "Public water fountain & bottle refill on the foreshore near Moseley Square."
+  },
+  {
+    "id": "fac-glenelg-toilet-1",
+    "name": "Glenelg Foreshore Public Toilets",
+    "type": "toilet",
+    "lat": -34.9813,
+    "lng": 138.5122,
+    "notes": "Public toilets on the foreshore by Moseley Square. Accessible toilet and baby change available."
+  }
+]
