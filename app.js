@@ -1154,7 +1154,7 @@ function renderSchedule() {
             <h3 class="event-title">Spotlight Your Cycling Brand</h3>
             <p class="event-desc">Put your brand, cafe, or club ride in front of thousands of spectators and riders during TDU week.</p>
             <div class="card-actions">
-                <a href="mailto:contact@mytdu.app?subject=My%20TDU%20Partner%20Inquiry" class="btn btn-outline-primary">
+                <a href="mailto:callas1894@gmail.com?subject=My%20TDU%20Partner%20Inquiry" class="btn btn-outline-primary">
                     <i class="far fa-envelope"></i> Inquire for Placements
                 </a>
             </div>
