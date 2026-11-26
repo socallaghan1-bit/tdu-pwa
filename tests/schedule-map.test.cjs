@@ -43,6 +43,7 @@ function setup(day = 'All', data = events) {
         highlightEventCard() {},
         formatTime: (time) => time,
         formatDate: (date) => date,
+        URL,
         window: {
             L: {
                 latLngBounds: (points) => points,
@@ -62,8 +63,8 @@ function setup(day = 'All', data = events) {
     });
     for (const name of [
         'escapeHTML', 'isValidCheckpointCoords', 'parseCoordinates', 'getEventCategoryColor',
-        'getFilteredScheduleEvents', 'fitScheduleMapToBounds',
-        'buildSchedulePopup', 'updateScheduleMapMarkers'
+        'getFilteredScheduleEvents', 'fitScheduleMapToBounds', 'getSafeExternalUrl', 'isRideWithGpsUrl',
+        'getSpectatorHub', 'buildSchedulePopup', 'updateScheduleMapMarkers'
     ]) loadFunction(context, name);
     return { context, map, markers, routes };
 }
@@ -136,11 +137,24 @@ test('shared race days draw separate routes without cross-event connections', ()
 test('focused social event keeps its category and list popup without a race route', () => {
     const { context, markers, routes } = setup('2027-01-16');
     context.updateScheduleMapMarkers();
-    assert.equal(markers.layers.length, 2);
-    assert.equal(routes.layers.length, 0);
+    // Concert + Oceania road race pins, plus the road race's gravel, summit and Echelon Club hub checkpoints.
+    assert.equal(markers.layers.length, 5);
+    assert.equal(routes.layers.length, 1);
     const concert = markers.layers.find((marker) => marker.eventId === '2027-opening-concert');
     assert.ok(concert.options.icon.html.includes('fa-beer-mug-empty'));
     assert.ok(concert.popup.includes('View in List'));
+});
+
+test('Echelon Club hub pin links to the Oceania road race and its Ride with GPS route', () => {
+    const { context, markers } = setup('2027-01-16');
+    context.updateScheduleMapMarkers();
+    const hub = markers.layers.find((marker) => marker.options.icon.html.includes('pin-hub'));
+    assert.ok(hub, 'missing hub pin');
+    assert.ok(hub.popup.includes('The Echelon Club'));
+    assert.ok(hub.popup.includes('href="https://ridewithgps.com/routes/56721408" target="_blank" rel="noopener"'));
+    assert.ok(hub.popup.includes("focusEventFromMap('2027-oceania-rr')"));
+    const race = markers.layers.find((marker) => marker.eventId === '2027-oceania-rr');
+    assert.ok(race.popup.includes('Hub: The Echelon Club'));
 });
 
 test('empty results reset camera and invalid coordinates are skipped', () => {

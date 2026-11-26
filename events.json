@@ -703,38 +703,148 @@
       }
     ]
   },
- {
+  {
     "id": "2027-oceania-tt",
-    "title": "Oceania Road Championships & PSL SA Kick It: Time Trials",
+    "title": "Oceania Road Championships: Individual Time Trial",
+    "subtitle": "Flat Out in McLaren Vale",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-15",
-    "start_time": "09:00",
-    "location": "Adelaide (Course TBA)",
-    "coords": "-34.9286,138.6000",
-    "description": "Opening stage of Hertz ProVelo Super League Round 1 (SA Kick It) and the 2027 Oceania Road Championships. Elite, U23, and U19 riders tackle a rolling one-lap individual time trial course to claim continental titles.",
+    "start_time": "07:31",
+    "end_time": "12:47",
+    "status": "scheduled",
+    "location": "Main Road, McLaren Flat (McLaren Vale), SA",
+    "coords": "-35.2068,138.5861",
+    "description": "One 17.3 km lap that makes riders keep rebuilding speed over a rolling climb, then hit a fast descent and short pinches on the way home. U19, U23 and Elite riders from Australia, New Zealand and the Pacific race the clock for the Oceania time trial titles. This is also the opening day of the Hertz ProVelo Super League Round 1 (SA Kick It). Spectator tip: set up near the start/finish on Main Road, McLaren Flat, to see every rider leave the ramp and sprint home.",
+    "route_url": "https://ridewithgps.com/routes/57076507?via=UVBaYQ8gdw7FcmwRqf-2Nw",
+    "route_label": "SAKI27 - ITT",
+    "schedule_title": "Provisional schedule",
+    "schedule": [
+      {
+        "category": "U19 Women",
+        "distance_km": 17.3,
+        "start": "07:31",
+        "first_finish": "08:00",
+        "last_finish": "08:39"
+      },
+      {
+        "category": "U19 Men",
+        "distance_km": 17.3,
+        "start": "08:20",
+        "first_finish": "08:45",
+        "last_finish": "09:56"
+      },
+      {
+        "category": "U23 / Elite Women",
+        "distance_km": 17.3,
+        "start": "09:39",
+        "first_finish": "10:06",
+        "last_finish": "11:05"
+      },
+      {
+        "category": "U23 / Elite Men",
+        "distance_km": 17.3,
+        "start": "10:48",
+        "first_finish": "11:08",
+        "last_finish": "12:47"
+      }
+    ],
     "tags": [
       "race",
-      "tt",
-      "oceania",
-      "provelo"
+      "pro-racing",
+      "time-trial",
+      "spectator",
+      "mclaren-vale"
     ]
   },
   {
     "id": "2027-oceania-rr",
-    "title": "Oceania Road Championships & PSL SA Kick It: Road Races",
+    "title": "Oceania Road Championships: Road Race",
+    "subtitle": "Oceania Glory Decided in McLaren Vale",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-16",
-    "start_time": "08:00",
-    "location": "McLaren Vale, SA",
-    "coords": "-35.2189,138.5436",
-    "description": "Set among the vineyards of McLaren Vale, Elite, U23, and U19 riders from across Australia, New Zealand, and the Pacific take on a testing climb for the Oceania Road Race titles and ProVelo Super League Round 1 points.",
+    "start_time": "07:26",
+    "end_time": "18:56",
+    "status": "scheduled",
+    "location": "McLaren Vale, SA (Echelon Club Hub & Vineyard Circuit)",
+    "coords": "-35.2068,138.5858",
+    "description": "Racing among the McLaren Vale vineyards, with UCI ranking points and the Oceania Champion's jersey on the line just days before the Santos Tour Down Under. Each 21.3 km lap has a testing climb and a decisive gravel sector on Pennys Hill Road that will split the bunch, and riders have no team radios or support to lean on. Spectator hub: The Echelon Club at the start/finish, with a live DJ, food trucks, bars, a big screen and a family-friendly race atmosphere. This is also Round 1 of the Hertz ProVelo Super League (SA Kick It).",
+    "route_url": "https://ridewithgps.com/routes/56721408",
+    "route_label": "SAKI - Road race",
+    "schedule_title": "Provisional schedule",
+    "schedule": [
+      {
+        "category": "Men's U19",
+        "distance_km": 85.2,
+        "start": "07:26",
+        "finish": "09:48"
+      },
+      {
+        "category": "Women's Elite",
+        "distance_km": 106.5,
+        "start": "10:18",
+        "finish": "13:06"
+      },
+      {
+        "category": "Men's Elite",
+        "distance_km": 127.8,
+        "start": "13:36",
+        "finish": "16:30"
+      },
+      {
+        "category": "Women's U19",
+        "distance_km": 63.6,
+        "start": "17:00",
+        "finish": "18:56"
+      }
+    ],
+    "highlights": [
+      {
+        "type": "gravel",
+        "label": "Gravel Sector",
+        "detail": "3.6 km unpaved climb on Pennys Hill Road (km 3.9–7.4 of each lap)"
+      },
+      {
+        "type": "hub",
+        "label": "Echelon Club Hub (Food, Drinks & Big Screen)",
+        "detail": "Live DJ, food trucks, bars and big screen at the start/finish"
+      }
+    ],
+    "checkpoints": [
+      {
+        "name": "Gravel Sector – Pennys Hill Road",
+        "type": "gravel",
+        "coords": "-35.2279,138.5953",
+        "address": "Pennys Hill Road, McLaren Vale SA",
+        "description": "Start of the 3.6 km unpaved climb (km 3.9 of each lap). This is where the race is likely to split, so it's a great place to watch."
+      },
+      {
+        "name": "Range Road summit",
+        "type": "kom",
+        "coords": "-35.2109,138.6413",
+        "address": "Range Road, Blewitt Springs SA",
+        "description": "The highest point of the lap at around 415 m (km 12.2), followed by a fast run back to McLaren Flat."
+      },
+      {
+        "name": "The Echelon Club — Oceania Road Championships Hub",
+        "type": "spectator_hub",
+        "coords": "-35.2068,138.5858",
+        "address": "Start/finish, Main Road, McLaren Flat SA",
+        "description": "Vineyard circuit start/finish hub with a live DJ, food trucks, bars and a big screen showing the gravel sector and the decisive laps. Family-friendly.",
+        "url": "https://ridewithgps.com/routes/56721408",
+        "url_label": "View Route on Ride with GPS"
+      }
+    ],
     "tags": [
       "race",
-      "road",
-      "oceania",
-      "provelo"
+      "pro-racing",
+      "road-race",
+      "gravel",
+      "spectator",
+      "family-friendly",
+      "food-drink",
+      "mclaren-vale"
     ]
   },
   {
@@ -858,6 +968,8 @@
     "description": "Ride the official Norwood stage circuit between the Men's and Women's final stage starts! Registration opens at 9:40am, safety briefing at 10:50am, and 50 minutes of family riding from 11:00am to 11:50am ($15 adult + child pass, $10 additional child).",
     "tags": [
       "ride",
+      "participation",
+      "family-ride",
       "family",
       "kids",
       "norwood"

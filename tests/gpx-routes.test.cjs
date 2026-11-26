@@ -20,7 +20,10 @@ function loadFunctions(names) {
 }
 
 const ctx = loadFunctions(['escapeHTML', 'getStageGpxUrl', 'getGpxDownloadName', 'renderStageGpxLink']);
-const raceStages = events.filter((event) => event.type === 'Race Stage' && Array.isArray(event.checkpoints) && event.checkpoints.length);
+// Championship races publish their course on Ride with GPS instead of a bundled TDU stage file.
+const raceStages = events.filter((event) => event.type === 'Race Stage'
+    && Array.isArray(event.checkpoints) && event.checkpoints.length
+    && !/^https:\/\/ridewithgps\.com\//.test(event.route_url || ''));
 
 test('every race stage links to a bundled, well-formed GPX file', () => {
     assert.ok(raceStages.length > 0);

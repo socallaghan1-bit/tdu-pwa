@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mytdu-cache-v21'; // Bumped cache version to ensure immediate update
+const CACHE_NAME = 'mytdu-cache-v22'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;

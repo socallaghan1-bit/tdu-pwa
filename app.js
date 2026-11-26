@@ -398,15 +398,31 @@ function formatOptionLabel(optionId) {
     return String(optionId || '').replace(/-/g, ' ');
 }
 
+const PARTICIPATION_TAGS = ['participation', 'family-ride', 'kids', 'kids-ride', 'community-ride'];
+// Spectator-racing tags that must never attach to rides the public takes part in.
+const SPECTATOR_RACE_TAGS = ['race', 'pro-racing', 'sprint', 'watch-race', 'time-trial', 'road-race'];
+
+function getRawEventTags(event) {
+    return Array.isArray(event.tags)
+        ? event.tags.map((tag) => String(tag).toLowerCase().trim()).filter(Boolean)
+        : [];
+}
+
+function isParticipationEvent(event) {
+    const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
+    return type.includes('community ride')
+        || type.includes('participation')
+        || type.includes('family event')
+        || getRawEventTags(event).some((tag) => PARTICIPATION_TAGS.includes(tag));
+}
+
 function getEventTags(event) {
-    const tags = new Set(
-        Array.isArray(event.tags)
-            ? event.tags.map((tag) => String(tag).toLowerCase().trim()).filter(Boolean)
-            : []
-    );
+    const tags = new Set(getRawEventTags(event));
+    const isParticipation = isParticipationEvent(event);
     const text = `${event.category || ''} ${getEventType(event)} ${event.title || ''} ${event.description || ''} ${event.location || ''} ${event.finish_location || ''}`.toLowerCase();
 
-    if (text.includes('stage')) tags.add('race');
+    // Kids/community rides often mention the stage circuit they use; that doesn't make them a race to watch.
+    if (text.includes('stage') && !isParticipation) tags.add('race');
     if (text.includes('hill') || text.includes('mount lofty') || text.includes('corkscrew') || text.includes('climb')) {
         tags.add('hills');
         tags.add('climbing');
@@ -423,16 +439,20 @@ function getEventTags(event) {
         tags.add('city');
     }
     if (event.featured) tags.add('featured');
+    if (isParticipation) SPECTATOR_RACE_TAGS.forEach((tag) => tags.delete(tag));
     return Array.from(tags);
 }
 
 function isRideEvent(event) {
+    // Pro races (e.g. a road race with a gravel sector) are for watching, not riding.
+    if (isWatchEvent(event)) return false;
     const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
     const tags = getEventTags(event);
     return type.includes('ride') || tags.some((tag) => ['ride', 'group ride', 'gravel', 'participatory'].includes(tag));
 }
 
 function isWatchEvent(event) {
+    if (isParticipationEvent(event)) return false;
     const type = `${event.category || ''} ${getEventType(event)}`.toLowerCase();
     return type.includes('stage') || getEventTags(event).includes('race');
 }
@@ -653,7 +673,13 @@ async function exportEventsToCalendar(events, fileName = 'tdu_events.ics') {
         const startTime = event.start_time || '09:00';
         const endTime = event.end_time || '17:00';
         const title = event.title || 'TDU Event';
-        const description = event.description || '';
+        const scheduleLines = getEventScheduleLines(event);
+        const routeUrl = getSafeExternalUrl(event.route_url);
+        const description = [
+            event.description || '',
+            scheduleLines.length ? `${event.schedule_title || 'Schedule'}:\n${scheduleLines.join('\n')}` : '',
+            routeUrl ? `Route: ${routeUrl}` : ''
+        ].filter(Boolean).join('\n\n');
         const location = getCalendarLocation(event);
         const dtstart = formatICSDate(date, startTime);
         const dtend = formatICSDate(date, endTime);
@@ -1309,10 +1335,14 @@ function getStageMapCheckpoints(event) {
                 .map((time) => timeToMinutes(time))
                 .filter((minutes) => minutes !== null)
                 .sort((a, b) => a - b)[0];
+            const url = getSafeExternalUrl(checkpoint.url);
             return {
                 name: String(checkpoint.name || 'Checkpoint'),
                 description: String(checkpoint.description || ''),
                 address: checkpoint.address ? String(checkpoint.address) : '',
+                type: String(checkpoint.type || ''),
+                url,
+                urlLabel: url ? String(checkpoint.url_label || 'View route') : '',
                 passTimes: passTimes.map(String),
                 firstPass: firstPass === undefined ? Number.POSITIVE_INFINITY : firstPass,
                 lat: coords.lat,
@@ -1342,6 +1372,121 @@ function renderStageGpxLink(event, eventId, extraClass = '') {
     const gpxUrl = getStageGpxUrl(event);
     if (!gpxUrl) return '';
     return `<a href="${escapeHTML(gpxUrl)}" download="${escapeHTML(getGpxDownloadName(event))}" class="btn btn-secondary-action btn-gpx ${extraClass}" onclick="trackEventAction('download_gpx', '${escapeHTML(eventId)}')">⬇️ Download GPX (Garmin / Wahoo)</a>`;
+}
+
+function getSafeExternalUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) return '';
+    try {
+        const url = new URL(value.trim());
+        return url.protocol === 'https:' ? url.href : '';
+    } catch (error) {
+        return '';
+    }
+}
+
+function isRideWithGpsUrl(href) {
+    if (!href) return false;
+    try {
+        const host = new URL(href).hostname.toLowerCase();
+        return host === 'ridewithgps.com' || host.endsWith('.ridewithgps.com');
+    } catch (error) {
+        return false;
+    }
+}
+
+function renderRideWithGpsLink(event, eventId, extraClass = '') {
+    const href = getSafeExternalUrl(event && event.route_url);
+    if (!isRideWithGpsUrl(href)) return '';
+    const label = String(event.route_label || '').trim();
+    return `<a href="${escapeHTML(href)}" target="_blank" rel="noopener" class="btn btn-rwgps ${extraClass}" onclick="trackEventAction('open_rwgps_route', '${escapeHTML(eventId)}')">
+        <i class="fas fa-route" aria-hidden="true"></i>
+        <span>View Route on Ride with GPS${label ? `<span class="btn-rwgps-label">${escapeHTML(label)}</span>` : ''}</span>
+    </a>`;
+}
+
+function getEventScheduleRows(event) {
+    if (!event || !Array.isArray(event.schedule)) return [];
+    return event.schedule
+        .map((row) => {
+            if (!row || typeof row !== 'object') return null;
+            const distance = Number(row.distance_km);
+            return {
+                category: String(row.category || '').trim(),
+                distance: Number.isFinite(distance) && distance > 0 ? `${distance} km` : '',
+                start: formatTime(row.start),
+                firstFinish: formatTime(row.first_finish),
+                lastFinish: formatTime(row.last_finish),
+                finish: formatTime(row.finish)
+            };
+        })
+        .filter((row) => row && row.category && row.start);
+}
+
+function getEventScheduleLines(event) {
+    return getEventScheduleRows(event).map((row) => {
+        const parts = [`Start ${row.start}`];
+        if (row.firstFinish) parts.push(`First finisher ${row.firstFinish}`);
+        if (row.lastFinish) parts.push(`Last finisher ${row.lastFinish}`);
+        if (row.finish) parts.push(`Est. finish ${row.finish}`);
+        return `• ${row.category}${row.distance ? ` (${row.distance})` : ''}: ${parts.join(' | ')}`;
+    });
+}
+
+function renderEventSchedule(event) {
+    const rows = getEventScheduleRows(event);
+    if (!rows.length) return '';
+    const hasFinisherWindow = rows.some((row) => row.firstFinish || row.lastFinish);
+    const columns = hasFinisherWindow
+        ? [['start', 'Start'], ['firstFinish', 'First finisher'], ['lastFinish', 'Last finisher']]
+        : [['start', 'Start'], ['finish', 'Est. finish']];
+    const title = String(event.schedule_title || 'Schedule').trim();
+
+    return `
+        <div class="event-schedule">
+            <div class="event-schedule-title"><i class="far fa-clock" aria-hidden="true"></i> ${escapeHTML(title)}</div>
+            <div class="event-schedule-scroll">
+            <table class="event-schedule-table">
+                <thead>
+                    <tr><th scope="col">Category</th>${columns.map(([, label]) => `<th scope="col">${escapeHTML(label)}</th>`).join('')}</tr>
+                </thead>
+                <tbody>
+                    ${rows.map((row) => `
+                        <tr>
+                            <th scope="row">${escapeHTML(row.category)}${row.distance ? `<span class="event-schedule-distance">${escapeHTML(row.distance)}</span>` : ''}</th>
+                            ${columns.map(([key]) => `<td>${escapeHTML(row[key] || '—')}</td>`).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    `;
+}
+
+const EVENT_HIGHLIGHT_ICONS = {
+    gravel: 'fa-road',
+    hub: 'fa-champagne-glasses'
+};
+
+function renderEventHighlights(event) {
+    if (!event || !Array.isArray(event.highlights)) return '';
+    const items = event.highlights
+        .filter((item) => item && typeof item === 'object' && String(item.label || '').trim())
+        .map((item) => {
+            const type = Object.prototype.hasOwnProperty.call(EVENT_HIGHLIGHT_ICONS, item.type) ? item.type : 'default';
+            const icon = EVENT_HIGHLIGHT_ICONS[type] || 'fa-star';
+            const detail = String(item.detail || '').trim();
+            return `
+                <div class="event-highlight event-highlight-${type}">
+                    <i class="fas ${icon}" aria-hidden="true"></i>
+                    <div>
+                        <strong>${escapeHTML(item.label)}</strong>
+                        ${detail ? `<span>${escapeHTML(detail)}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    return items.length ? `<div class="event-highlights">${items.join('')}</div>` : '';
 }
 
 function getEventCoords(event) {
@@ -1930,7 +2075,9 @@ function createEventCardHTML(event, eventId, isSaved) {
     const startTime = event.start_time || '';
     const endTime = event.end_time || '';
     const description = event.description || '';
-    const routeUrl = event.route_url || '';
+    const routeUrl = getSafeExternalUrl(event.route_url);
+    const rideWithGpsLink = renderRideWithGpsLink(event, eventId);
+    const subtitle = String(event.subtitle || '').trim();
     const heartClass = isSaved ? 'fas saved' : 'far';
     const weatherText = event.weather || 'TBC';
     const rating = getEventRatingVibes(event);
@@ -1975,7 +2122,7 @@ function createEventCardHTML(event, eventId, isSaved) {
                 </button>
             </div>
             <h3 class="event-title">${escapeHTML(title)}</h3>
-
+            ${subtitle ? `<p class="event-subtitle">${escapeHTML(subtitle)}</p>` : ''}
             <div class="event-meta">
                 ${dateDisplay || timeRange ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${dateDisplay} ${dateDisplay && timeRange ? ' • ' : ''} ${timeRange}</span>` : ''}
                 ${locationMeta}
@@ -1983,6 +2130,9 @@ function createEventCardHTML(event, eventId, isSaved) {
             </div>
 
             ${description ? `<div class="event-desc">${escapeHTML(description)}</div>` : ''}
+            ${renderEventHighlights(event)}
+            ${renderEventSchedule(event)}
+            ${rideWithGpsLink}
 
             <div class="card-primary-actions">
                 <button type="button" class="btn btn-checkin ${isCheckedIn ? 'checked-in' : ''}" onclick="handleEventCheckIn('${escapeHTML(eventId)}', this)">
@@ -2002,7 +2152,7 @@ function createEventCardHTML(event, eventId, isSaved) {
                 <div class="secondary-actions-grid">
                     ${primaryLocation ? `<a href="${primaryMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_start_map', '${escapeHTML(eventId)}')"><i class="fas fa-directions" aria-hidden="true"></i> ${hasDistinctFinish ? 'Start Directions' : 'Directions'}</a>` : ''}
                     ${hasDistinctFinish ? `<a href="${finishMapLink}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_finish_map', '${escapeHTML(eventId)}')"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Finish Map</a>` : ''}
-                    ${routeUrl ? `<a href="${routeUrl}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route Details</a>` : ''}
+                    ${routeUrl && !rideWithGpsLink ? `<a href="${escapeHTML(routeUrl)}" target="_blank" rel="noopener" class="btn btn-secondary-action" onclick="trackEventAction('open_route_link', '${escapeHTML(eventId)}')"><i class="fas fa-route" aria-hidden="true"></i> Route Details</a>` : ''}
                     ${renderStageGpxLink(event, eventId)}
                     ${checkpoints.length ? `<button type="button" class="btn btn-secondary-action" onclick="openStageMap('${escapeHTML(eventId)}')"><i class="fas fa-chart-line" aria-hidden="true"></i> Checkpoints</button>` : ''}
                     <button type="button" class="btn btn-secondary-action" onclick="exportStageToCalendar('${escapeHTML(eventId)}')"><i class="far fa-calendar-plus" aria-hidden="true"></i> Add to Calendar</button>
@@ -2248,9 +2398,16 @@ function fitScheduleMapToBounds(points) {
     scheduleMap.setView([-34.9285, 138.6007], 9);
 }
 
+function getSpectatorHub(event) {
+    if (!event || !Array.isArray(event.checkpoints)) return null;
+    return event.checkpoints.find((cp) => cp && cp.type === 'spectator_hub' && cp.name) || null;
+}
+
 function buildSchedulePopup(event, meta, eventId) {
     const startTime = event.start_time ? formatTime(event.start_time) : '';
     const loc = event.location || event.finish_location || 'Adelaide';
+    const hub = getSpectatorHub(event);
+    const routeUrl = getSafeExternalUrl(event.route_url);
     return `
         <div class="map-popup-card">
             <div class="popup-tag" style="background:${meta.bg}20; color:${meta.bg};">${escapeHTML(meta.label)}</div>
@@ -2259,7 +2416,9 @@ function buildSchedulePopup(event, meta, eventId) {
                 ${event.date ? `<span><i class="far fa-calendar"></i> ${formatDate(event.date)}</span>` : ''}
                 ${startTime ? `<span><i class="far fa-clock"></i> ${startTime}</span>` : ''}
                 <span><i class="fas fa-location-dot"></i> ${escapeHTML(loc)}</span>
+                ${hub ? `<span><i class="fas fa-champagne-glasses"></i> Hub: ${escapeHTML(hub.name)}</span>` : ''}
             </div>
+            ${isRideWithGpsUrl(routeUrl) ? `<a href="${escapeHTML(routeUrl)}" target="_blank" rel="noopener" class="popup-btn popup-btn-rwgps"><i class="fas fa-route"></i> View Route on Ride with GPS</a>` : ''}
             <button type="button" class="btn btn-primary popup-action-btn" onclick="focusEventFromMap('${escapeHTML(eventId)}')">
                 <i class="fas fa-arrow-down"></i> View in List
             </button>
@@ -2314,12 +2473,19 @@ function updateScheduleMapMarkers() {
             routePoints.push(point);
 
             const name = cp.name || '';
-            const isFinish = cpIdx === checkpoints.length - 1 || cp.type === 'finish_hub' || /finish/i.test(name);
+            const isHub = cp.type === 'spectator_hub';
+            const isFinish = !isHub && (cpIdx === checkpoints.length - 1 || cp.type === 'finish_hub' || /finish/i.test(name));
             let pinClass = 'pin-checkpoint';
             let iconClass = 'fa-location-dot';
-            if (isFinish) {
+            if (isHub) {
+                pinClass = 'pin-hub';
+                iconClass = 'fa-champagne-glasses';
+            } else if (isFinish) {
                 pinClass = 'pin-finish';
                 iconClass = 'fa-flag-checkered';
+            } else if (cp.type === 'gravel' || /gravel/i.test(name)) {
+                pinClass = 'pin-gravel';
+                iconClass = 'fa-road';
             } else if (cp.type === 'kom' || /\bkom\b/i.test(name)) {
                 pinClass = 'pin-kom';
                 iconClass = 'fa-mountain';
@@ -2346,9 +2512,18 @@ function updateScheduleMapMarkers() {
             const addressText = address ? `<br><span class="popup-cp-address"><i class="fas fa-location-dot"></i> ${escapeHTML(address)}</span>` : '';
             const passText = Array.isArray(cp.pass_times) && cp.pass_times.length ? `<br>Passes: ${escapeHTML(cp.pass_times.join(', '))}` : '';
             const descText = cp.description ? `<br>${escapeHTML(cp.description)}` : '';
+            const cpUrl = getSafeExternalUrl(cp.url);
+            const linkRow = cpUrl || isHub
+                ? `<div class="popup-actions-row">
+                        ${cpUrl ? `<a href="${escapeHTML(cpUrl)}" target="_blank" rel="noopener" class="popup-btn popup-btn-rwgps"><i class="fas fa-route"></i> ${escapeHTML(cp.url_label || 'View route')}</a>` : ''}
+                        ${isHub ? `<button type="button" class="popup-btn popup-btn-copy" onclick="focusEventFromMap('${escapeHTML(eventId)}')"><i class="fas fa-arrow-down"></i> View event</button>` : ''}
+                   </div>`
+                : '';
             const popupContent = `
-                <div class="map-popup-card cp-popup-card">
+                <div class="map-popup-card cp-popup-card${isHub ? ' hub-popup-card' : ''}">
+                    ${isHub ? '<div class="popup-tag popup-tag-hub">Spectator Hub</div>' : ''}
                     <strong>${escapeHTML(name)}</strong>${addressText}${passText}${descText}
+                    ${linkRow}
                     <div class="popup-actions-row">
                         <a href="https://www.google.com/maps/dir/?api=1&destination=${cpCoords.lat},${cpCoords.lng}" target="_blank" rel="noopener" class="popup-btn popup-btn-nav"><i class="fas fa-location-arrow"></i> Navigate</a>
                         <button type="button" class="popup-btn popup-btn-copy" onclick="copyGpsCoordinates(${cpCoords.lat}, ${cpCoords.lng}, this)"><i class="far fa-copy"></i> Copy GPS</button>

@@ -34,10 +34,16 @@
         }
     }
 
+    const CHECKPOINT_COLORS = { spectator_hub: '#7c3aed', gravel: '#92400e', kom: '#dc2626' };
+
     function buildPopupHTML(checkpoint) {
+        const label = checkpoint.type === 'spectator_hub' ? '<span class="popup-tag popup-tag-hub">Spectator Hub</span><br>' : '';
         const times = checkpoint.passTimes.length ? `<br>Passes: ${escapeHTML(checkpoint.passTimes.join(', '))}` : '';
         const description = checkpoint.description ? `<br>${escapeHTML(checkpoint.description)}` : '';
-        return `<strong>${escapeHTML(checkpoint.name)}</strong>${times}${description}`;
+        const link = checkpoint.url
+            ? `<div class="popup-actions-row"><a href="${escapeHTML(checkpoint.url)}" target="_blank" rel="noopener" class="popup-btn popup-btn-rwgps"><i class="fas fa-route"></i> ${escapeHTML(checkpoint.urlLabel)}</a></div>`
+            : '';
+        return `${label}<strong>${escapeHTML(checkpoint.name)}</strong>${times}${description}${link}`;
     }
 
     async function drawPath(L, latlngs, token) {
@@ -81,11 +87,12 @@
         L.tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION }).addTo(map);
 
         checkpoints.forEach((checkpoint) => {
+            const isHub = checkpoint.type === 'spectator_hub';
             L.circleMarker([checkpoint.lat, checkpoint.lng], {
-                radius: 8,
+                radius: isHub ? 11 : 8,
                 color: '#ffffff',
                 weight: 2.5,
-                fillColor: '#f26522',
+                fillColor: CHECKPOINT_COLORS[checkpoint.type] || '#f26522',
                 fillOpacity: 1.0
             }).bindPopup(buildPopupHTML(checkpoint)).addTo(map);
         });
@@ -236,8 +243,9 @@
         const actions = getElement('stage-map-actions');
         if (actions) {
             const gpxLink = typeof renderStageGpxLink === 'function' ? renderStageGpxLink(event, strId) : '';
-            actions.innerHTML = gpxLink;
-            actions.hidden = !gpxLink;
+            const routeLink = typeof renderRideWithGpsLink === 'function' ? renderRideWithGpsLink(event, strId) : '';
+            actions.innerHTML = routeLink + gpxLink;
+            actions.hidden = !(gpxLink || routeLink);
         }
 
         modal.classList.add('active');

@@ -871,6 +871,16 @@ header {
     background-color: #f59e0b !important;
 }
 
+.marker-pin.pin-hub {
+    background-color: #7c3aed !important;
+    width: 36px;
+    height: 36px;
+}
+
+.marker-pin.pin-gravel {
+    background-color: #92400e !important;
+}
+
 .marker-pin.pin-checkpoint {
     width: 24px;
     height: 24px;
@@ -984,6 +994,168 @@ header {
     margin-bottom: 14px;
     line-height: 1.45;
     color: #444;
+}
+
+.event-subtitle {
+    margin: -2px 0 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--primary-dark);
+}
+
+.event-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.event-highlight {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #fed7c3;
+    background: #fff4ee;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #444;
+}
+
+.event-highlight i {
+    flex: 0 0 auto;
+    width: 18px;
+    margin-top: 2px;
+    text-align: center;
+    color: var(--primary);
+}
+
+.event-highlight strong {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--text-dark);
+}
+
+.event-highlight-gravel {
+    border-color: #e7c9a5;
+    background: #fbf3e8;
+}
+
+.event-highlight-gravel i {
+    color: #92400e;
+}
+
+.event-highlight-hub {
+    border-color: #ddd0fb;
+    background: #f5f0ff;
+}
+
+.event-highlight-hub i {
+    color: #7c3aed;
+}
+
+.event-schedule {
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.event-schedule-title {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-dark);
+    background: var(--bg-color);
+    border-bottom: 1px solid var(--border);
+}
+
+.event-schedule-title i {
+    color: var(--primary);
+    margin-right: 4px;
+}
+
+.event-schedule-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.event-schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.76rem;
+}
+
+.event-schedule-table th,
+.event-schedule-table td {
+    padding: 7px 6px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.event-schedule-table tbody tr:last-child th,
+.event-schedule-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.event-schedule-table thead th {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-light);
+}
+
+.event-schedule-table td {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: #333;
+}
+
+.event-schedule-table tbody th {
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.event-schedule-distance {
+    display: block;
+    font-weight: 500;
+    font-size: 0.72rem;
+    color: var(--text-light);
+}
+
+.btn-rwgps {
+    width: 100%;
+    margin-bottom: 4px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border-color: #fa6400;
+    background: #fff;
+    color: #c2410c;
+    font-weight: 700;
+    text-align: center;
+}
+
+.btn-rwgps:hover,
+.btn-rwgps:focus-visible {
+    background: #fff4ee;
+    border-color: #c2410c;
+}
+
+.btn-rwgps-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.stage-map-actions .btn-rwgps {
+    width: auto;
+    margin-bottom: 0;
 }
 
 .tag {
@@ -1630,6 +1802,8 @@ header {
 
 .stage-map-actions {
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: flex-end;
     margin-top: 10px;
 }
@@ -2177,6 +2351,34 @@ header {
 .popup-btn-copy:hover {
     background-color: #e5e7eb;
     border-color: #9ca3af;
+}
+
+.popup-btn-rwgps {
+    background-color: #ffffff;
+    color: #c2410c !important;
+    border-color: #fa6400;
+}
+
+.map-popup-card > .popup-btn-rwgps {
+    display: flex;
+    width: 100%;
+    margin: 8px 0 6px;
+}
+
+.popup-btn-rwgps:hover {
+    background-color: #fff4ee;
+}
+
+.popup-tag-hub {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #ede9fe;
+    color: #6d28d9;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 .popup-cp-address {
