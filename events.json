@@ -753,7 +753,6 @@
       "provelo"
     ]
   },
-  },
   {
     "id": "2027-opening-concert",
     "title": "Tour Village Opening Concert: DJ Hot Dub Time Machine",
@@ -796,6 +795,7 @@
     "type": "Festival",
     "date": "2027-01-19",
     "end_date": "2027-01-24",
+    "start_time": "",
     "time": "Mornings (Rides & Coffee) | 2:00 PM - Late (Race Stream & Social)",
     "location": "Adelaide CBD (Check link for venue)",
     "coords": "-34.9285,138.6007",
@@ -811,7 +811,8 @@
       "live-stream",
       "group-rides"
     ]
-  }{
+  },
+  {
     "id": "2027-auscycling-group-rides",
     "title": "Santos Tour Down Under Daily Group Rides (Hosted by AusCycling)",
     "category": "Community Rides",
