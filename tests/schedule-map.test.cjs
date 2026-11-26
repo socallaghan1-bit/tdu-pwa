@@ -68,16 +68,26 @@ function setup(day = 'All', data = events) {
     return { context, map, markers, routes };
 }
 
-test('schedule contains exactly nine retained stages and four located announcements', () => {
+test('schedule contains the retained stages and announcements with valid event fields', () => {
     const expected = [
         ...Array.from({ length: 6 }, (_, i) => `2027-men-${i + 1}`),
         ...Array.from({ length: 3 }, (_, i) => `2027-women-${i + 1}`),
-        '2027-oceania-tt', '2027-oceania-rr', '2027-opening-concert', '2027-gumeracha-festival',
-        'hub-the-road-pedla-2027'
+        '2027-oceania-tt', '2027-oceania-rr', '2027-psl-sakickit-crit',
+        '2027-auscycling-group-rides', '2027-oakley-carpark-climb',
+        '2027-health-partners-family-ride', '2027-opening-concert',
+        '2027-gumeracha-festival', 'hub-the-road-pedla-2027'
     ];
     assert.deepEqual(events.map((event) => event.id).sort(), expected.sort());
     const { context } = setup();
-    events.forEach((event) => assert.ok(context.parseCoordinates(event.coords), event.id));
+    events.forEach((event) => {
+        for (const field of ['category', 'type', 'date', 'location', 'coords', 'description']) {
+            assert.ok(typeof event[field] === 'string' && event[field].trim(), `${event.id}: ${field}`);
+        }
+        assert.match(event.date, /^\d{4}-\d{2}-\d{2}$/, event.id);
+        assert.match(event.start_time, /^(?:[01]\d|2[0-3]):[0-5]\d$|^$/, event.id);
+        assert.ok(Array.isArray(event.tags) && event.tags.length > 0 && event.tags.every((tag) => typeof tag === 'string' && tag.trim()), event.id);
+        assert.ok(context.parseCoordinates(event.coords), event.id);
+    });
     const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
     events.forEach((event) => assert.ok(html.includes(`applyDayFilter('${event.date}', this)`)));
 });
@@ -88,7 +98,7 @@ test('All Days shows only hubs and clears focused routes', () => {
     assert.equal(routes.layers.length, 1);
     context.currentDayFilter = 'All';
     context.updateScheduleMapMarkers();
-    assert.equal(markers.layers.length, 14);
+    assert.equal(markers.layers.length, events.length);
     assert.equal(routes.layers.length, 0);
     assert.equal(map.options.maxZoom, 13);
     assert.deepEqual(Array.from(map.options.padding), [35, 35]);
@@ -134,7 +144,7 @@ test('focused social event keeps its category and list popup without a race rout
 });
 
 test('empty results reset camera and invalid coordinates are skipped', () => {
-    const { context, map, markers } = setup('2027-01-18');
+    const { context, map, markers } = setup('2027-01-18', []);
     context.updateScheduleMapMarkers();
     assert.equal(markers.layers.length, 0);
     assert.deepEqual(Array.from(map.center), [-34.9285, 138.6007]);
