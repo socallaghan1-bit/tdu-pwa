@@ -703,37 +703,56 @@
       }
     ]
   },
-  {
+ {
     "id": "2027-oceania-tt",
-    "title": "Oceania Road Championships: Time Trials",
+    "title": "Oceania Road Championships & PSL SA Kick It: Time Trials",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-15",
     "start_time": "09:00",
-    "location": "Victoria Square / Tarntanyangga, Adelaide",
+    "location": "Adelaide (Course TBA)",
     "coords": "-34.9286,138.6000",
-    "description": "Kicking off the Santos Festival of Cycling! Elite, U23, and U19 riders battle the clock for the Oceania Time Trial titles.",
+    "description": "Opening stage of Hertz ProVelo Super League Round 1 (SA Kick It) and the 2027 Oceania Road Championships. Elite, U23, and U19 riders tackle a rolling one-lap individual time trial course to claim continental titles.",
     "tags": [
       "race",
       "tt",
-      "oceania"
+      "oceania",
+      "provelo"
     ]
   },
   {
     "id": "2027-oceania-rr",
-    "title": "Oceania Road Championships: Road Races",
+    "title": "Oceania Road Championships & PSL SA Kick It: Road Races",
     "category": "Race Stages",
     "type": "Race Stage",
     "date": "2027-01-16",
     "start_time": "08:00",
-    "location": "Victoria Square / Tarntanyangga, Adelaide",
-    "coords": "-34.9286,138.6000",
-    "description": "Riders from Australia, New Zealand, and across the Pacific converge on Adelaide to crown the continental road race champions.",
+    "location": "McLaren Vale, SA",
+    "coords": "-35.2189,138.5436",
+    "description": "Set among the vineyards of McLaren Vale, Elite, U23, and U19 riders from across Australia, New Zealand, and the Pacific take on a testing climb for the Oceania Road Race titles and ProVelo Super League Round 1 points.",
     "tags": [
       "race",
       "road",
-      "oceania"
+      "oceania",
+      "provelo"
     ]
+  },
+  {
+    "id": "2027-psl-sakickit-crit",
+    "title": "ProVelo Super League SA Kick It: Adelaide City Criterium",
+    "category": "Race Stages",
+    "type": "Race Stage",
+    "date": "2027-01-17",
+    "start_time": "10:00",
+    "location": "Adelaide CBD (Circuit TBA)",
+    "coords": "-34.9286,138.6000",
+    "description": "The final stage of the three-day SA Kick It opening round of the Hertz ProVelo Super League. Elite men and women battle for overall round points on a fast Adelaide street circuit.",
+    "tags": [
+      "race",
+      "criterium",
+      "provelo"
+    ]
+  },
   },
   {
     "id": "2027-opening-concert",
@@ -791,6 +810,56 @@
       "drinks",
       "live-stream",
       "group-rides"
+    ]
+  }{
+    "id": "2027-auscycling-group-rides",
+    "title": "Santos Tour Down Under Daily Group Rides (Hosted by AusCycling)",
+    "category": "Community Rides",
+    "type": "Participation Ride",
+    "date": "2027-01-18",
+    "start_time": "07:00",
+    "location": "City of Adelaide Tour Village, Victoria Square / Tarntanyangga",
+    "coords": "-34.9286,138.6000",
+    "description": "Daily morning social peloton rides departing from the Tour Village from 18–24 January. Hosted by AusCycling on guided routes with timed challenges along the way. Route and registration details TBA.",
+    "tags": [
+      "ride",
+      "participation",
+      "auscycling",
+      "social"
+    ]
+  },
+  {
+    "id": "2027-oakley-carpark-climb",
+    "title": "The Oakley Carpark Climb",
+    "category": "Community Rides",
+    "type": "Participation Ride",
+    "date": "2027-01-23",
+    "start_time": "19:00",
+    "location": "Adelaide CBD (Venue TBA)",
+    "coords": "-34.9285,138.6007",
+    "description": "TDU's iconic Saturday night multi-storey carpark sprint knockout race and party. Capped at 72 riders with knockout heats from 8:00pm, final at 9:15pm, bars, DJs, and free entry for spectators.",
+    "tags": [
+      "ride",
+      "participation",
+      "party",
+      "night"
+    ]
+  },
+  {
+    "id": "2027-health-partners-family-ride",
+    "title": "Health Partners Family Ride",
+    "category": "Community Rides",
+    "type": "Family Event",
+    "date": "2027-01-24",
+    "start_time": "09:40",
+    "location": "Cnr Margaret Street & The Parade, Norwood",
+    "coords": "-34.9206,138.6336",
+    "description": "Ride the official Norwood stage circuit between the Men's and Women's final stage starts! Registration opens at 9:40am, safety briefing at 10:50am, and 50 minutes of family riding from 11:00am to 11:50am ($15 adult + child pass, $10 additional child).",
+    "tags": [
+      "ride",
+      "family",
+      "kids",
+      "norwood"
     ]
   }
 ]
