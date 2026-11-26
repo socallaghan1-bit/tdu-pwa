@@ -269,10 +269,106 @@
         }, 6000);
     }
 
+    // --- In-App Alert Card (opened by tapping a push notification) ---
+    const PUSH_ALERT_PARAMS = ['push_title', 'push_body', 'push_img'];
+    let pushAlertReturnFocus = null;
+
+    function safeAlertImage(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        try {
+            const url = new URL(raw, window.location.href);
+            return url.protocol === 'https:' || url.origin === window.location.origin ? url.href : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function showPushAlertModal({ title, body, image } = {}) {
+        const modal = getElement('push-alert-modal');
+        const cleanTitle = String(title || '').trim();
+        const cleanBody = String(body || '').trim();
+        if (!modal || (!cleanTitle && !cleanBody)) return false;
+
+        const card = modal.querySelector('.push-alert-card');
+        const img = getElement('push-alert-image');
+        const imageUrl = safeAlertImage(image);
+
+        getElement('push-alert-title').textContent = cleanTitle || 'Race Alert';
+        getElement('push-alert-body').textContent = cleanBody;
+        if (img) {
+            img.hidden = !imageUrl;
+            img.onerror = () => {
+                img.hidden = true;
+                if (card) card.classList.remove('has-image');
+            };
+            if (imageUrl) img.src = imageUrl;
+            else img.removeAttribute('src');
+        }
+        if (card) card.classList.toggle('has-image', Boolean(imageUrl));
+
+        if (!modal.classList.contains('active')) pushAlertReturnFocus = document.activeElement;
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        const okButton = getElement('push-alert-ok');
+        if (okButton) okButton.focus();
+        return true;
+    }
+
+    function closePushAlertModal() {
+        const modal = getElement('push-alert-modal');
+        if (!modal || !modal.classList.contains('active')) return;
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        if (pushAlertReturnFocus && typeof pushAlertReturnFocus.focus === 'function') pushAlertReturnFocus.focus();
+        pushAlertReturnFocus = null;
+    }
+
+    function showPushAlertFromUrl() {
+        let params;
+        try {
+            params = new URLSearchParams(window.location.search);
+        } catch (error) {
+            return;
+        }
+        if (!PUSH_ALERT_PARAMS.some((param) => params.has(param))) return;
+
+        showPushAlertModal({
+            title: params.get('push_title'),
+            body: params.get('push_body'),
+            image: params.get('push_img')
+        });
+
+        // Remove only the push params so a refresh doesn't reopen the card; other deep links (e.g. ?event=) still apply.
+        PUSH_ALERT_PARAMS.forEach((param) => params.delete(param));
+        const query = params.toString();
+        if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState({}, document.title, window.location.pathname + (query ? `?${query}` : '') + window.location.hash);
+        }
+    }
+
+    function initPushAlertModal() {
+        const modal = getElement('push-alert-modal');
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal || event.target.closest('.push-alert-close, #push-alert-ok')) closePushAlertModal();
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closePushAlertModal();
+        });
+        showPushAlertFromUrl();
+    }
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'PUSH_RECEIVED') {
+            if (!event.data) return;
+            if (event.data.type === 'PUSH_RECEIVED') {
                 showInAppToast(event.data.payload);
+            } else if (event.data.type === 'PUSH_NOTIFICATION_CLICK') {
+                const existingToast = document.getElementById('tdu-inapp-toast');
+                if (existingToast) existingToast.remove();
+                showPushAlertModal(event.data.payload);
             }
         });
     }
@@ -323,8 +419,10 @@
     }
 
     if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPushAlertModal, { once: true });
         document.addEventListener('DOMContentLoaded', initPushAlerts, { once: true });
     } else {
+        initPushAlertModal();
         initPushAlerts();
     }
 }());

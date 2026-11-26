@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mytdu-cache-v20'; // Bumped cache version to ensure immediate update
+const CACHE_NAME = 'mytdu-cache-v21'; // Bumped cache version to ensure immediate update
 // CDNJS assets are version-pinned in their URLs, so they live in their own cache that survives app updates.
 const CDN_CACHE_NAME = 'tdu-cdnjs-v1';
 const CDN_CACHE_MAX_ENTRIES = 60;
@@ -152,7 +152,8 @@ self.addEventListener('push', (event) => {
     // Accept both `url` and legacy `targetUrl` (sent by admin.html).
     const url = safeUrl(data.url || data.targetUrl, { allowExternal: true }) || safeUrl('./index.html', { allowExternal: false });
     const image = safeUrl(data.image || data.imageUrl, { allowExternal: 'any' }) || undefined;
-    const icon = safeUrl(data.icon, { allowExternal: 'any' }) || NOTIFICATION_ICON;
+    const payloadIcon = safeUrl(data.icon, { allowExternal: 'any' });
+    const icon = payloadIcon || NOTIFICATION_ICON;
     const tag = cleanText(data.tag, 64) || (stageId ? `stage-${stageId}` : 'tdu-race-alert');
     const title = cleanText(data.title, 120) || DEFAULT_NOTIFICATION_TITLE;
     const body = cleanText(data.body, 300);
@@ -165,7 +166,8 @@ self.addEventListener('push', (event) => {
         vibrate: [200, 100, 200, 100, 200], // Distinctive alert vibration
         tag,
         renotify: true,
-        data: { url },
+        // Carried through to notificationclick so the app can show the full alert in an in-app card.
+        data: { title, body, image: image || payloadIcon || '', url },
         actions: [
             { action: 'open_map', title: '🗺️ View Map' },
             { action: 'dismiss', title: 'Dismiss' }
@@ -186,21 +188,47 @@ self.addEventListener('push', (event) => {
     })());
 });
 
-async function focusOrOpen(targetUrl) {
+const PUSH_ALERT_PARAMS = { title: 'push_title', body: 'push_body', image: 'push_img' };
+
+function buildAlertUrl(targetUrl, alert) {
+    const url = new URL(targetUrl, self.location.origin);
+    // Only app pages can render the in-app card; external links open untouched.
+    if (url.origin !== self.location.origin) return url;
+    Object.entries(PUSH_ALERT_PARAMS).forEach(([key, param]) => {
+        if (alert[key]) url.searchParams.set(param, alert[key]);
+    });
+    return url;
+}
+
+function stripAlertParams(href) {
+    const url = new URL(href);
+    Object.values(PUSH_ALERT_PARAMS).forEach((param) => url.searchParams.delete(param));
+    return url;
+}
+
+async function focusOrOpen(targetUrl, alert) {
     const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const target = new URL(targetUrl, self.registration.scope);
+    const target = buildAlertUrl(targetUrl, alert);
     const client = target.origin === self.location.origin
-        ? windowClients.find((c) => new URL(c.url).origin === target.origin)
+        ? (windowClients.find((c) => c.focused) || windowClients.find((c) => new URL(c.url).origin === target.origin))
         : null;
 
-    if (client) {
-        const focused = await client.focus().catch(() => client);
-        if (client.url !== target.href && 'navigate' in focused) {
-            await focused.navigate(target.href).catch(() => null);
-        }
+    if (!client) return self.clients.openWindow(target.href);
+
+    const focused = await client.focus().catch(() => client);
+    const destination = stripAlertParams(target.href);
+    const current = stripAlertParams(focused.url || client.url);
+    const pagePath = (url) => url.pathname.replace(/\/index\.html$/, '/');
+    const samePage = pagePath(destination) === pagePath(current) && destination.search === current.search;
+    const message = { type: 'PUSH_NOTIFICATION_CLICK', payload: alert };
+
+    // Already on the target page: show the card in place instead of reloading the app.
+    if (samePage || !('navigate' in focused)) {
+        focused.postMessage(message);
         return;
     }
-    return self.clients.openWindow(target.href);
+    const navigated = await focused.navigate(target.href).catch(() => null);
+    if (!navigated) focused.postMessage(message);
 }
 
 self.addEventListener('notificationclick', (event) => {
@@ -210,5 +238,10 @@ self.addEventListener('notificationclick', (event) => {
 
     const data = notification.data || {};
     const targetUrl = safeUrl(data.url, { allowExternal: true }) || getAppEventUrl('');
-    event.waitUntil(focusOrOpen(targetUrl));
+    const alert = {
+        title: cleanText(data.title, 120) || cleanText(notification.title, 120),
+        body: cleanText(data.body, 300) || cleanText(notification.body, 300),
+        image: safeUrl(data.image, { allowExternal: 'any' })
+    };
+    event.waitUntil(focusOrOpen(targetUrl, alert));
 });

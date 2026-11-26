@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="stylesheet" href="style.css?v=2.0">
+    <link rel="stylesheet" href="style.css?v=2.1">
     <!-- Manual SPA pageviews are sent from app.js. If GA4 Enhanced Measurement browser-history pageviews are enabled, disable them to avoid duplicates. -->
     <script>
         window.TDU_GA_MEASUREMENT_ID = 'G-95K2T8ZYW4';
@@ -366,15 +366,27 @@
         </div>
     </div>
 
+    <div id="push-alert-modal" class="modal-overlay push-alert-overlay" aria-hidden="true">
+        <div class="modal-card push-alert-card" role="alertdialog" aria-modal="true" aria-labelledby="push-alert-title" aria-describedby="push-alert-body">
+            <button class="close-btn push-alert-close" type="button" aria-label="Close alert">&times;</button>
+            <img id="push-alert-image" class="push-alert-image" alt="" hidden>
+            <div class="push-alert-content">
+                <h3 id="push-alert-title" class="push-alert-title"></h3>
+                <p id="push-alert-body" class="push-alert-body"></p>
+                <button id="push-alert-ok" class="btn btn-primary push-alert-ok" type="button">Got It</button>
+            </div>
+        </div>
+    </div>
+
     <nav class="bottom-nav" aria-label="Primary navigation">
         <button class="nav-item active" onclick="showView('home')" id="nav-home"><i class="fas fa-home" aria-hidden="true"></i>Home</button>
         <button class="nav-item" onclick="showView('schedule')" id="nav-schedule"><i class="fas fa-calendar-alt" aria-hidden="true"></i>Schedule</button>
         <button class="nav-item" onclick="showView('saved')" id="nav-saved"><span class="badge" id="nav-badge" style="display:none;">0</span><i class="fas fa-heart" aria-hidden="true"></i>My TDU</button>
     </nav>
 
-    <script src="cdn-libs.js?v=2.0"></script>
-    <script src="app.js?v=3.0"></script>
-    <script src="stage-map.js?v=1.0"></script>
-    <script src="push-notifications.js?v=1.0"></script>
+    <script src="cdn-libs.js?v=2.1"></script>
+    <script src="app.js?v=3.1"></script>
+    <script src="stage-map.js?v=1.1"></script>
+    <script src="push-notifications.js?v=1.1"></script>
 </body>
 </html>

@@ -1818,6 +1818,83 @@ header {
     color: var(--text-dark);
 }
 
+/* In-app card shown after tapping a push notification */
+.push-alert-overlay {
+    z-index: 2100;
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.push-alert-card {
+    position: relative;
+    max-width: 420px;
+    max-height: calc(100vh - 40px);
+    padding: 0;
+    overflow-y: auto;
+}
+
+.push-alert-image {
+    display: block;
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    border-radius: 20px 20px 0 0;
+}
+
+.push-alert-image[hidden] {
+    display: none;
+}
+
+.push-alert-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.push-alert-content {
+    padding: 22px;
+}
+
+.push-alert-title {
+    margin: 0 36px 10px 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--text-dark);
+}
+
+.push-alert-card.has-image .push-alert-title {
+    margin-right: 0;
+}
+
+.push-alert-body {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #444;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.push-alert-body:empty {
+    display: none;
+}
+
+.push-alert-ok {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 0.95rem;
+}
+
 .feedback-frame {
     width: 100%;
     min-height: 420px;
